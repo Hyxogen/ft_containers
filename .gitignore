@@ -1,0 +1,7 @@
+# intermediary files
+*.o
+*.d
+
+# build results
+*.a
+*.out
