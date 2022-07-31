@@ -17,15 +17,24 @@
 #ifndef FT_VECTOR_HPP
 #define FT_VECTOR_HPP
 
+#include <cstddef>
 #include <memory>
 
 namespace ft {
 
 template <class T, typename Allocator = std::allocator<T>> class vector {
       public:
-        vector() {}
+        typedef value_type T;
+        typedef size_type std::size_t;
 
-        bool empty() const { return true; }
+      private:
+        value_type *_data;
+        size_type _size;
+
+      public:
+        vector() : _data(NULL), _size(0) {}
+
+        bool empty() const { return _size == 0; }
 };
 } // namespace ft
 
