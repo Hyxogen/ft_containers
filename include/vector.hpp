@@ -34,6 +34,7 @@ template <class T, typename Allocator = std::allocator<T>> class vector {
       public:
         vector() : _data(NULL), _size(0) {}
 
+        size_type size() const { return _size; }
         bool empty() const { return _size == 0; }
 };
 } // namespace ft
