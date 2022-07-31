@@ -22,7 +22,7 @@
 
 namespace ft {
 
-template <class T, typename Allocator = std::allocator<T>> class vector {
+template <class T, typename Allocator = std::allocator<T> > class vector {
       public:
         typedef value_type T;
         typedef size_type std::size_t;
@@ -32,10 +32,10 @@ template <class T, typename Allocator = std::allocator<T>> class vector {
         size_type _size;
 
       public:
-        vector() : _data(NULL), _size(0) {}
+        vector () : _data (NULL), _size (0) {}
 
-        size_type size() const { return _size; }
-        bool empty() const { return _size == 0; }
+        size_type size () const { return _size; }
+        bool empty () const { return _size == 0; }
 };
 } // namespace ft
 
