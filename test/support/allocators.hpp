@@ -14,13 +14,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#include <memory>
 #include <map>
+#include <memory>
 #include <string>
 
 namespace test {
 namespace {
-	std::map<std::string, std::size_t> calls;
+std::map<std::string, std::size_t> calls;
 }
 template <typename T, typename Base = std::allocator<T> >
 struct allocator_wrapper : Base {
@@ -32,60 +32,80 @@ struct allocator_wrapper : Base {
         typedef typename Base::size_type size_type;
         typedef typename Base::difference_type difference_type;
 
-        allocator_wrapper() : Base() {
-		call("default");
-	}
-	
+        allocator_wrapper() : Base() { call("default"); }
+
         allocator_wrapper(const allocator_wrapper &other) : Base(other) {
-		call("copy");
-	}
-	
+                call("copy");
+        }
+
         template <class U>
         allocator_wrapper(const allocator_wrapper<U, Base> &other)
             : Base(other) {
-		call("copy_other");
-	}
+                call("copy_other");
+        }
 
         pointer address(reference x) const {
-		call("address");
-		return Base::address(x);
-	}
-	
-        const_pointer address(const_reference x) const {
-		call("const_address");
+                call("address");
                 return Base::address(x);
         }
-	
+
+        const_pointer address(const_reference x) const {
+                call("const_address");
+                return Base::address(x);
+        }
+
         pointer allocate(size_type n, const void *hint = 0) {
-		call("allocate");
+                call("allocate");
                 return Base::allocate(n, hint);
         }
-	
+
         void deallocate(T *p, std::size_t n) {
-		call("deallocate");
-		return Base::deallocate(p, n);
-	}
-	
+                call("deallocate");
+                return Base::deallocate(p, n);
+        }
+
         size_type max_size() const throw() {
-		call("max_size");
-		return Base::max_size();
-	}
-	
+                call("max_size");
+                return Base::max_size();
+        }
+
         void construct(pointer p, const_reference val) {
-		call("construct");
+                call("construct");
                 return Base::construct(p, val);
         }
-	
-        void destroy(pointer p) {
-		call("destroy");
-		return Base::destroy(p);
-	}
 
-private:
-	static void call(const std::string &name) {
-		calls[name] += 1;
-	}
+        void destroy(pointer p) {
+                call("destroy");
+                return Base::destroy(p);
+        }
+
+      private:
+        static void call(const std::string &name) { calls[name] += 1; }
 };
+template <typename T, typename Base = std::allocator<T> >
+struct allocator_tracker : Base {
+        typedef typename Base::size_type size_type;
+
+      private:
+        static size_type _mem_used;
+
+      public:
+        static size_type mem_used() { return _mem_used; }
+
+        typename Base::pointer allocate(size_type n, const void *hint = 0) {
+                _mem_used += sizeof(T) * n;
+                return Base::allocate(n, hint);
+        }
+
+        void deallocate(T *p, std::size_t n) {
+                _mem_used -= sizeof(T) * n;
+                return Base::deallocate(p, n);
+        }
+};
+
+template <typename T, typename Base>
+typename Base::size_type allocator_tracker<T, Base>::_mem_used = 0;
+
 template <class T1, class T2, class Base>
 bool operator==(const allocator_wrapper<T1, Base> &lhs,
                 const allocator_wrapper<T2, Base> &rhs) throw() {
