@@ -112,6 +112,10 @@ class vector : public vector_base<T, Allocator> {
       public:
         typedef typename _base::value_type value_type;
         typedef typename Allocator::reference reference;
+        typedef typename Allocator::pointer pointer;
+        typedef typename Allocator::const_pointer const_pointer;
+        typedef pointer iterator;
+        typedef const_pointer const_iterator;
         typedef Allocator allocator_type;
         typedef std::size_t size_type;
 
@@ -133,6 +137,10 @@ class vector : public vector_base<T, Allocator> {
         }
 
         reference operator[](size_type n) { return this->_data[n]; }
+        iterator begin() { return this->_data; }
+        iterator end() { return this->_data + _size; }
+        const_iterator begin() const { return this->_data; }
+        const_iterator end() const { return this->_data + _size; }
         size_type size() const { return _size; }
         bool empty() const { return _size == 0; }
 };
