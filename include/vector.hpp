@@ -22,39 +22,118 @@
 
 namespace ft {
 
-template <class T, typename Allocator = std::allocator<T> > class vector {
+// vector_base
+//
+// The reason I created a vector base is to have a central place for memory
+// management. This means that vector itself doesn't have to deal with memory
+// allocation and deallocation, all that is done this class. This improves
+// readability, not cluttering the vector class with try-catch statements. This
+// design choice was inspired by EASTL At first I didn't really get why one
+// would do this, but now I do, and I'll try to explain it briefly here.
+// Consider the case where, for example, a vector is created using the
+// vector(size_type n, const value_type &x) constructor. This would first
+// allocate enough storage to store _n_ times the value _x_, and then it would
+// assign each one of them to a copy of x.  This is, however, not guaranteed to
+// not throw an exception, and in the case that it does, we should free up our
+// allocated memory and then return control to the calling function. You might
+// already see here the problem that arises. At multiple places in the I would
+// have to place something like this:
+// try {
+//  _data[idx] = x;
+// } catch (const std::exception &ex) {
+//  _clean up allocations_
+// }
+// This can be solved with a clever trick which is guaranteed by the
+// C++ standard
+//
+// (ISO/IEC 14882:1998 15.2.2)
+//   An object that is partially constructed or partially destroyed will have
+//   destructors executed for all of its fully constructed subobjects, that is,
+//   for subobjects for which the constructor has completed execution and the
+//   destructor has not yet begun execution...
+//
+// (ISO/IEC 14882:1998 15.3.11)
+//   The fully constructed base classes and members of an object shall be
+//   destroyed before entering the handler of a function-try-block of a
+//   constructor or destructor for that object.
+//
+// With this guarantee, I places the deallocation code in the
+// vector_base deconstructor, ensuring that when the assignment throws
+// an exception, there are no memory leaks.
+//
+//
+// Acknowledgements
+// I did not come up with this design by myself. I found it when I was
+// scrolling around the source code of the EASTL (the STL library of
+// EA). I found EASTL to be a good reference, since the code is not
+// too complex, like libcxx form llvm or the gcc libstd++-v3. One can
+// find the source code on github if you search for EASTL
+
+template <class T, class Allocator> class vector_base {
       public:
         typedef T value_type;
-        typedef typename Allocator::reference reference;
+        typedef typename Allocator::pointer pointer;
         typedef Allocator allocator_type;
         typedef std::size_t size_type;
-	
-      private:
-        value_type *_data;
-        size_type _size;
-	size_type _capacity;
+        typedef std::ptrdiff_t difference_type;
+
+      protected:
+        pointer _data;
+        size_type _capacity;
 
         Allocator _allocator;
 
       public:
-        vector() : _data(NULL), _size(0), _capacity(0) {}
+        vector_base() : _data(NULL), _capacity(0) {}
 
-        explicit vector(const Allocator &alloc)
-		: _data(NULL), _size(0), _capacity(0), _allocator(alloc) {}
-	
-	explicit vector(size_type count, const T &value, const Allocator &alloc = Allocator())
-		: _data(NULL), _size(0), _capacity(0), _allocator(alloc) {
-		_data = _allocator.allocate(count);
-		_size = count;
-		_capacity = _size;
-		for (size_type idx = 0; idx < _size; ++idx) {
-			_data[idx] = T(value);
-		}
-	}
+        explicit vector_base(const Allocator &alloc)
+            : _data(NULL), _capacity(0), _allocator(alloc) {}
 
-	reference operator[](size_type n) { return _data[n]; }
+        explicit vector_base(size_type count,
+                             const Allocator &alloc = Allocator())
+            : _data(NULL), _capacity(0), _allocator(alloc) {
+                _data = _allocator.allocate(count);
+                _capacity = count;
+        }
+
+        ~vector_base() {
+                if (_data != NULL) {
+                        _allocator.deallocate(_data, _capacity);
+                }
+        }
+
+        size_type capacity() const { return _capacity; }
+};
+
+template <class T, typename Allocator = std::allocator<T> >
+class vector : public vector_base<T, Allocator> {
+        typedef vector_base<T, Allocator> _base;
+
+      public:
+        typedef typename _base::value_type value_type;
+        typedef typename Allocator::reference reference;
+        typedef Allocator allocator_type;
+        typedef std::size_t size_type;
+
+      private:
+        size_type _size;
+
+      public:
+        vector() : _base(), _size(0) {}
+
+        explicit vector(const Allocator &alloc) : _base(alloc), _size(0) {}
+
+        explicit vector(size_type count, const T &value,
+                        const Allocator &alloc = Allocator())
+            : _base(count, alloc), _size(0) {
+                _size = count;
+                for (size_type idx = 0; idx < _size; ++idx) {
+                        this->_data[idx] = T(value);
+                }
+        }
+
+        reference operator[](size_type n) { return this->_data[n]; }
         size_type size() const { return _size; }
-	size_type capacity() const { return _capacity; }
         bool empty() const { return _size == 0; }
 };
 } // namespace ft
