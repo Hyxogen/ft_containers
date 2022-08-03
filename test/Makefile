@@ -24,7 +24,7 @@ WARNINGS	:= -Wall -Wextra -Werror -Wstrict-aliasing -pedantic \
 		   -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused \
 		   -Wno-variadic-macros -Wno-parentheses -fdiagnostics-show-option
 ANALYZER	:=
-CXXFLAGS	:= -std=c++98 $(WARNINGS) $(ANALYZER) -I../include -MMD -MP -DFT_TEST
+CXXFLAGS	:= -std=c++98 $(WARNINGS) $(ANALYZER) -I../include -Isupport -MMD -MP -DFT_TEST
 
 CXXFILES	:= $(shell find . -type f -name '*.cpp')
 HEADER_DEPS	:= $(CXXFILES:.cpp=.d)
