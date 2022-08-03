@@ -17,6 +17,7 @@
 #ifndef FT_VECTOR_HPP
 #define FT_VECTOR_HPP
 
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 
@@ -131,9 +132,7 @@ class vector : public vector_base<T, Allocator> {
                         const Allocator &alloc = Allocator())
             : _base(count, alloc), _size(0) {
                 _size = count;
-                for (size_type idx = 0; idx < _size; ++idx) {
-                        this->_data[idx] = T(value);
-                }
+		std::fill_n(begin(), count, value);
         }
 
         reference operator[](size_type n) { return this->_data[n]; }
