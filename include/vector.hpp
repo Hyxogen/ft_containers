@@ -24,18 +24,26 @@ namespace ft {
 
 template <class T, typename Allocator = std::allocator<T> > class vector {
       public:
-        typedef value_type T;
-        typedef size_type std::size_t;
-
+        typedef T value_type;
+        typedef Allocator allocator_type;
+        typedef std::size_t size_type;
+	
       private:
         value_type *_data;
         size_type _size;
+	size_type _capacity;
+
+        Allocator _allocator;
 
       public:
-        vector () : _data (NULL), _size (0) {}
+        vector() : _data(NULL), _size(0), _capacity(0) {}
 
-        size_type size () const { return _size; }
-        bool empty () const { return _size == 0; }
+        explicit vector(const Allocator &alloc)
+		: _data(NULL), _size(0), _capacity(0), _allocator(alloc) {}
+
+        size_type size() const { return _size; }
+	size_type capacity() const { return _capacity; }
+        bool empty() const { return _size == 0; }
 };
 } // namespace ft
 
