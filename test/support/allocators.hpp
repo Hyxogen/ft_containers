@@ -15,8 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <memory>
+#include <map>
+#include <string>
 
 namespace test {
+namespace {
+	std::map<std::string, std::size_t> calls;
+}
 template <typename T, typename Base = std::allocator<T> >
 struct allocator_wrapper : Base {
         typedef typename Base::value_type value_type;
@@ -27,25 +32,59 @@ struct allocator_wrapper : Base {
         typedef typename Base::size_type size_type;
         typedef typename Base::difference_type difference_type;
 
-        allocator_wrapper() : Base() {}
-        allocator_wrapper(const allocator_wrapper &other) : Base(other) {}
+        allocator_wrapper() : Base() {
+		call("default");
+	}
+	
+        allocator_wrapper(const allocator_wrapper &other) : Base(other) {
+		call("copy");
+	}
+	
         template <class U>
         allocator_wrapper(const allocator_wrapper<U, Base> &other)
-            : Base(other) {}
+            : Base(other) {
+		call("copy_other");
+	}
 
-        pointer address(reference x) const { return Base::address(x); }
+        pointer address(reference x) const {
+		call("address");
+		return Base::address(x);
+	}
+	
         const_pointer address(const_reference x) const {
+		call("const_address");
                 return Base::address(x);
         }
+	
         pointer allocate(size_type n, const void *hint = 0) {
+		call("allocate");
                 return Base::allocate(n, hint);
         }
-        void deallocate(T *p, std::size_t n) { return Base::deallocate(p, n); }
-        size_type max_size() const throw() { return Base::max_size(); }
+	
+        void deallocate(T *p, std::size_t n) {
+		call("deallocate");
+		return Base::deallocate(p, n);
+	}
+	
+        size_type max_size() const throw() {
+		call("max_size");
+		return Base::max_size();
+	}
+	
         void construct(pointer p, const_reference val) {
+		call("construct");
                 return Base::construct(p, val);
         }
-        void destroy(pointer p) { return Base::destroy(p); }
+	
+        void destroy(pointer p) {
+		call("destroy");
+		return Base::destroy(p);
+	}
+
+private:
+	static void call(const std::string &name) {
+		calls[name] += 1;
+	}
 };
 template <class T1, class T2, class Base>
 bool operator==(const allocator_wrapper<T1, Base> &lhs,
