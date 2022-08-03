@@ -25,6 +25,7 @@ namespace ft {
 template <class T, typename Allocator = std::allocator<T> > class vector {
       public:
         typedef T value_type;
+        typedef typename Allocator::reference reference;
         typedef Allocator allocator_type;
         typedef std::size_t size_type;
 	
@@ -40,7 +41,18 @@ template <class T, typename Allocator = std::allocator<T> > class vector {
 
         explicit vector(const Allocator &alloc)
 		: _data(NULL), _size(0), _capacity(0), _allocator(alloc) {}
+	
+	explicit vector(size_type count, const T &value, const Allocator &alloc = Allocator())
+		: _data(NULL), _size(0), _capacity(0), _allocator(alloc) {
+		_data = _allocator.allocate(count);
+		_size = count;
+		_capacity = _size;
+		for (size_type idx = 0; idx < _size; ++idx) {
+			_data[idx] = T(value);
+		}
+	}
 
+	reference operator[](size_type n) { return _data[n]; }
         size_type size() const { return _size; }
 	size_type capacity() const { return _capacity; }
         bool empty() const { return _size == 0; }
