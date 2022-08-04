@@ -22,10 +22,10 @@
 
 namespace ft {
 
-template <class T, typename Allocator = std::allocator<T>> class vector {
+template <class T, typename Allocator = std::allocator<T> > class vector {
       public:
-        typedef value_type T;
-        typedef size_type std::size_t;
+        typedef T value_type;
+        typedef std::size_t size_type;
 
       private:
         value_type *_data;
