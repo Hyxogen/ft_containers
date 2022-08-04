@@ -5,3 +5,8 @@
 # build results
 *.a
 *.out
+
+# emacs
+\#*\#
+*~
+.dir-locals.el
