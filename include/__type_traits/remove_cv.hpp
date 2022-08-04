@@ -1,4 +1,4 @@
-// custom c++ type_traits implementation
+// custom c++ remove_cv implementation
 
 // Copyright (C) 2022 Daan Meijer
 //
@@ -14,10 +14,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef TYPE_TRAITS_HPP
-#define TYPE_TRAITS_HPP
-#include <__type_traits/integral_constant.hpp>
+#ifndef REMOVE_CV_HPP
+#define REMOVE_CV_HPP
+
 #include <__type_traits/remove_const.hpp>
 #include <__type_traits/remove_volatile.hpp>
-#include <__type_traits/remove_cv.hpp>
-#endif /* TYPE_TRAITS_HPP */
+
+namespace ft {
+template <class T> struct remove_cv {
+        typedef typename ft::remove_const<
+            typename ft::remove_volatile<T>::type>::type type;
+};
+} // namespace ft
+
+#endif /* REMOVE_CV_HPP */
