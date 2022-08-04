@@ -1,4 +1,4 @@
-// custom c++ type_traits implementation
+// custom c++ enable_if implementation
 
 // Copyright (C) 2022 Daan Meijer
 //
@@ -14,12 +14,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef TYPE_TRAITS_HPP
-#define TYPE_TRAITS_HPP
-#include <__type_traits/integral_constant.hpp>
-#include <__type_traits/remove_const.hpp>
-#include <__type_traits/remove_volatile.hpp>
-#include <__type_traits/remove_cv.hpp>
-#include <__type_traits/is_integral.hpp>
-#include <__type_traits/enable_if.hpp>
-#endif /* TYPE_TRAITS_HPP */
+#ifndef ENABLE_IF_HPP
+#define ENABLE_IF_HPP
+
+namespace ft {
+template <bool B, class T> struct enable_if;
+
+template <class T> struct enable_if<true, T> { typedef T type; };
+} // namespace ft
+
+#endif /* ENABLE_IF_HPP */

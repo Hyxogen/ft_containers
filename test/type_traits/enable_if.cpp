@@ -1,4 +1,4 @@
-// custom c++ type_traits implementation
+// enable_if tests
 
 // Copyright (C) 2022 Daan Meijer
 //
@@ -14,12 +14,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef TYPE_TRAITS_HPP
-#define TYPE_TRAITS_HPP
-#include <__type_traits/integral_constant.hpp>
-#include <__type_traits/remove_const.hpp>
-#include <__type_traits/remove_volatile.hpp>
-#include <__type_traits/remove_cv.hpp>
-#include <__type_traits/is_integral.hpp>
-#include <__type_traits/enable_if.hpp>
-#endif /* TYPE_TRAITS_HPP */
+#include <cassert>
+#include <type_traits.hpp>
+
+typename ft::enable_if<true, void>::type test() {}
+
+int main() {
+        test();
+        return 0;
+}
