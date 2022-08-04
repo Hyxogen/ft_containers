@@ -1,4 +1,4 @@
-// custom c++ type_traits implementation
+// custom c++ remove_const implementation
 
 // Copyright (C) 2022 Daan Meijer
 //
@@ -14,8 +14,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef TYPE_TRAITS_HPP
-#define TYPE_TRAITS_HPP
-#include <__type_traits/integral_constant.hpp>
-#include <__type_traits/remove_const.hpp>
-#endif /* TYPE_TRAITS_HPP */
+#ifndef REMOVE_CONST_HPP
+#define REMOVE_CONST_HPP
+
+namespace ft {
+template <typename T> struct remove_const { typedef T type; };
+
+template <typename T> struct remove_const<const T> { typedef T type; };
+} // namespace ft
+
+#endif /* REMOVE_CONST_HPP */
