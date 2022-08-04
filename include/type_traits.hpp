@@ -20,4 +20,5 @@
 #include <__type_traits/remove_const.hpp>
 #include <__type_traits/remove_volatile.hpp>
 #include <__type_traits/remove_cv.hpp>
+#include <__type_traits/is_integral.hpp>
 #endif /* TYPE_TRAITS_HPP */
