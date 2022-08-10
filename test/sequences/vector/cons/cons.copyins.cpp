@@ -44,18 +44,19 @@ int main() {
                 assert((test::calls["copy"] - count) == 1);
         }
         {
-                test::throwing_class<3> clazz;
+                test::throwing_class<int> clazz;
                 std::size_t used = test::allocator_tracker<
-                    test::throwing_class<3> >::mem_used();
+                    test::throwing_class<int> >::mem_used();
+                test::throwing_class<int>::make_next_throw();
                 try {
                         ft::vector<
-                            test::throwing_class<3>,
-                            test::allocator_tracker<test::throwing_class<3> > >
+                            test::throwing_class<int>,
+                            test::allocator_tracker<test::throwing_class<int> > >
                             vec(5, clazz);
 			assert(false);
                 } catch (const test::too_many_instantiations &ex) {
                         assert(test::allocator_tracker<
-                                   test::throwing_class<3> >::mem_used()
+                                   test::throwing_class<int> >::mem_used()
                                == used);
                 }
         }

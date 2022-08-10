@@ -26,39 +26,48 @@ struct too_many_instantiations : public std::logic_error {
         too_many_instantiations(const std::string &what) : logic_error(what) {}
 };
 
-template <int ThrowAfter> class throwing_class {
-        static int _left;
+template <typename T> class throwing_class {
+        static bool _next_throws;
+
+        T _data;
 
       public:
-        throwing_class() { check_and_decrease_counter(); }
+        throwing_class() { check(); }
 
-        throwing_class(const throwing_class &other) {
-                (void)other;
-                check_and_decrease_counter();
+        throwing_class(const T &data) : _data(data) { check(); }
+
+        throwing_class(const throwing_class &other) : _data(other._data) {
+                check();
         };
 
         ~throwing_class() {}
 
-        static void reset_counter() { _left = ThrowAfter; }
+        static void reset() { _next_throws = false; }
+
+        static void make_next_throw() { _next_throws = true; }
 
         throwing_class &operator=(const throwing_class &other) {
                 if (this != &other) {
-                        check_and_decrease_counter();
+                        _data = other._data;
+                        check();
                 }
                 return *this;
         }
 
+        bool operator==(const T &data) const { return _data == data; }
+
+        bool operator!=(const T &data) const { return !(_data == data); }
+
       private:
-        static void check_and_decrease_counter() {
-                if (_left == 0) {
+        static void check() {
+                if (_next_throws) {
                         throw too_many_instantiations(
                             "too many instantions of type");
                 }
-                --_left;
         }
 };
 
-template <int ThrowAfter> int throwing_class<ThrowAfter>::_left = ThrowAfter;
+template <typename T> bool throwing_class<T>::_next_throws = false;
 }
 
 #endif /* CLASSES_HPP */
