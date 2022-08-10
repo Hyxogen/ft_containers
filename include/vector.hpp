@@ -113,7 +113,7 @@ template <class T, class Allocator> class vector_base {
                 _capacity = capacity;
         }
 
-        void log_resize(size_type capacity) {
+        void grow_if_too_small(size_type capacity) {
                 size_type new_capacity = _capacity;
                 while (new_capacity <= capacity) {
                         new_capacity = (new_capacity + 1) * 2;
