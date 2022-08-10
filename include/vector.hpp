@@ -104,6 +104,24 @@ template <class T, class Allocator> class vector_base {
         }
 
         size_type capacity() const { return _capacity; }
+
+      protected:
+        void resize(size_type capacity) {
+                pointer tmp = _allocator.allocate(capacity);
+                _allocator.deallocate(_data, _capacity);
+                _data = tmp;
+                _capacity = capacity;
+        }
+
+        void log_resize(size_type capacity) {
+                size_type new_capacity = _capacity;
+                while (new_capacity <= capacity) {
+                        new_capacity *= 2;
+                }
+                if (new_capacity != _capacity) {
+                        resize(new_capacity);
+                }
+        }
 };
 
 template <class T, typename Allocator = std::allocator<T> >
