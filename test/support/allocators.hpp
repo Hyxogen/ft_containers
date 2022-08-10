@@ -88,12 +88,15 @@ struct allocator_tracker : Base {
 
       private:
         static size_type _mem_used;
+	static std::size_t _alloc_count;
 
       public:
         static size_type mem_used() { return _mem_used; }
+	static std::size_t alloc_count() { return _alloc_count; }
 
         typename Base::pointer allocate(size_type n, const void *hint = 0) {
                 _mem_used += sizeof(T) * n;
+		_alloc_count += 1;
                 return Base::allocate(n, hint);
         }
 
@@ -105,6 +108,9 @@ struct allocator_tracker : Base {
 
 template <typename T, typename Base>
 typename Base::size_type allocator_tracker<T, Base>::_mem_used = 0;
+
+template <typename T, typename Base>
+std::size_t allocator_tracker<T, Base>::_alloc_count = 0;
 
 template <class T1, class T2, class Base>
 bool operator==(const allocator_wrapper<T1, Base> &lhs,

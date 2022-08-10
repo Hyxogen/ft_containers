@@ -1,4 +1,4 @@
-// custom c++ stl vector implementation
+// Custom c++ stl vector implementation
 
 // Copyright (C) 2022 Daan Meijer
 //
@@ -19,7 +19,10 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iterator.hpp>
+#include <iterator>
 #include <memory>
+#include <type_traits.hpp>
 
 namespace ft {
 
@@ -153,6 +156,16 @@ class vector : public vector_base<T, Allocator> {
                 std::fill_n(begin(), count, value);
         }
 
+        template <class InputIt>
+        vector(typename ft::enable_if<!ft::is_integral<InputIt>::value,
+                                      InputIt>::type first,
+               InputIt last, const Allocator &alloc = Allocator())
+            : _base(alloc), _size(this->_capacity) {
+                fill_iter(first, last,
+                          typename ft::iterator_traits<
+                              InputIt>::iterator_category());
+        }
+
         reference operator[](size_type n) { return this->_data[n]; }
         iterator begin() { return this->_data; }
         iterator end() { return this->_data + _size; }
@@ -167,6 +180,22 @@ class vector : public vector_base<T, Allocator> {
                 this->_data[_size] = T();
                 std::swap(tmp, this->_data[_size]);
                 ++_size;
+        }
+
+      protected:
+        template <class Iter>
+        void fill_iter(Iter first, Iter last,
+                       std::input_iterator_tag /*unused*/) {
+                for (; first != last; ++first) {
+                        push_back(*first);
+                }
+        }
+
+        template <class iter>
+        void fill_iter(iter first, iter last,
+                       std::forward_iterator_tag /*unused*/) {
+                _base::resize(std::distance(first, last));
+                std::copy(first, last, begin());
         }
 };
 } // namespace ft
