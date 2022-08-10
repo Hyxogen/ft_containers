@@ -150,7 +150,7 @@ class vector : public vector_base<T, Allocator> {
                         const Allocator &alloc = Allocator())
             : _base(count, alloc), _size(0) {
                 _size = count;
-		std::fill_n(begin(), count, value);
+                std::fill_n(begin(), count, value);
         }
 
         reference operator[](size_type n) { return this->_data[n]; }
