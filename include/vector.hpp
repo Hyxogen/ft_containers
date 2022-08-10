@@ -116,7 +116,7 @@ template <class T, class Allocator> class vector_base {
         void log_resize(size_type capacity) {
                 size_type new_capacity = _capacity;
                 while (new_capacity <= capacity) {
-                        new_capacity *= 2;
+                        new_capacity = (new_capacity + 1) * 2;
                 }
                 if (new_capacity != _capacity) {
                         resize(new_capacity);
