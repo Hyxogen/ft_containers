@@ -160,6 +160,14 @@ class vector : public vector_base<T, Allocator> {
         const_iterator end() const { return this->_data + _size; }
         size_type size() const { return _size; }
         bool empty() const { return _size == 0; }
+
+        void push_back(const T &value) {
+                _base::grow_if_too_small(size() + 1);
+                T tmp(value);
+                this->_data[_size] = T();
+                std::swap(tmp, this->_data[_size]);
+                ++_size;
+        }
 };
 } // namespace ft
 
