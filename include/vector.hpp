@@ -102,7 +102,7 @@ template <class T, class Allocator> class vector_base {
                 _capacity = count;
         }
 
-        vector_base(const vector_base &other) {
+        vector_base(const vector_base &other): _data(NULL), _capacity(0) {
                 resize(other._capacity);
                 std::uninitialized_copy(begin(), end(), data());
         }
