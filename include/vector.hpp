@@ -108,9 +108,7 @@ template <class T, class Allocator> class vector_base {
                 std::uninitialized_copy(other.begin(), other.end(), data());
         }
 
-        ~vector_base() {
-                free_resources();
-        }
+        ~vector_base() { free_resources(); }
 
         size_type capacity() const { return _capacity; }
         pointer data() { return _data; }
@@ -135,13 +133,9 @@ template <class T, class Allocator> class vector_base {
                 }
         }
 
-        iterator begin() {
-                return data();
-        }
+        iterator begin() { return data(); }
 
-        iterator end() {
-                return data() + capacity();
-        }
+        iterator end() { return data() + capacity(); }
 
         const_iterator begin() const { return data(); }
 
