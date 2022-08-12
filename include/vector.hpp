@@ -77,7 +77,7 @@ template <class T, class Allocator> class vector_base {
       public:
         typedef T value_type;
         typedef typename Allocator::pointer pointer;
-        typedef typenaem Allocator::const_pointer const_pointer;
+        typedef typename Allocator::const_pointer const_pointer;
         typedef Allocator allocator_type;
         typedef std::size_t size_type;
         typedef std::ptrdiff_t difference_type;
