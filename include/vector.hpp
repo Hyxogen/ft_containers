@@ -119,7 +119,7 @@ template <class T, class Allocator> class vector_base {
 
         void grow_if_too_small(size_type capacity) {
                 size_type new_capacity = _capacity;
-                while (new_capacity <= capacity) {
+                while (new_capacity < capacity) {
                         new_capacity = (new_capacity + 1) * 2;
                 }
                 if (new_capacity != _capacity) {
