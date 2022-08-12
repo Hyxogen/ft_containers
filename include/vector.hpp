@@ -187,6 +187,11 @@ class vector : public vector_base<T, Allocator> {
                               InputIt>::iterator_category());
         }
 
+        vector(const vector &other) : _base(other), _size(other._size) {
+                std::uninitialized_copy(other.begin(), other.end(),
+                                      this->data());
+        }
+
         reference operator[](size_type n) { return this->_data[n]; }
         iterator begin() { return this->_data; }
         iterator end() { return this->_data + _size; }
