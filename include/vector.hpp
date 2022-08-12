@@ -198,9 +198,7 @@ class vector : public vector_base<T, Allocator> {
 
         void push_back(const T &value) {
                 _base::grow_if_too_small(size() + 1);
-                T tmp(value);
-                this->_allocator.construct(&this->_data[_size], T());
-                std::swap(tmp, this->_data[_size]);
+                this->_allocator.construct(&this->_data[_size], T(value));
                 ++_size;
         }
 
