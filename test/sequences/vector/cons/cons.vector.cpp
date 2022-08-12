@@ -57,6 +57,7 @@ int main() {
                                    test::throwing_class<int> >::mem_used()
                                == used);
                 }
+                test::throwing_class<int>::reset();
         }
         return 0;
 }
