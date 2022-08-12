@@ -60,5 +60,12 @@ int main() {
                                == used);
                 }
         }
+        {
+                std::size_t instances = test::tracking_class::instances();
+                {
+                        ft::vector<test::tracking_class> vec(42);
+                }
+                assert(test::tracking_class::instances() == instances);
+        }
         return 0;
 }

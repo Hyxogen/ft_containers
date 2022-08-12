@@ -68,6 +68,28 @@ template <typename T> class throwing_class {
 };
 
 template <typename T> bool throwing_class<T>::_next_throws = false;
+
+class tracking_class {
+        static std::size_t _instances;
+
+      public:
+        tracking_class() { _instances += 1; }
+
+        tracking_class(const tracking_class &other) { _instances += 1; }
+
+        ~tracking_class() { _instances -= 1; }
+
+        static std::size_t instances() { return _instances; }
+
+        tracking_class &operator=(const tracking_class &other) {
+                if (this != &other) {
+                        _instances -= 1;
+                }
+                return *this;
+        }
+};
+
+std::size_t tracking_class::_instances = 0;
 }
 
 #endif /* CLASSES_HPP */
