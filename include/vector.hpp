@@ -108,9 +108,7 @@ template <class T, class Allocator> class vector_base {
         }
 
         ~vector_base() {
-                if (_data != NULL) {
-                        _allocator.deallocate(_data, _capacity);
-                }
+                free_resources();
         }
 
         size_type capacity() const { return _capacity; }
@@ -120,8 +118,8 @@ template <class T, class Allocator> class vector_base {
       protected:
         void resize(size_type capacity) {
                 pointer tmp = _allocator.allocate(capacity);
-                _allocator.deallocate(_data, _capacity);
                 std::uninitialized_copy(begin(), end(), tmp);
+                free_resources();
                 _data = tmp;
                 _capacity = capacity;
         }
@@ -141,6 +139,13 @@ template <class T, class Allocator> class vector_base {
 
         iterator end() {
                 return data() + capacity();
+        }
+
+        void free_resources() {
+                if (data() != NULL) {
+                        _allocator.deallocate(data(), capacity());
+                        _capacity = 0;
+                }
         }
 };
 
