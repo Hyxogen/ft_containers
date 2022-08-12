@@ -134,11 +134,8 @@ template <class T, class Allocator> class vector_base {
         }
 
         iterator begin() { return data(); }
-
         iterator end() { return data() + capacity(); }
-
         const_iterator begin() const { return data(); }
-
         const_iterator end() const { return data() + capacity(); }
 
         void free_resources() {
