@@ -76,6 +76,7 @@ namespace ft {
 template <class T, class Allocator> class vector_base {
       public:
         typedef T value_type;
+        typedef T &reference;
         typedef typename Allocator::pointer pointer;
         typedef typename Allocator::const_pointer const_pointer;
         typedef Allocator allocator_type;
@@ -154,13 +155,13 @@ class vector : public vector_base<T, Allocator> {
 
       public:
         typedef typename _base::value_type value_type;
-        typedef typename Allocator::reference reference;
-        typedef typename Allocator::pointer pointer;
-        typedef typename Allocator::const_pointer const_pointer;
-        typedef pointer iterator;
-        typedef const_pointer const_iterator;
-        typedef Allocator allocator_type;
-        typedef std::size_t size_type;
+        typedef typename _base::reference reference;
+        typedef typename _base::pointer pointer;
+        typedef typename _base::const_pointer const_pointer;
+        typedef typename _base::iterator iterator;
+        typedef typename _base::const_iterator const_iterator;
+        typedef typename _base::allocator_type allocator_type;
+        typedef typename _base::size_type size_type;
 
       private:
         size_type _size;
