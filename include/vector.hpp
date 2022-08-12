@@ -171,7 +171,7 @@ class vector : public vector_base<T, Allocator> {
 
         explicit vector(const Allocator &alloc) : _base(alloc), _size(0) {}
 
-        explicit vector(size_type count, const T &value,
+        explicit vector(size_type count, const T &value = T(),
                         const Allocator &alloc = Allocator())
             : _base(count, alloc), _size(0) {
                 _size = count;
