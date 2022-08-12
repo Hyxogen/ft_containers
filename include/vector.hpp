@@ -111,6 +111,7 @@ template <class T, class Allocator> class vector_base {
       protected:
         void resize(size_type capacity) {
                 pointer tmp = _allocator.allocate(capacity);
+                std::uninitialized_copy(_data, _data + _capacity, tmp);
                 _allocator.deallocate(_data, _capacity);
                 _data = tmp;
                 _capacity = capacity;
