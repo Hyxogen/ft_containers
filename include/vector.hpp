@@ -174,7 +174,7 @@ class vector : public vector_base<T, Allocator> {
                         const Allocator &alloc = Allocator())
             : _base(count, alloc), _size(0) {
                 _size = count;
-                std::fill_n(begin(), count, value);
+                std::uninitialized_fill_n(begin(), count, value);
         }
 
         template <class InputIt>
@@ -219,7 +219,7 @@ class vector : public vector_base<T, Allocator> {
         void fill_iter(iter first, iter last,
                        std::forward_iterator_tag /*unused*/) {
                 _base::resize(std::distance(first, last));
-                std::copy(first, last, begin());
+                std::uninitialized_copy(first, last, begin());
         }
 };
 } // namespace ft
