@@ -133,6 +133,7 @@ template <class T, class Allocator> class vector_base {
                         resize(new_capacity);
                 }
         }
+
         iterator begin() {
                 return data();
         }
