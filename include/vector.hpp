@@ -193,6 +193,12 @@ class vector : public vector_base<T, Allocator> {
                                         this->data());
         }
 
+        ~vector() {
+                for (iterator it = begin(); it != end(); ++it) {
+                        this->_allocator.destroy(it);
+                }
+        }
+
         reference operator[](size_type n) { return this->_data[n]; }
         iterator begin() { return this->_data; }
         iterator end() { return this->_data + _size; }
