@@ -77,9 +77,11 @@ template <class T, class Allocator> class vector_base {
       public:
         typedef T value_type;
         typedef typename Allocator::pointer pointer;
+        typedef typenaem Allocator::const_pointer const_pointer;
         typedef Allocator allocator_type;
         typedef std::size_t size_type;
         typedef std::ptrdiff_t difference_type;
+        typedef pointer iterator;
 
       protected:
         pointer _data;
@@ -100,6 +102,11 @@ template <class T, class Allocator> class vector_base {
                 _capacity = count;
         }
 
+        vector_base(const vector_base &other) {
+                resize(other._capacity);
+                std::unitialized_copy(begin(), end(), data());
+        }
+
         ~vector_base() {
                 if (_data != NULL) {
                         _allocator.deallocate(_data, _capacity);
@@ -107,12 +114,14 @@ template <class T, class Allocator> class vector_base {
         }
 
         size_type capacity() const { return _capacity; }
+        pointer data() { return _data; }
+        const_pointer data() const { return _data; }
 
       protected:
         void resize(size_type capacity) {
                 pointer tmp = _allocator.allocate(capacity);
-                std::uninitialized_copy(_data, _data + _capacity, tmp);
                 _allocator.deallocate(_data, _capacity);
+                std::uninitialized_copy(begin(), end(), tmp);
                 _data = tmp;
                 _capacity = capacity;
         }
@@ -125,6 +134,13 @@ template <class T, class Allocator> class vector_base {
                 if (new_capacity != _capacity) {
                         resize(new_capacity);
                 }
+        }
+        iterator begin() {
+                return data();
+        }
+
+        iterator end() {
+                return data() + capacity();
         }
 };
 
