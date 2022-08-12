@@ -42,10 +42,16 @@ analyze:
 
 .PHONY: run
 run: $(TSTFILES)
-	-@rc=0; count=0; \
+	-@rc=0; count=0; res=0; \
 	for file in $(TSTFILES); do \
-		echo "TEST	$$file"; ./$$file; \
-		rc=`expr $$rc + $$?`; count=`expr $$count + 1`; \
+		./$$file; \
+		res="$$?"; \
+		if [ "$$res" -eq 0 ]; \
+		then printf PASSED; \
+		else printf FAILED; \
+		fi; \
+		echo "	$$file"; \
+		rc=`expr $$rc + $$(($$res != 0))`; count=`expr $$count + 1`; \
 	done; \
 	echo; echo "Executed $$count tests	Failed tests $$rc"
 
@@ -54,7 +60,7 @@ testdrivers: $(TSTFILES)
 
 -include $(HEADER_DEPS)
 %.out: %.cpp Makefile
-	$(CXX) $(CXXFLAGS) -o $@ $<
+	@$(CXX) $(CXXFLAGS) -o $@ $<
 
 .PHONY: clean
 clean:
