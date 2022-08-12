@@ -82,6 +82,7 @@ template <class T, class Allocator> class vector_base {
         typedef std::size_t size_type;
         typedef std::ptrdiff_t difference_type;
         typedef pointer iterator;
+        typedef const_pointer const_iterator;
 
       protected:
         pointer _data;
@@ -102,9 +103,9 @@ template <class T, class Allocator> class vector_base {
                 _capacity = count;
         }
 
-        vector_base(const vector_base &other): _data(NULL), _capacity(0) {
+        vector_base(const vector_base &other) : _data(NULL), _capacity(0) {
                 resize(other._capacity);
-                std::uninitialized_copy(begin(), end(), data());
+                std::uninitialized_copy(other.begin(), other.end(), data());
         }
 
         ~vector_base() {
@@ -141,6 +142,10 @@ template <class T, class Allocator> class vector_base {
         iterator end() {
                 return data() + capacity();
         }
+
+        const_iterator begin() const { return data(); }
+
+        const_iterator end() const { return data() + capacity(); }
 
         void free_resources() {
                 if (data() != NULL) {
