@@ -124,20 +124,9 @@ template <class T, class Allocator> class vector_base {
       protected:
         void resize(size_type new_capacity) {
                 pointer tmp = _allocator.allocate(new_capacity);
-                std::uninitialized_copy(begin(), end(), tmp);
                 free_resources();
                 _data = tmp;
                 _capacity = new_capacity;
-        }
-
-        void grow_if_too_small(size_type capacity) {
-                size_type new_capacity = _capacity;
-                while (new_capacity < capacity) {
-                        new_capacity = (new_capacity + 1) * 2;
-                }
-                if (new_capacity != _capacity) {
-                        resize(new_capacity);
-                }
         }
 
         iterator begin() { return data(); }
@@ -230,7 +219,9 @@ class vector : public vector_base<T, Allocator> {
         }
         
         void push_back(const_reference value) {
-                _base::grow_if_too_small(size() + 1);
+                if (_base::capacity() < size() + 1) {
+                        grow(_base::capacity() == 0 ? 1 : _base::capacity() * 2);
+                }
                 this->_allocator.construct(&this->_data[_size], value);
                 ++_size;
         }
@@ -247,7 +238,35 @@ class vector : public vector_base<T, Allocator> {
                 _size = 0;
         }
 
+        void resize(size_type count) {
+                if (count < _base::capacity()) {
+                        shrink(count);
+                } else if (count > _base::capacity()) {
+                        grow(count, value_type());
+                }
+        }
+
       protected:
+        void destroy(iterator first, iterator last) {
+                for (; first != last; ++first) {
+                        this->_allocator.destroy(first);
+                }
+        }
+        
+        void shrink(size_type count) {
+                destroy(begin() + count, end());
+                _base::resize(count);
+        }
+
+        void grow(size_type count, const_reference value = T()) {
+                pointer new_data = this->_allocator.allocate(count);
+                iterator tmp
+                    = std::uninitialized_copy(begin(), end(), new_data);
+                std::uninitialized_fill(tmp, new_data + count, value);
+                destroy(begin(), end());
+                std::swap(this->_data, new_data);
+                this->_capacity = count;
+        }
         
         template <typename Integer1, typename Integer2>
         void initialize_aux(Integer1 count, Integer2 value,
