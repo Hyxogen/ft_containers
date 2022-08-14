@@ -44,7 +44,7 @@ template <class T, class Allocator> class vector_alloc_holder {
             : _begin(NULL), _end(NULL), _alloc(alloc) {}
 
         vector_alloc_holder(size_type n, const Allocator &alloc = Allocator())
-                : _begin(NULL), _end(NULL), _alloc(alloc) {
+            : _begin(NULL), _end(NULL), _alloc(alloc) {
                 allocate(n);
         }
 
@@ -54,25 +54,11 @@ template <class T, class Allocator> class vector_alloc_holder {
                 }
         }
 
-        size_type capacity() const {
-                return size_type(end() - begin());
-        }
-
-        iterator begin() {
-                return _begin;
-        };
-
-        iterator end() {
-                return _end;
-        };
-
-        const_iterator begin() const {
-                return _begin;
-        }
-
-        const_iterator end() const {
-                return _end;
-        }
+        size_type capacity() const { return size_type(end() - begin()); }
+        iterator begin() { return _begin; };
+        iterator end() { return _end; };
+        const_iterator begin() const { return _begin; }
+        const_iterator end() const { return _end; }
 
         void allocate(size_type n) {
                 _begin = _alloc.allocate(n);
@@ -86,10 +72,9 @@ template <class T, class Allocator> class vector_alloc_holder {
         }
 };
 
-template <class T, typename Allocator = std::allocator<T> >
-class vector {
+template <class T, typename Allocator = std::allocator<T> > class vector {
         typedef vector_alloc_holder<T, Allocator> holder_type;
-        
+
       public:
         typedef T value_type;
         typedef typename Allocator::reference reference;
@@ -119,14 +104,13 @@ class vector {
         template <class InputIt>
         vector(InputIt first, InputIt last,
                const Allocator &alloc = Allocator())
-                : _size(0), _holder(alloc) {
+            : _size(0), _holder(alloc) {
                 typedef typename ft::is_integral<InputIt>::type Integral;
                 initialize_aux(first, last, Integral());
         }
 
         vector(const vector &other) : _size(other._size), _holder(_size) {
-                std::uninitialized_copy(other.begin(), other.end(),
-                                        begin());
+                std::uninitialized_copy(other.begin(), other.end(), begin());
         }
 
         ~vector() { clear(); }
@@ -164,7 +148,8 @@ class vector {
 
         void push_back(const_reference value) {
                 if (capacity() < size() + 1) {
-                        grow_uninitialized(capacity() == 0 ? 1 : capacity() * 2);
+                        grow_uninitialized(capacity() == 0 ? 1
+                                                           : capacity() * 2);
                 }
                 Allocator().construct(begin() + _size, value);
                 ++_size;
@@ -234,9 +219,9 @@ class vector {
         template <typename InputIt>
         void initialize_aux(InputIt first, InputIt last,
                             ft::false_type /*unused*/) {
-                initialize_range_aux(
-                    first, last,
-                    typename ft::iterator_traits<InputIt>::iterator_category());
+                initialize_range_aux(first, last,
+                                     typename ft::iterator_traits<
+                                         InputIt>::iterator_category());
         }
 
         template <typename InputIt>
