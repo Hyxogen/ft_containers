@@ -79,6 +79,7 @@ template <class T, class Allocator> class vector_base {
         typedef T &reference;
         typedef typename Allocator::pointer pointer;
         typedef typename Allocator::const_pointer const_pointer;
+        typedef typename Allocator::const_reference const_reference;
         typedef Allocator allocator_type;
         typedef std::size_t size_type;
         typedef std::ptrdiff_t difference_type;
@@ -161,6 +162,7 @@ class vector : public vector_base<T, Allocator> {
         typedef typename _base::reference reference;
         typedef typename _base::pointer pointer;
         typedef typename _base::const_pointer const_pointer;
+        typedef typename _base::const_reference const_reference;
         typedef typename _base::iterator iterator;
         typedef typename _base::const_iterator const_iterator;
         typedef typename _base::allocator_type allocator_type;
@@ -174,7 +176,7 @@ class vector : public vector_base<T, Allocator> {
 
         explicit vector(const Allocator &alloc) : _base(alloc), _size(0) {}
 
-        explicit vector(size_type count, const T &value = T(),
+        explicit vector(size_type count, const_reference value = T(),
                         const Allocator &alloc = Allocator())
             : _base(count, alloc), _size(0) {
                 _size = count;
@@ -218,9 +220,9 @@ class vector : public vector_base<T, Allocator> {
                 return *this;
         }
         
-        void push_back(const T &value) {
+        void push_back(const_reference value) {
                 _base::grow_if_too_small(size() + 1);
-                this->_allocator.construct(&this->_data[_size], T(value));
+                this->_allocator.construct(&this->_data[_size], value);
                 ++_size;
         }
 
