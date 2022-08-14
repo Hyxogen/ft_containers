@@ -259,14 +259,19 @@ class vector : public vector_base<T, Allocator> {
 
         void grow(size_type count, const_reference value = T()) {
                 pointer new_data = this->_allocator.allocate(count);
-                iterator tmp
-                    = std::uninitialized_copy(begin(), end(), new_data);
-                std::uninitialized_fill(tmp, new_data + count, value);
+                try {
+                        iterator tmp = std::uninitialized_copy(begin(), end(),
+                                                               new_data);
+                        std::uninitialized_fill(tmp, new_data + count, value);
+                } catch (...) {
+                        this->_allocator.deallocate(new_data, count);
+                        throw;
+                }
                 destroy(begin(), end());
                 std::swap(this->_data, new_data);
                 this->_capacity = count;
         }
-        
+
         template <typename Integer1, typename Integer2>
         void initialize_aux(Integer1 count, Integer2 value,
                             ft::true_type /*unused*/) {
