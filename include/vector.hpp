@@ -233,9 +233,7 @@ class vector : public vector_base<T, Allocator> {
         }
 
         void clear() {
-                for (iterator it = begin(); it != end(); ++it) {
-                        this->_allocator.destroy(it);
-                }
+                destroy(begin(), end());
                 _size = 0;
         }
 
