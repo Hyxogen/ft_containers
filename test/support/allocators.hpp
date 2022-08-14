@@ -15,8 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <map>
+#include <new>
 #include <memory>
 #include <string>
+#include <limits>
 
 namespace test {
 namespace {
@@ -106,11 +108,40 @@ struct allocator_tracker : Base {
         }
 };
 
+template <typename T>
+struct limited_allocator : allocator_tracker<T> {
+        typedef allocator_tracker<T> _base;
+        typedef typename _base::size_type size_type;
+
+      private:
+        static size_type _limit;
+        
+      public:
+        static void set_limit(size_type limit) {
+                _limit = limit;
+        }
+        
+        typename _base::pointer allocate(size_type n, const void *hint = 0) {
+                if (_base::mem_used() + sizeof(T) * n >= _limit) {
+                        throw std::bad_alloc();
+                }
+                return _base::allocate(n, hint);
+        }
+
+        void deallocate(T *p, std::size_t n) {
+                return _base::deallocate(p, n);
+        }
+};
+
 template <typename T, typename Base>
 typename Base::size_type allocator_tracker<T, Base>::_mem_used = 0;
 
 template <typename T, typename Base>
 std::size_t allocator_tracker<T, Base>::_alloc_count = 0;
+
+template <typename T>
+typename limited_allocator<T>::size_type limited_allocator<T>::_limit
+    = std::numeric_limits<typename limited_allocator<T>::size_type>::max();
 
 template <class T1, class T2, class Base>
 bool operator==(const allocator_wrapper<T1, Base> &lhs,

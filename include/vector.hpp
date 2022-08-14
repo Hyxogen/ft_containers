@@ -114,6 +114,12 @@ template <class T, class Allocator> class vector_base {
         pointer data() { return _data; }
         const_pointer data() const { return _data; }
 
+        virtual void swap(vector_base &other) {
+                std::swap(_data, other._data);
+                std::swap(_capacity, other._capacity);
+                std::swap(_allocator, other._allocator);
+        }
+
       protected:
         void resize(size_type new_capacity) {
                 pointer tmp = _allocator.allocate(new_capacity);
@@ -210,6 +216,12 @@ class vector : public vector_base<T, Allocator> {
                 ++_size;
         }
 
+        using _base::swap;
+        void swap(vector &other) {
+                _base::swap(other);
+                std::swap(_size, other._size);
+        }
+        
       protected:
         template <class Iter>
         void fill_iter(Iter first, Iter last,
