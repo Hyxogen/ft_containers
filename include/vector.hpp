@@ -199,9 +199,7 @@ class vector : public vector_base<T, Allocator> {
         }
 
         ~vector() {
-                for (iterator it = begin(); it != end(); ++it) {
-                        this->_allocator.destroy(it);
-                }
+                clear();
         }
 
         reference operator[](size_type n) { return this->_data[n]; }
