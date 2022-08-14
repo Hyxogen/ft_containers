@@ -108,7 +108,7 @@ template <class T, class Allocator> class vector_base {
                 resize(other._capacity);
         }
 
-        ~vector_base() { free_resources(); }
+        virtual ~vector_base() { free_resources(); }
 
         size_type capacity() const { return _capacity; }
         pointer data() { return _data; }
