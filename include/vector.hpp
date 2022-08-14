@@ -165,6 +165,7 @@ template <class T, typename Allocator = std::allocator<T> > class vector {
                 _size = 0;
         }
 
+        // TODO write resize tests
         void resize(size_type count) {
                 if (count < capacity()) {
                         shrink(count);
