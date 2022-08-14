@@ -217,6 +217,13 @@ class vector : public vector_base<T, Allocator> {
                 }
                 return *this;
         }
+
+        void assign(size_type count, const_reference value) {
+                clear();
+                _base::grow_if_too_small(count);
+                std::uninitialized_fill_n(begin(), count, value);
+                _size = count;
+        }
         
         void push_back(const_reference value) {
                 _base::grow_if_too_small(size() + 1);
