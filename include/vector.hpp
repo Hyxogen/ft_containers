@@ -179,8 +179,7 @@ class vector : public vector_base<T, Allocator> {
         explicit vector(size_type count, const_reference value = T(),
                         const Allocator &alloc = Allocator())
             : _base(count, alloc), _size(0) {
-                _size = count;
-                std::uninitialized_fill_n(begin(), count, value);
+                assign(count, value);
         }
 
         template <class InputIt>
