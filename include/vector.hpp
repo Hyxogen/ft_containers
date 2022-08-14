@@ -210,6 +210,14 @@ class vector : public vector_base<T, Allocator> {
         size_type size() const { return _size; }
         bool empty() const { return _size == 0; }
 
+        vector &operator=(const vector &other) {
+                if (this != &other) {
+                        vector tmp(other);
+                        swap(tmp);
+                }
+                return *this;
+        }
+        
         void push_back(const T &value) {
                 _base::grow_if_too_small(size() + 1);
                 this->_allocator.construct(&this->_data[_size], T(value));
