@@ -230,7 +230,14 @@ class vector : public vector_base<T, Allocator> {
                 _base::swap(other);
                 std::swap(_size, other._size);
         }
-        
+
+        void clear() {
+                for (iterator it = begin(); it != end(); ++it) {
+                        this->_allocator.destroy(it);
+                }
+                _size = 0;
+        }
+
       protected:
         template <class Iter>
         void fill_iter(Iter first, Iter last,
