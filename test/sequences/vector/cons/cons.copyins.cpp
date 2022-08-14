@@ -46,7 +46,7 @@ int main() {
         {
                 test::throwing_class<int> clazz;
                 std::size_t used = test::allocator_tracker<
-                    test::throwing_class<int> >::mem_used();
+                        test::throwing_class<int> >::active();
                 test::throwing_class<int>::make_next_throw();
                 try {
                         ft::vector<
@@ -56,7 +56,7 @@ int main() {
 			assert(false);
                 } catch (const test::too_many_instantiations &ex) {
                         assert(test::allocator_tracker<
-                                   test::throwing_class<int> >::mem_used()
+                                   test::throwing_class<int> >::active()
                                == used);
                 }
         }

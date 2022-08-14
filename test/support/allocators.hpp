@@ -89,21 +89,21 @@ struct allocator_tracker : Base {
         typedef typename Base::size_type size_type;
 
       private:
-        static size_type _mem_used;
+        static size_type _active;
 	static std::size_t _alloc_count;
 
       public:
-        static size_type mem_used() { return _mem_used; }
+        static size_type active() { return _active; }
 	static std::size_t alloc_count() { return _alloc_count; }
 
         typename Base::pointer allocate(size_type n, const void *hint = 0) {
-                _mem_used += sizeof(T) * n;
+                _active += n;
 		_alloc_count += 1;
                 return Base::allocate(n, hint);
         }
 
         void deallocate(T *p, std::size_t n) {
-                _mem_used -= sizeof(T) * n;
+                _active -= n;
                 return Base::deallocate(p, n);
         }
 };
@@ -122,7 +122,7 @@ struct limited_allocator : allocator_tracker<T> {
         }
         
         typename _base::pointer allocate(size_type n, const void *hint = 0) {
-                if (_base::mem_used() + sizeof(T) * n >= _limit) {
+                if (_base::active() + n >= _limit) {
                         throw std::bad_alloc();
                 }
                 return _base::allocate(n, hint);
@@ -134,7 +134,7 @@ struct limited_allocator : allocator_tracker<T> {
 };
 
 template <typename T, typename Base>
-typename Base::size_type allocator_tracker<T, Base>::_mem_used = 0;
+typename Base::size_type allocator_tracker<T, Base>::_active = 0;
 
 template <typename T, typename Base>
 std::size_t allocator_tracker<T, Base>::_alloc_count = 0;

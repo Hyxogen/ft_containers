@@ -45,7 +45,7 @@ int main() {
                 vec.push_back(42);
                 vec.push_back(5451341);
                 std::size_t used = test::allocator_tracker<
-                    test::throwing_class<int> >::mem_used();
+                        test::throwing_class<int> >::active();
                 test::throwing_class<int>::make_next_throw();
                 try {
                         ft::vector<int, test::allocator_tracker<
@@ -54,7 +54,7 @@ int main() {
                         assert(false);
                 } catch (const test::too_many_instantiations &ex) {
                         assert(test::allocator_tracker<
-                                   test::throwing_class<int> >::mem_used()
+                                   test::throwing_class<int> >::active()
                                == used);
                 }
                 test::throwing_class<int>::reset();
