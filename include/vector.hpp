@@ -196,6 +196,7 @@ class vector : public vector_base<T, Allocator> {
         const_iterator begin() const { return this->_data; }
         const_iterator end() const { return this->_data + _size; }
         size_type size() const { return _size; }
+        size_type capacity() const { return _base::capacity(); }
         bool empty() const { return _size == 0; }
 
         vector &operator=(const vector &other) {
@@ -219,8 +220,8 @@ class vector : public vector_base<T, Allocator> {
         }
         
         void push_back(const_reference value) {
-                if (_base::capacity() < size() + 1) {
-                        grow(_base::capacity() == 0 ? 1 : _base::capacity() * 2);
+                if (capacity() < size() + 1) {
+                        grow(capacity() == 0 ? 1 : capacity() * 2);
                 }
                 this->_allocator.construct(&this->_data[_size], value);
                 ++_size;
@@ -239,9 +240,9 @@ class vector : public vector_base<T, Allocator> {
         }
 
         void resize(size_type count) {
-                if (count < _base::capacity()) {
+                if (count < capacity()) {
                         shrink(count);
-                } else if (count > _base::capacity()) {
+                } else if (count > capacity()) {
                         grow(count, value_type());
                 }
         }
