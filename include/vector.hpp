@@ -255,6 +255,7 @@ class vector : public vector_base<T, Allocator> {
         void shrink(size_type count) {
                 destroy(begin() + count, end());
                 _base::resize(count);
+                _size = count;
         }
 
         void grow(size_type count, const_reference value = T()) {
