@@ -178,8 +178,8 @@ class vector : public vector_base<T, Allocator> {
 
         explicit vector(size_type count, const_reference value = T(),
                         const Allocator &alloc = Allocator())
-            : _base(count, alloc), _size(0) {
-                assign(count, value);
+            : _base(alloc), _size(0) {
+                initialize_aux(count, value, ft::true_type());
         }
 
         template <class InputIt>
@@ -219,9 +219,14 @@ class vector : public vector_base<T, Allocator> {
 
         void assign(size_type count, const_reference value) {
                 clear();
-                _base::grow_if_too_small(count);
-                std::uninitialized_fill_n(begin(), count, value);
-                _size = count;
+                initialize_aux(count, value, ft::true_type());
+        }
+
+        template <typename InputIt>
+        void assign(InputIt first, InputIt last) {
+                clear();
+                typedef typename ft::is_integral<InputIt>::type Integral;
+                initialize_aux(first, last, Integral());
         }
         
         void push_back(const_reference value) {
@@ -243,6 +248,38 @@ class vector : public vector_base<T, Allocator> {
         }
 
       protected:
+        
+        template <typename Integer1, typename Integer2>
+        void initialize_aux(Integer1 count, Integer2 value,
+                            ft::true_type /*unused*/) {
+                _base::resize(count);
+                _size = count;
+                std::uninitialized_fill(begin(), end(), value);
+        }
+
+        template <typename InputIt>
+        void initialize_aux(InputIt first, InputIt last,
+                            ft::false_type /*unused*/) {
+                initialize_range_aux(
+                    first, last,
+                    ft::iterator_traits<InputIt>::iterator_category());
+        }
+
+        template <typename InputIt>
+        void initialize_range_aux(InputIt first, InputIt last,
+                                  std::input_iterator_tag /*unused*/) {
+                for (; first != last; ++first) {
+                        push_back(*first);
+                }
+        }
+
+        template <typename Iter>
+        void initialize_range_aux(Iter first, Iter last,
+                                  std::forward_iterator_tag /*unused*/) {
+                _base::resize(std::distance(first, last));
+                std::uninitialized_copy(first, last, begin());
+        }
+
         template <class Iter>
         void fill_iter(Iter first, Iter last,
                        std::input_iterator_tag /*unused*/) {
