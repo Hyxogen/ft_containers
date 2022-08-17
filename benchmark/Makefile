@@ -1,6 +1,7 @@
 CXX		:= g++
 WARNINGS	:= -Wall -Wextra
-CXXFLAGS	:= -std=c++98 $(WARNINGS) -MMD -MP -Ofast -g0 -I. -I../include
+CXXFLAGS	:= -std=c++98 $(WARNINGS) -MMD -MP -Ofast -g0 -I. -I../include \
+			-I../test/support
 
 CXXFILES	:= $(shell find . -type f -name '*.cpp')
 HEADER_DEPS	:= $(CXXFILES:.cpp=.d)
