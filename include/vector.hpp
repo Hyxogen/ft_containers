@@ -24,6 +24,8 @@
 #include <memory>
 #include <type_traits.hpp>
 
+namespace ft {
+
 template <typename Allocator> class vector_base {
       public:
         typedef typename Allocator::value_type value_type;
