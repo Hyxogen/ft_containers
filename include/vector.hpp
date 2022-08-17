@@ -83,6 +83,13 @@ template <typename Allocator> class vector_base {
         const_iterator begin() const { return data(); }
         iterator end() { return begin() + capacity(); }
         const_iterator end() const { return begin() + capacity(); }
+        
+        void destroy_at(pointer p) { _alloc.destroy(p); }
+        
+        void construct_at(pointer p, const_reference val) {
+                _alloc.construct(p, val);
+        }
+
 };
 
 template <class T, typename Allocator = std::allocator<T> >
@@ -164,7 +171,7 @@ class vector : public vector_base<Allocator> {
                         grow_uninitialized(capacity() == 0 ? 1
                                                            : capacity() * 2);
                 }
-                Allocator().construct(begin() + _size, value);
+                _base::construct_at(end(), value);
                 ++_size;
         }
 
@@ -189,9 +196,8 @@ class vector : public vector_base<Allocator> {
 
       protected:
         void destroy(iterator first, iterator last) {
-                Allocator alloc;
                 for (; first != last; ++first) {
-                        alloc.destroy(first);
+                        _base::destroy_at(first);
                 }
         }
 
