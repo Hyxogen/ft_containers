@@ -30,7 +30,7 @@ run: $(BENCHMARKS)
 	BETTER=$$(echo "$$IMPROVEMENT > 1.0" | bc);				\
 	if [ "$$BETTER" -eq "1" ];						\
 		then								\
-			printf "\x1B[1;32m%.2fx times faster\x1B[0m\n"		\
+			printf "\x1B[1;32m%.2fx faster\x1B[0m\n"		\
 				$$IMPROVEMENT;					\
 		else								\
 			printf "\x1B[1;31m%.2fx slower\x1B[0m\n" 		\
