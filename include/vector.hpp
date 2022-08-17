@@ -71,7 +71,7 @@ template <typename Allocator> class vector_base {
         void reserve(size_type new_cap) {
                 if (new_cap <= capacity())
                         return;
-                //assert(_data == NULL); /* TODO remove */
+                // assert(_data == NULL); /* TODO remove */
                 _data = _alloc.allocate(new_cap);
                 _capacity = new_cap;
         }
@@ -83,13 +83,12 @@ template <typename Allocator> class vector_base {
         const_iterator begin() const { return data(); }
         iterator end() { return begin() + capacity(); }
         const_iterator end() const { return begin() + capacity(); }
-        
+
         void destroy_at(pointer p) { _alloc.destroy(p); }
-        
+
         void construct_at(pointer p, const_reference val) {
                 _alloc.construct(p, val);
         }
-
 };
 
 template <class T, typename Allocator = std::allocator<T> >
