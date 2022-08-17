@@ -1,13 +1,13 @@
 CXX		:= g++
 WARNINGS	:= -Wall -Wextra
-CXXFLAGS	:= -std=c++98 $(WARNINGS) -MMD -MP -Ofast -g0 -I. -I../include \
+CXXFLAGS	:= -std=c++98 $(WARNINGS) -Ofast -g0 -I. -I../include \
 			-I../test/support
 
 CXXFILES	:= $(shell find . -type f -name '*.cpp')
-HEADER_DEPS	:= $(CXXFILES:.cpp=.d)
 BENCHMARKS	:= $(CXXFILES:.cpp=.out)
 FTBENCHMARKS	:= $(addsuffix .ft, $(BENCHMARKS))
 STDBENCHMARKS	:= $(addsuffix .std, $(BENCHMARKS))
+HEADER_DEPS	:= $(addsuffix .d, $(BENCHMARKS))
 
 ifdef verbose
 	.SILENT	:=
@@ -21,6 +21,7 @@ all: run
 .PHONY: run
 run: $(BENCHMARKS)
 
+-include $(HEADER_DEPS)
 %.out: %.out.ft %.out.std
 	@printf "%-30s" "$(notdir $(basename $@)):";				\
 	FT_RESULT=$$(./$<);							\
@@ -38,15 +39,14 @@ run: $(BENCHMARKS)
 				$$(echo 1.0 / $$IMPROVEMENT | bc -l);		\
 	fi;									\
 
--include $(HEADER_DEPS)
 .PRECIOUS: $(STDBENCHMARKS)
 %.out.std: %.cpp Makefile
 	$(.SILENT)$(CXX) $(CXXFLAGS) -DBENCHMARK_STD -o $@ $<
 
--include $(HEADER_DEPS)
 .PRECIOUS: $(FTBENCHMARKS)
+-include $(HEADER_DEPS)
 %.out.ft: %.cpp Makefile
-	$(.SILENT)$(CXX) $(CXXFLAGS) -DBENCHMARK_FT -o $@ $<
+	$(.SILENT)$(CXX) -MMD -MP $(CXXFLAGS) -DBENCHMARK_FT -o $@ $<
 
 .PHONY: clean
 clean:
