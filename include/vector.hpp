@@ -24,92 +24,103 @@
 #include <memory>
 #include <type_traits.hpp>
 
-namespace ft {
-template <class T, class Allocator> class vector_alloc_holder {
+template <typename Allocator> class vector_base {
       public:
+        typedef typename Allocator::value_type value_type;
+        typedef typename Allocator::reference reference;
+        typedef typename Allocator::const_reference const_reference;
         typedef typename Allocator::pointer pointer;
         typedef typename Allocator::const_pointer const_pointer;
-        typedef typename Allocator::size_type size_type;
         typedef pointer iterator;
         typedef const_pointer const_iterator;
+        typedef typename Allocator::size_type size_type;
+        typedef Allocator allocator_type;
 
-      protected:
-        pointer _begin, _end;
+      private:
         Allocator _alloc;
 
-      public:
-        vector_alloc_holder() : _begin(NULL), _end(NULL), _alloc() {}
+        size_type _capacity;
+        pointer _data;
 
-        vector_alloc_holder(const Allocator &alloc)
-            : _begin(NULL), _end(NULL), _alloc(alloc) {}
+      protected:
+        vector_base(const Allocator &alloc = Allocator())
+            : _alloc(alloc), _capacity(0), _data(NULL) {}
 
-        vector_alloc_holder(size_type n, const Allocator &alloc = Allocator())
-            : _begin(NULL), _end(NULL), _alloc(alloc) {
-                allocate(n);
-        }
+        vector_base(size_type capacity, const Allocator &alloc)
+            : _alloc(alloc), _capacity(capacity),
+              _data(_alloc.allocate(_capacity)) {}
 
-        ~vector_alloc_holder() {
-                if (_begin != NULL) {
-                        Allocator().deallocate(_begin, capacity());
+        vector_base(const vector_base &other)
+            : _alloc(other._alloc), _capacity(other._capacity),
+              _data(_alloc.allocate(_capacity)) {}
+
+        ~vector_base() {
+                if (_data != NULL) {
+                        _alloc.deallocate(_data, _capacity);
                 }
         }
 
-        size_type capacity() const { return size_type(end() - begin()); }
-        iterator begin() { return _begin; };
-        iterator end() { return _end; };
-        const_iterator begin() const { return _begin; }
-        const_iterator end() const { return _end; }
-
-        void allocate(size_type n) {
-                _begin = _alloc.allocate(n);
-                _end = _begin + n;
-        }
-
-        void swap(vector_alloc_holder &other) {
-                std::swap(_begin, other._begin);
-                std::swap(_end, other._end);
+        void swap(vector_base &other) {
                 std::swap(_alloc, other._alloc);
+                std::swap(_capacity, other._capacity);
+                std::swap(_data, other._data);
         }
+
+        void reserve(size_type new_cap) {
+                if (new_cap <= capacity())
+                        return;
+                //assert(_data == NULL); /* TODO remove */
+                _data = _alloc.allocate(new_cap);
+                _capacity = new_cap;
+        }
+
+        pointer data() { return _data; }
+        const_pointer data() const { return _data; }
+        size_type capacity() const { return _capacity; }
+        iterator begin() { return data(); }
+        const_iterator begin() const { return data(); }
+        iterator end() { return begin() + capacity(); }
+        const_iterator end() const { return begin() + capacity(); }
 };
 
-template <class T, typename Allocator = std::allocator<T> > class vector {
-        typedef vector_alloc_holder<T, Allocator> holder_type;
+template <class T, typename Allocator = std::allocator<T> >
+class vector : public vector_base<Allocator> {
+        typedef vector_base<Allocator> _base;
 
       public:
-        typedef T value_type;
-        typedef typename Allocator::reference reference;
-        typedef typename Allocator::pointer pointer;
-        typedef typename Allocator::const_pointer const_pointer;
-        typedef typename Allocator::const_reference const_reference;
-        typedef pointer iterator;
-        typedef const_pointer const_iterator;
-        typedef Allocator allocator_type;
-        typedef typename Allocator::size_type size_type;
+        typedef typename _base::value_type value_type;
+        typedef typename _base::reference reference;
+        typedef typename _base::pointer pointer;
+        typedef typename _base::const_pointer const_pointer;
+        typedef typename _base::const_reference const_reference;
+        typedef typename _base::pointer iterator;
+        typedef typename _base::const_pointer const_iterator;
+        typedef typename _base::allocator_type allocator_type;
+        typedef typename _base::size_type size_type;
 
       private:
         size_type _size;
-        holder_type _holder;
 
       public:
-        vector() : _size(0), _holder() {}
+        vector() : _base(), _size(0) {}
 
-        explicit vector(const Allocator &alloc) : _size(0), _holder(alloc) {}
+        explicit vector(const Allocator &alloc) : _base(alloc), _size(0) {}
 
         explicit vector(size_type count, const_reference value = T(),
                         const Allocator &alloc = Allocator())
-            : _size(count), _holder(count, alloc) {
+            : _base(count, alloc), _size(count) {
                 initialize_aux(count, value, ft::true_type());
         }
 
         template <class InputIt>
         vector(InputIt first, InputIt last,
                const Allocator &alloc = Allocator())
-            : _size(0), _holder(alloc) {
+            : _base(alloc), _size(0) {
                 typedef typename ft::is_integral<InputIt>::type Integral;
                 initialize_aux(first, last, Integral());
         }
 
-        vector(const vector &other) : _size(other._size), _holder(_size) {
+        vector(const vector &other) : _base(other), _size(other._size) {
                 std::uninitialized_copy(other.begin(), other.end(), begin());
         }
 
@@ -119,12 +130,12 @@ template <class T, typename Allocator = std::allocator<T> > class vector {
                 return *(begin() + n);
         } /*TODO
             perhaps make this not use begin() */
-        iterator begin() { return _holder.begin(); }
+        iterator begin() { return _base::begin(); }
         iterator end() { return begin() + size(); }
-        const_iterator begin() const { return _holder.begin(); }
+        const_iterator begin() const { return _base::begin(); }
         const_iterator end() const { return begin() + size(); }
         size_type size() const { return _size; }
-        size_type capacity() const { return _holder.capacity(); }
+        size_type capacity() const { return _base::capacity(); }
         bool empty() const { return _size == 0; }
 
         vector &operator=(const vector &other) {
@@ -156,7 +167,7 @@ template <class T, typename Allocator = std::allocator<T> > class vector {
         }
 
         void swap(vector &other) {
-                _holder.swap(other._holder);
+                _base::swap(other);
                 std::swap(_size, other._size);
         }
 
@@ -183,36 +194,30 @@ template <class T, typename Allocator = std::allocator<T> > class vector {
         }
 
         void shrink(size_type count) {
-                holder_type new_holder(count);
-                std::uninitialized_copy(begin(), end(), new_holder.begin());
-                destroy(begin() + count, end());
-                _holder.swap(new_holder);
-                _size = count;
+                vector new_vec;
+                new_vec.reserve(count);
+                std::uninitialized_copy(begin(), begin() + count,
+                                        new_vec.begin());
+                swap(new_vec);
         }
 
-        typename holder_type::iterator grow_uninitialized(size_type count) {
-                holder_type new_holder(count);
-                typename holder_type::iterator it = std::uninitialized_copy(
-                    begin(), end(), new_holder.begin());
-                destroy(begin(), end());
-                _holder.swap(new_holder);
-                return it;
+        void grow_uninitialized(size_type count) {
+                vector new_vec;
+                new_vec.reserve(count);
+                new_vec.assign(begin(), end());
+                swap(new_vec);
         }
 
         void grow_append(size_type count, const_reference value = T()) {
-                holder_type new_holder(count);
-                typename holder_type::iterator it = std::uninitialized_copy(
-                    begin(), end(), new_holder.begin());
-                std::uninitialized_fill(it, new_holder.end(), value);
-                destroy(begin(), end());
-                _holder.swap(new_holder);
-                _size = count;
+                vector new_vec(count, value);
+                std::copy(begin(), end(), new_vec.begin());
+                swap(new_vec);
         }
 
         template <typename Integer1, typename Integer2>
         void initialize_aux(Integer1 count, Integer2 value,
                             ft::true_type /*unused*/) {
-                _holder.allocate(count);
+                _base::reserve(count);
                 _size = count;
                 std::uninitialized_fill(begin(), end(), value);
         }
@@ -236,7 +241,8 @@ template <class T, typename Allocator = std::allocator<T> > class vector {
         template <typename Iter>
         void initialize_range_aux(Iter first, Iter last,
                                   std::forward_iterator_tag /*unused*/) {
-                _holder.allocate(std::distance(first, last));
+                _size = std::distance(first, last);
+                _base::reserve(_size);
                 std::uninitialized_copy(first, last, begin());
         }
 };
