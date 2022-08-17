@@ -21,7 +21,7 @@ all: run
 run: $(BENCHMARKS)
 
 %.out: %.out.ft %.out.std
-	@echo -n "$(basename $@):	";					\
+	@echo -n "$(notdir $(basename $@)):	";				\
 	FT_RESULT=$$(./$<);							\
 	STD_RESULT=$$(./$(word 2,$^));						\
 	IMPROVEMENT=$$(echo "$$STD_RESULT / $$FT_RESULT" |			\
