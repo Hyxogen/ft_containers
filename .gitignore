@@ -1,6 +1,8 @@
 # intermediary files
 *.o
 *.d
+*.ft
+*.std
 
 # build results
 *.a
