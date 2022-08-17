@@ -38,10 +38,12 @@ run: $(BENCHMARKS)
 	fi;									\
 
 -include $(HEADER_DEPS)
+.PRECIOUS: $(STDBENCHMARKS)
 %.out.std: %.cpp Makefile
 	$(.SILENT)$(CXX) $(CXXFLAGS) -DBENCHMARK_STD -o $@ $<
 
 -include $(HEADER_DEPS)
+.PRECIOUS: $(FTBENCHMARKS)
 %.out.ft: %.cpp Makefile
 	$(.SILENT)$(CXX) $(CXXFLAGS) -DBENCHMARK_FT -o $@ $<
 
