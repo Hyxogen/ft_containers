@@ -72,8 +72,18 @@ template <typename T> struct range_iterator {
                 return range_iterator(_value + n);
         }
 
+        range_iterator &operator+=(difference_type n) {
+                _value += n;
+                return *this;
+        }
+
         range_iterator operator-(difference_type n) const {
                 return range_iterator(_value - n);
+        }
+
+        range_iterator &operator-=(difference_type n) {
+                _value -= n;
+                return *this;
         }
 
         difference_type operator-(const range_iterator &other) const {
