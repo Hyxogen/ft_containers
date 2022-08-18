@@ -62,6 +62,9 @@ template <typename Allocator> class vector_base {
                 }
         }
 
+      public:
+        allocator_type get_allocator() const { return _alloc; }
+
         void swap(vector_base &other) {
                 std::swap(_alloc, other._alloc);
                 std::swap(_capacity, other._capacity);
