@@ -136,12 +136,45 @@ class vector : public vector_base<Allocator> {
                 std::uninitialized_copy(other.begin(), other.end(), begin());
         }
 
+      protected:
+        vector(const vector &other, size_type capacity)
+            : _base(capacity, other.get_allocator()),
+              _size(other.size() < capacity ? other.size() : capacity) {
+                if (capacity < other.size()) {
+                        std::uninitialized_copy(
+                            other.begin(), other.begin() + capacity, begin());
+                } else {
+                        std::uninitialized_copy(other.begin(), other.end(),
+                                                begin());
+                }
+        }
+
+      public:
         ~vector() { clear(); }
 
         reference operator[](size_type n) {
                 return *(begin() + n);
         } /*TODO
             perhaps make this not use begin() */
+
+        const_reference operator[](size_type n) const {
+                return *(begin() + n);
+        }
+
+        reference at(size_type pos) {
+                if (!(pos < size())) {
+                        throw std::out_of_range("out of bounds access in vector::at");
+                }
+                return this->operator[](pos);
+        }
+
+        const_reference at(size_type pos) const {
+                if (!(pos < size())) {
+                        throw std::out_of_range("out of bounds access in vector::at");
+                }
+                return this->operator[](pos);
+        }
+        
         iterator begin() { return _base::begin(); }
         iterator end() { return begin() + size(); }
         const_iterator begin() const { return _base::begin(); }
@@ -188,6 +221,14 @@ class vector : public vector_base<Allocator> {
                 _size = 0;
         }
 
+        void reserve(size_type new_cap) {
+                //TODO add check if new_cap > max_size() and throw exception
+                if (new_cap <= capacity())
+                        return;
+                vector new_vec(*this, new_cap);
+                swap(new_vec);
+        }
+
         // TODO write resize tests
         void resize(size_type count) {
                 if (count < capacity()) {
@@ -205,17 +246,12 @@ class vector : public vector_base<Allocator> {
         }
 
         void shrink(size_type count) {
-                vector new_vec;
-                new_vec.reserve(count);
-                std::uninitialized_copy(begin(), begin() + count,
-                                        new_vec.begin());
+                vector new_vec(*this, count);
                 swap(new_vec);
         }
 
         void grow_uninitialized(size_type count) {
-                vector new_vec;
-                new_vec.reserve(count);
-                new_vec.assign(begin(), end());
+                vector new_vec(*this, count);
                 swap(new_vec);
         }
 
