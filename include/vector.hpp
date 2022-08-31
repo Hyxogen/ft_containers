@@ -238,6 +238,12 @@ class vector : public vector_base<Allocator> {
                 }
         }
 
+        iterator erase(iterator position) {
+                if (position == end())
+                        return end();
+                return erase(position, position + 1);
+        }
+
         iterator erase(iterator first, iterator last) {
                 std::copy(last, end(), first);
                 destroy(last, end());
