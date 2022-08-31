@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cassert> //TODO REMOVE
 #include <iterator.hpp>
 #include <iterator>
 #include <memory>
@@ -74,7 +75,7 @@ template <typename Allocator> class vector_base {
         void reserve(size_type new_cap) {
                 if (new_cap <= capacity())
                         return;
-                // assert(_data == NULL); /* TODO remove */
+                assert(_data == NULL); /* TODO debug assert, remove */
                 _data = _alloc.allocate(new_cap);
                 _capacity = new_cap;
         }
