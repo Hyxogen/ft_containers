@@ -26,7 +26,7 @@ int main() {
                         vec.push_back(i);
                 }
                 const std::size_t cap = vec.capacity();
-                ft::vector<int>::iterator it
+                ft::vector<int>::const_iterator it
                     = vec.erase(vec.begin(), vec.end());
                 assert(it == vec.begin());
                 assert(vec.size() == 0);
@@ -51,7 +51,7 @@ int main() {
                         vec.push_back(i);
                 }
                 const std::size_t cap = vec.capacity();
-                ft::vector<int>::iterator it
+                ft::vector<int>::const_iterator it
                     = vec.erase(vec.begin(), vec.begin() + 1);
                 assert(it == vec.begin());
                 assert(vec.size() == 9);
@@ -66,7 +66,9 @@ int main() {
                         vec.push_back(i);
                 }
                 const std::size_t cap = vec.capacity();
-                assert(vec.erase(vec.end() - 1, vec.end()) == vec.begin() + 9);
+                ft::vector<int>::const_iterator it
+                    = vec.erase(vec.begin() + 9, vec.end());
+                assert(it == vec.begin() + 9);
                 assert(vec.size() == 9);
                 assert(vec.capacity() == cap);
                 for (int i = 0; i < 9; ++i) {
@@ -79,8 +81,9 @@ int main() {
                         vec.push_back(i);
                 }
                 const std::size_t cap = vec.capacity();
-                assert(vec.erase(vec.begin() + 2, vec.begin() + 4)
-                       == vec.begin() + 2);
+                ft::vector<int>::const_iterator it
+                    = vec.erase(vec.begin() + 2, vec.begin() + 4);
+                assert(it == vec.begin() + 2);
                 assert(vec.size() == 8);
                 assert(vec.capacity() == cap);
                 for (int i = 0; i < 8; ++i) {
@@ -91,13 +94,15 @@ int main() {
                 ft::vector<std::string> vec(200, "Hello There!");
                 assert(vec.size() == 200);
                 const std::size_t cap = vec.capacity();
-                vec.erase(vec.begin() + 50, vec.begin() + 150);
+                ft::vector<std::string>::const_iterator it
+                    = vec.erase(vec.begin() + 50, vec.begin() + 150);
+                assert(it == vec.begin() + 50);
                 assert(vec.size() == 100);
                 assert(vec.capacity() == cap);
 
-                ft::vector<std::string>::iterator it = vec.begin();
-                for (; it != vec.end(); ++it) {
-                        assert(*it == "Hello There!");
+                ft::vector<std::string>::iterator tmp = vec.begin();
+                for (; tmp != vec.end(); ++tmp) {
+                        assert(*tmp == "Hello There!");
                 }
         }
         {
@@ -105,6 +110,6 @@ int main() {
                 std::size_t count = test::tracking_class::instances();
                 vec.erase(vec.begin() + 50, vec.begin() + 150);
                 assert(test::tracking_class::instances() == count - 100);
-        }       
+        }
         return 0;
 }
