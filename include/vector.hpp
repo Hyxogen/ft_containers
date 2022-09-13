@@ -293,9 +293,13 @@ class vector : public vector_base<Allocator> {
         template <typename InputIt>
         void initialize_range_aux(InputIt first, InputIt last,
                                   std::input_iterator_tag /*unused*/) {
+                vector tmp; // TODO write test to check if allocation fails in
+                            // the middle that the deconstructors of all the
+                            // already constructed objects get called.
                 for (; first != last; ++first) {
-                        push_back(*first);
+                        tmp.push_back(*first);
                 }
+                swap(tmp);
         }
 
         template <typename Iter>
