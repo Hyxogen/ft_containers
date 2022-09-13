@@ -239,8 +239,6 @@ class vector : public vector_base<Allocator> {
         }
 
         iterator erase(iterator position) {
-                if (position == end())
-                        return end();
                 return erase(position, position + 1);
         }
 

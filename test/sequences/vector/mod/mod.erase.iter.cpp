@@ -27,7 +27,6 @@ int main() {
                         vec.push_back(i);
                 }
                 const std::size_t cap = vec.capacity();
-                assert(vec.erase(vec.end()) == vec.end());
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 10);
         }
