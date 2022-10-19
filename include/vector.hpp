@@ -245,7 +245,7 @@ class vector : public vector_base<Allocator> {
         iterator erase(iterator first, iterator last) {
                 std::copy(last, end(), first);
                 destroy(last, end());
-                _size -= last - first;
+                _size -= static_cast<size_type>(last - first);
                 return first;
         }
 
@@ -275,8 +275,8 @@ class vector : public vector_base<Allocator> {
         template <typename Integer1, typename Integer2>
         void initialize_aux(Integer1 count, Integer2 value,
                             ft::true_type /*unused*/) {
-                _base::reserve(count);
-                _size = count;
+                _size = static_cast<size_type>(count);
+                _base::reserve(size());
                 std::uninitialized_fill(begin(), end(), value);
         }
 
@@ -303,7 +303,7 @@ class vector : public vector_base<Allocator> {
         template <typename Iter>
         void initialize_range_aux(Iter first, Iter last,
                                   std::forward_iterator_tag /*unused*/) {
-                _size = std::distance(first, last);
+                _size = static_cast<size_type>(std::distance(first, last));
                 _base::reserve(_size);
                 std::uninitialized_copy(first, last, begin());
         }
