@@ -29,12 +29,12 @@ int main() {
         assert((test<int, int>()));
         assert((!test<const int, int>()));
 
-        assert((test<typename ft::remove_const<const int>::type, int>()));
-        assert((test<typename ft::remove_const<const volatile int>::type,
+        assert((test<ft::remove_const<const int>::type, int>()));
+        assert((test<ft::remove_const<const volatile int>::type,
                      volatile int>()));
-        assert((test<typename ft::remove_const<volatile const int>::type,
+        assert((test<ft::remove_const<volatile const int>::type,
                      volatile int>()));
-        assert((test<typename ft::remove_const<const int *const>::type,
+        assert((test<ft::remove_const<const int *const>::type,
                      const int *>()));
         return 0;
 }

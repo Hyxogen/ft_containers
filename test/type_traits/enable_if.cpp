@@ -17,7 +17,7 @@
 #include <cassert>
 #include <type_traits.hpp>
 
-typename ft::enable_if<true, void>::type test() {}
+static ft::enable_if<true, void>::type test() {}
 
 int main() {
         test();

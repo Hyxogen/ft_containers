@@ -29,17 +29,17 @@ int main() {
         assert((test<int, int>()));
         assert((!test<const volatile int, int>()));
 
-        assert((test<typename ft::remove_cv<volatile int>::type, int>()));
-	assert((test<typename ft::remove_cv<const int>::type, int>()));
-        assert((test<typename ft::remove_cv<const volatile int>::type,
+        assert((test<ft::remove_cv<volatile int>::type, int>()));
+	assert((test<ft::remove_cv<const int>::type, int>()));
+        assert((test<ft::remove_cv<const volatile int>::type,
                      int>()));
-	assert((test<typename ft::remove_cv<volatile const int>::type,
+	assert((test<ft::remove_cv<volatile const int>::type,
                      int>()));
-        assert((test<typename ft::remove_cv<volatile int *volatile>::type,
+        assert((test<ft::remove_cv<volatile int *volatile>::type,
                      volatile int *>()));
-	assert((test<typename ft::remove_cv<volatile const int *volatile>::type,
+	assert((test<ft::remove_cv<volatile const int *volatile>::type,
                      volatile const int *>()));
-	assert((test<typename ft::remove_cv<volatile const int *const volatile>::type,
+	assert((test<ft::remove_cv<volatile const int *const volatile>::type,
                      volatile const int *>()));
         return 0;
 }

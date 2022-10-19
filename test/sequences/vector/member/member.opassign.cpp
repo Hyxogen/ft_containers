@@ -61,7 +61,7 @@ int main() {
                         assert(vec[5] == 43);
                 }
                 test::limited_allocator<int>::set_limit(
-                    std::numeric_limits<typename test::limited_allocator<
+                    std::numeric_limits<test::limited_allocator<
                         int>::size_type>::max());
                 vec.push_back(64);
                 assert(vec[6] == 64);

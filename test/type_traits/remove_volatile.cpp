@@ -29,14 +29,14 @@ int main() {
         assert((test<int, int>()));
         assert((!test<volatile int, int>()));
 
-        assert((test<typename ft::remove_volatile<volatile int>::type, int>()));
-        assert((test<typename ft::remove_volatile<const volatile int>::type,
+        assert((test<ft::remove_volatile<volatile int>::type, int>()));
+        assert((test<ft::remove_volatile<const volatile int>::type,
                      const int>()));
-        assert((test<typename ft::remove_volatile<volatile const int>::type,
+        assert((test<ft::remove_volatile<volatile const int>::type,
                      const int>()));
-        assert((test<typename ft::remove_volatile<volatile int *volatile>::type,
+        assert((test<ft::remove_volatile<volatile int *volatile>::type,
                      volatile int *>()));
-	assert((test<typename ft::remove_volatile<volatile const int *volatile>::type,
+	assert((test<ft::remove_volatile<volatile const int *volatile>::type,
                      volatile const int *>()));
         return 0;
 }

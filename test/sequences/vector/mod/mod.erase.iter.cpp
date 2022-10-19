@@ -41,7 +41,7 @@ int main() {
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 9);
                 for (int i = 0; i < 9; ++i) {
-                        assert(vec[i] == (i + 1));
+                        assert(vec[static_cast<unsigned int>(i)] == (i + 1));
                 }
         }
         {
@@ -56,7 +56,7 @@ int main() {
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 9);
                 for (int i = 0; i < 9; ++i) {
-                        assert(vec[i] == i);
+                        assert(vec[static_cast<unsigned int>(i)] == i);
                 }
         }
         {
@@ -71,7 +71,8 @@ int main() {
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 9);
                 for (int i = 0; i < 9; ++i) {
-                        assert(vec[i] == (i + (i >= 5)));
+                        assert(vec[static_cast<unsigned int>(i)]
+                               == (i + (i >= 5)));
                 }
         }
         {
@@ -97,6 +98,7 @@ int main() {
                 assert(it == vec.begin() + 179);
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 499);
+                assert(clazz::instances() == count - 179);
         }
         return 0;
 }

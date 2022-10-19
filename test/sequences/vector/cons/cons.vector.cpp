@@ -37,6 +37,7 @@ int main() {
                 }
         }
         {
+                //FIXME: int below here should be test::throwing_class<int>
                 ft::vector<
                     int, test::allocator_tracker<test::throwing_class<int> > >
                     vec;
@@ -48,6 +49,7 @@ int main() {
                         test::throwing_class<int> >::active();
                 test::throwing_class<int>::make_next_throw();
                 try {
+                        //FIXME: int below should be test::throwing_class<int>
                         ft::vector<int, test::allocator_tracker<
                                             test::throwing_class<int> > >
                             cpy(vec);

@@ -42,7 +42,7 @@ int main() {
                 assert(vec.size() == 10);
                 assert(vec.capacity() == cap);
                 for (int i = 0; i < 10; ++i) {
-                        assert(vec[i] == i);
+                        assert(vec[static_cast<unsigned int>(i)] == i);
                 }
         }
         {
@@ -57,7 +57,7 @@ int main() {
                 assert(vec.size() == 9);
                 assert(vec.capacity() == cap);
                 for (int i = 0; i < 9; ++i) {
-                        assert(vec[i] == (i + 1));
+                        assert(vec[static_cast<unsigned int>(i)] == (i + 1));
                 }
         }
         {
@@ -72,7 +72,7 @@ int main() {
                 assert(vec.size() == 9);
                 assert(vec.capacity() == cap);
                 for (int i = 0; i < 9; ++i) {
-                        assert(vec[i] == i);
+                        assert(vec[static_cast<unsigned int>(i)] == i);
                 }
         }
         {
@@ -87,7 +87,8 @@ int main() {
                 assert(vec.size() == 8);
                 assert(vec.capacity() == cap);
                 for (int i = 0; i < 8; ++i) {
-                        assert(vec[i] == (i + (i >= 2) * 2));
+                        assert(vec[static_cast<unsigned int>(i)]
+                               == (i + (i >= 2) * 2));
                 }
         }
         {

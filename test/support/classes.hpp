@@ -38,7 +38,7 @@ template <typename T> class throwing_class {
 
         throwing_class(const throwing_class &other) : _data(other._data) {
                 check();
-        };
+        }
 
         ~throwing_class() {}
 
@@ -75,7 +75,9 @@ class tracking_class {
       public:
         tracking_class() { _instances += 1; }
 
-        tracking_class(const tracking_class &other) { _instances += 1; }
+        tracking_class(const tracking_class /* unused */ &) {
+                _instances += 1;
+        }
 
         ~tracking_class() { _instances -= 1; }
 
