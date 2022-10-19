@@ -83,10 +83,7 @@ class tracking_class {
 
         static std::size_t instances() { return _instances; }
 
-        tracking_class &operator=(const tracking_class &other) {
-                if (this != &other) {
-                        _instances -= 1;
-                }
+        tracking_class &operator=(const tracking_class &) {
                 return *this;
         }
 };
