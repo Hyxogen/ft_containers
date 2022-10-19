@@ -98,7 +98,7 @@ int main() {
                 assert(it == vec.begin() + 179);
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 499);
-                assert(clazz::instances() == count - 179);
+                assert(clazz::instances() == count - 1);
         }
         return 0;
 }
