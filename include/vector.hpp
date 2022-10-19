@@ -221,6 +221,24 @@ class vector : public vector_base<Allocator> {
                 _size = 0;
         }
 
+        iterator insert(iterator pos, const T &value) {
+                const size_type offset = static_cast<size_type>(pos - begin());
+                reserve(size() + 1);
+                pos = begin() + offset;
+                if (pos == end() || size() == 0) {
+                        push_back(value);
+                } else {
+                        //push_back(*(end() - 1);
+                        _base::construct_at(end(), *(end() - 1));
+                        _size += 1;
+                        std::copy_backward(pos, iterator(end() - 2),
+                                           iterator(end() - 1));
+                        *pos = value;
+                        
+                }
+                return begin() + offset;
+        }               
+
         void reserve(size_type new_cap) {
                 //TODO add check if new_cap > max_size() and throw exception
                 if (new_cap <= capacity())

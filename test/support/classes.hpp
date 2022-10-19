@@ -27,7 +27,7 @@ struct too_many_instantiations : public std::logic_error {
 };
 
 template <typename T> class throwing_class {
-        static bool _next_throws;
+        static long _throw_after;
 
         T _data;
 
@@ -42,9 +42,13 @@ template <typename T> class throwing_class {
 
         ~throwing_class() {}
 
-        static void reset() { _next_throws = false; }
+        static void reset() { _throw_after = -1; }
 
-        static void make_next_throw() { _next_throws = true; }
+        static void make_next_throw() { _throw_after = 0; }
+
+        static void throw_after(long instantiations) {
+                _throw_after = instantiations;
+        }
 
         throwing_class &operator=(const throwing_class &other) {
                 if (this != &other) {
@@ -60,14 +64,16 @@ template <typename T> class throwing_class {
 
       private:
         static void check() {
-                if (_next_throws) {
+                if (_throw_after == 0) {
                         throw too_many_instantiations(
                             "too many instantions of type");
+                } else if (_throw_after > 0) {
+                        _throw_after -= 1;
                 }
         }
 };
 
-template <typename T> bool throwing_class<T>::_next_throws = false;
+template <typename T> long throwing_class<T>::_throw_after = -1;
 
 class tracking_class {
         static std::size_t _instances;
@@ -75,7 +81,7 @@ class tracking_class {
       public:
         tracking_class() { _instances += 1; }
 
-        tracking_class(const tracking_class /* unused */ &) {
+        tracking_class(const tracking_class &) {
                 _instances += 1;
         }
 
