@@ -1,0 +1,139 @@
+// vector resize tests
+
+// Copyright (C) 2022 Daan Meijer
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#include <vector.hpp>
+#include <assert.hpp>
+#include <classes.hpp>
+#include <allocators.hpp>
+#include <cassert>
+#include <cstddef>
+
+int main() {
+        {
+                ft::vector<int> vec;
+                vec.resize(0);
+                assert(vec.capacity() == 0);
+        }
+        {
+                ft::vector<std::string> vec;
+                vec.resize(100, "42");
+                ft::vector<std::string>::iterator it = vec.begin();
+                for (; it != vec.end(); ++it) {
+                        assert(*it == "42");
+                }
+        }
+        {
+                ft::vector<int> vec(500, 42);
+                const std::size_t cap = vec.capacity();
+                vec.resize(100);
+                assert(vec.capacity() == cap);
+                assert(vec.size() == 100);
+        }
+        {
+                ft::vector<int> vec(500, 42);
+                vec.resize(600, 42);
+                assert(vec.capacity() == 600);
+                assert(vec.size() == 600);
+                ft::vector<int>::iterator it = vec.begin();
+                for (; it != vec.end(); ++it) {
+                        assert(*it == 42);
+                }
+        }
+        {
+                typedef test::allocator_tracker<std::string> allocator;
+                ft::vector<std::string, allocator> vec(200, "<thing> rules!");
+                std::size_t active = allocator::active();
+                vec.resize(100);
+                assert(allocator::active() == (active - 100));
+                assert(vec[10] == "<thing> rules!");
+                vec.resize(0);
+                assert(allocator::active() == (active - 200));
+                assert(vec.size() == 0);
+                assert(vec.capacity() == 0);
+        }
+        {
+                ft::vector<std::string> vec(100, "<language> rules!");
+                vec.resize(200, "<other language> drools!");
+                for (std::size_t idx = 0; idx < vec.size(); ++idx) {
+                        if (idx < 100) {
+                                assert(vec[idx] == "<language> rules!");
+                        } else {
+                                assert(vec[idx] == "<other language> drools!");
+                        }
+                }
+        }
+        {
+                typedef test::limited_allocator<std::string> allocator;
+                ft::vector<std::string, allocator> vec;
+                vec.push_back("i");
+                vec.push_back("used");
+                vec.push_back("to");
+                vec.push_back("be");
+                vec.push_back("an");
+                vec.push_back("adventurer");
+                vec.push_back("like");
+                vec.push_back("you");
+
+                const std::size_t cap = vec.capacity();
+                
+                allocator::set_limit(0);
+                ASSERT_THROW(vec.resize(2), std::bad_alloc);
+
+                assert(vec.capacity() == cap);
+                assert(vec.size() == 8);
+                assert(vec[0] == "i");
+                assert(vec[1] == "used");
+                assert(vec[2] == "to");
+                assert(vec[3] == "be");
+                assert(vec[4] == "an");
+                assert(vec[5] == "adventurer");
+                assert(vec[6] == "like");
+                assert(vec[7] == "you");
+        }
+        {
+                typedef test::throwing_class<std::string> clazz;
+                ft::vector<clazz> vec(10, clazz("foo"));
+                
+                clazz::make_next_throw();
+                std::size_t cap = vec.capacity();
+                ASSERT_THROW(vec.resize(3), test::too_many_instantiations);
+
+                assert(vec.capacity() == cap);
+                assert(vec.size() == 10);
+                ft::vector<clazz>::iterator it = vec.begin(),
+                                            begin = vec.begin();
+                const ft::vector<clazz>::iterator end = vec.end();
+                for (; it != end; ++it) {
+                        assert(*it == "foo");
+                }
+
+                clazz::reset();
+                vec.push_back(clazz("middle"));
+
+                cap = vec.capacity();
+                clazz::make_next_throw();
+                ASSERT_THROW(vec.resize(100, clazz("bar")),
+                             test::too_many_instantiations);
+                it = begin;
+
+                for (; it != end - 1; ++it) {
+                        assert(*it == "foo");
+                }
+                assert(*it++ == "middle");
+                assert(it == vec.end());
+        }
+        return 0;
+}
