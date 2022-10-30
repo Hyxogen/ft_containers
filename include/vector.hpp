@@ -225,7 +225,7 @@ class vector : public vector_base<Allocator> {
                 const size_type offset = static_cast<size_type>(pos - begin());
                 reserve(size() + 1);
                 pos = begin() + offset;
-                if (pos == end() || size() == 0) {
+                if (pos == end()) {
                         push_back(value);
                 } else {
                         push_back(*(end() - 1));
