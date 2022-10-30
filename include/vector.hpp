@@ -221,27 +221,14 @@ class vector : public vector_base<Allocator> {
                 _size = 0;
         }
 
-        void insert(iterator pos, size_type n, const T &value) {
-                const size_type offset = static_cast<size_type>(pos - begin());
-                reserve(size() + n);
-                pos = begin() + offset;
+        template<typename InputIt>
+        void insert(iterator pos, InputIt first, InputIt last) {
+                typedef typename ft::is_integral<InputIt>::type Integral;
+                insert_aux(pos, first, last, Integral());
+        }
 
-                const size_type elements_after
-                    = static_cast<size_type>(end() - pos);
-                const iterator old_end = end();
-                if (elements_after > n) {
-                        std::uninitialized_copy(end() - n, end(), end());
-                        _size += n;
-                        std::copy_backward(pos, old_end - n, old_end);
-                        std::fill_n(pos, n, value);
-                } else {
-                        const size_type difference = n - elements_after;
-                        std::uninitialized_fill_n(end(), difference, value);
-                        _size += difference;
-                        std::uninitialized_copy(pos, old_end, end());
-                        _size += n - difference;
-                        std::fill(pos, old_end, value);
-                }
+        void insert(iterator pos, size_type n, const T &value) {
+                insert_aux(pos, n, value, ft::true_type());
         }
 
         iterator insert(iterator pos, const T &value) {
@@ -335,6 +322,79 @@ class vector : public vector_base<Allocator> {
                 _size = static_cast<size_type>(std::distance(first, last));
                 _base::reserve(_size);
                 std::uninitialized_copy(first, last, begin());
+        }
+
+        /*
+          TODO: make this create a temp vector and make it then use the iterator
+          insert for even less code duplication (check how fast it is */
+        template <typename SizeType, typename ValueType>
+        void insert_aux(iterator pos, SizeType n,  ValueType value,
+                        ft::true_type /*unused*/) {
+                const size_type offset = static_cast<size_type>(pos - begin());
+                const size_type count = static_cast<size_type>(n);
+                reserve(size() + count);
+                pos = begin() + offset;
+
+                const size_type elements_after
+                        = static_cast<size_type>(end() - pos);
+                const iterator old_end = end();
+                if (elements_after > count) {
+                        std::uninitialized_copy(end() - count, end(), end());
+                        _size += count;
+                        std::copy_backward(pos, old_end - count, old_end);
+                        std::fill_n(pos, count, value);
+                } else {
+                        const size_type difference = count - elements_after;
+                        std::uninitialized_fill_n(end(), difference, value);
+                        _size += difference;
+                        std::uninitialized_copy(pos, old_end, end());
+                        _size += count - difference;
+                        std::fill(pos, old_end, value);
+                }
+        }
+
+        template <typename InputIt>
+        void insert_aux(iterator pos, InputIt first, InputIt last,
+                        ft::false_type /*unused*/) {
+                insert_range_aux(pos, first, last,
+                                 typename ft::iterator_traits<
+                                     InputIt>::iterator_category());
+        }
+
+        template <typename ForwardIt>
+        void insert_range_aux(iterator pos, ForwardIt first, ForwardIt last,
+                              std::forward_iterator_tag /*unused*/) {
+                const size_type count
+                    = static_cast<size_type>(std::distance(first, last));
+                const size_type offset = static_cast<size_type>(pos - begin());
+
+                reserve(size() + count);
+
+                pos = begin() + offset;
+                const size_type elements_after
+                    = static_cast<size_type>(end() - pos);
+                const iterator old_end = end();
+                if (elements_after > count) {
+                        std::uninitialized_copy(end() - count, end(), end());
+                        _size += count;
+                        std::copy_backward(pos, old_end - count, old_end);
+                        std::copy(first, last, pos);
+                } else {
+                        const size_type difference = count - elements_after;
+                        std::uninitialized_fill_n(end(), difference,
+                                                  value_type());
+                        _size += difference;
+                        std::uninitialized_copy(pos, old_end, end());
+                        _size += count - difference;
+                        std::copy(first, last, pos);
+                }
+        }
+
+        template <typename InputIt>
+        void insert_range_aux(iterator pos, InputIt first, InputIt last,
+                              std::input_iterator_tag /*unused*/) {
+                vector tmp(first, last);
+                insert(pos, tmp.begin(), tmp.end());
         }
 };
 } // namespace ft
