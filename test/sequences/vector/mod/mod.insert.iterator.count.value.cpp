@@ -87,8 +87,7 @@ int main() {
                 }
         }
         {
-                typedef test::limited_allocator<std::string> allocator;
-                ft::vector<std::string, allocator> vec;
+                ft::vector<std::string> vec;
                 vec.reserve(8);
                 vec.push_back("Inserts");
                 vec.push_back("count");
@@ -96,9 +95,9 @@ int main() {
                 vec.push_back("of");
                 vec.push_back("the");
 
-                allocator::set_limit(allocator::active());
+                const ft::vector<std::string>::iterator begin = vec.begin();
                 vec.insert(vec.begin() + 2, 3, "value_type");
-                allocator::reset_limit();
+                assert(vec.begin() == begin);
         }
         {
                 typedef test::limited_allocator<std::string> allocator;

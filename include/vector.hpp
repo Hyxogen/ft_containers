@@ -323,34 +323,12 @@ class vector : public vector_base<Allocator> {
                 _base::reserve(_size);
                 std::uninitialized_copy(first, last, begin());
         }
-
-        /*
-          TODO: make this create a temp vector and make it then use the iterator
-          insert for even less code duplication (check how fast it is */
+        
         template <typename SizeType, typename ValueType>
         void insert_aux(iterator pos, SizeType n,  ValueType value,
                         ft::true_type /*unused*/) {
-                const size_type offset = static_cast<size_type>(pos - begin());
-                const size_type count = static_cast<size_type>(n);
-                reserve(size() + count);
-                pos = begin() + offset;
-
-                const size_type elements_after
-                        = static_cast<size_type>(end() - pos);
-                const iterator old_end = end();
-                if (elements_after > count) {
-                        std::uninitialized_copy(end() - count, end(), end());
-                        _size += count;
-                        std::copy_backward(pos, old_end - count, old_end);
-                        std::fill_n(pos, count, value);
-                } else {
-                        const size_type difference = count - elements_after;
-                        std::uninitialized_fill_n(end(), difference, value);
-                        _size += difference;
-                        std::uninitialized_copy(pos, old_end, end());
-                        _size += count - difference;
-                        std::fill(pos, old_end, value);
-                }
+                vector tmp(n, value);
+                insert(pos, tmp.begin(), tmp.end());
         }
 
         template <typename InputIt>
