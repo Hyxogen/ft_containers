@@ -120,7 +120,12 @@ struct limited_allocator : allocator_tracker<T> {
         static void set_limit(size_type limit) {
                 _limit = limit;
         }
-        
+
+        static void reset_limit() {
+                _limit = std::numeric_limits<
+                    typename limited_allocator<T>::size_type>::max();
+        }
+
         typename _base::pointer allocate(size_type n, const void *hint = 0) {
                 if (_base::active() + n >= _limit) {
                         throw std::bad_alloc();

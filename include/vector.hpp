@@ -221,18 +221,32 @@ class vector : public vector_base<Allocator> {
                 _size = 0;
         }
 
+        void insert(iterator pos, size_type n, const T &value) {
+                const size_type offset = static_cast<size_type>(pos - begin());
+                reserve(size() + n);
+                pos = begin() + offset;
+
+                const size_type elements_after
+                    = static_cast<size_type>(end() - pos);
+                const iterator old_end = end();
+                if (elements_after > n) {
+                        std::uninitialized_copy(end() - n, end(), end());
+                        _size += n;
+                        std::copy_backward(pos, old_end - n, old_end);
+                        std::fill_n(pos, n, value);
+                } else {
+                        const size_type difference = n - elements_after;
+                        std::uninitialized_fill_n(end(), difference, value);
+                        _size += difference;
+                        std::uninitialized_copy(pos, old_end, end());
+                        _size += n - difference;
+                        std::fill(pos, old_end, value);
+                }
+        }
+
         iterator insert(iterator pos, const T &value) {
                 const size_type offset = static_cast<size_type>(pos - begin());
-                reserve(size() + 1);
-                pos = begin() + offset;
-                if (pos == end()) {
-                        push_back(value);
-                } else {
-                        push_back(*(end() - 1));
-                        std::copy_backward(pos, iterator(end() - 2),
-                                           iterator(end() - 1));
-                        *pos = value;
-                }
+                insert(pos, 1, value);
                 return begin() + offset;
         }
 
