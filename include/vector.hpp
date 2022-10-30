@@ -18,8 +18,8 @@
 #define FT_VECTOR_HPP
 
 #include <algorithm>
-#include <cstddef>
 #include <cassert> //TODO REMOVE
+#include <cstddef>
 #include <iterator.hpp>
 #include <iterator>
 #include <memory>
@@ -163,18 +163,20 @@ class vector : public vector_base<Allocator> {
 
         reference at(size_type pos) {
                 if (!(pos < size())) {
-                        throw std::out_of_range("out of bounds access in vector::at");
+                        throw std::out_of_range(
+                            "out of bounds access in vector::at");
                 }
                 return this->operator[](pos);
         }
 
         const_reference at(size_type pos) const {
                 if (!(pos < size())) {
-                        throw std::out_of_range("out of bounds access in vector::at");
+                        throw std::out_of_range(
+                            "out of bounds access in vector::at");
                 }
                 return this->operator[](pos);
         }
-        
+
         iterator begin() { return _base::begin(); }
         iterator end() { return begin() + size(); }
         const_iterator begin() const { return _base::begin(); }
@@ -221,7 +223,7 @@ class vector : public vector_base<Allocator> {
                 _size = 0;
         }
 
-        template<typename InputIt>
+        template <typename InputIt>
         void insert(iterator pos, InputIt first, InputIt last) {
                 typedef typename ft::is_integral<InputIt>::type Integral;
                 insert_aux(pos, first, last, Integral());
@@ -323,9 +325,9 @@ class vector : public vector_base<Allocator> {
                 _base::reserve(_size);
                 std::uninitialized_copy(first, last, begin());
         }
-        
+
         template <typename SizeType, typename ValueType>
-        void insert_aux(iterator pos, SizeType n,  ValueType value,
+        void insert_aux(iterator pos, SizeType n, ValueType value,
                         ft::true_type /*unused*/) {
                 vector tmp(n, value);
                 insert(pos, tmp.begin(), tmp.end());
