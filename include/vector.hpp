@@ -218,6 +218,11 @@ class vector : public vector_base<Allocator> {
                 ++_size;
         }
 
+        void pop_back() {
+                _base::destroy_at(end() - 1);
+                _size -= 1;
+        }
+
         void swap(vector &other) {
                 _base::swap(other);
                 std::swap(_size, other._size);
