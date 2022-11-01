@@ -18,7 +18,6 @@
 #define FT_VECTOR_HPP
 
 #include <algorithm>
-#include <cassert> //TODO REMOVE
 #include <cstddef>
 #include <iterator.hpp>
 #include <iterator>
@@ -77,7 +76,6 @@ template <typename Allocator> class vector_base {
         void reserve(size_type new_cap) {
                 if (new_cap <= capacity())
                         return;
-                assert(_data == NULL); /* TODO debug assert, remove */
                 _data = _alloc.allocate(new_cap);
                 _capacity = new_cap;
         }
