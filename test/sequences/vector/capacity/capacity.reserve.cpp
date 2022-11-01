@@ -57,6 +57,24 @@ int main() {
                 assert(vec[2] == "There");
         }
         {
+                typedef test::limited_allocator<std::string> allocator;
+                const std::size_t usage = allocator::active();
+                {
+                        ft::vector<std::string, allocator> vec(3);
+                        assert(vec.capacity() == 3);
+                        vec[0] = "Well";
+                        vec[1] = "Hello";
+                        vec[2] = "There";
+                        allocator::set_limit(allocator::active() + 1);
+                        ASSERT_THROW(vec.reserve(10), std::bad_alloc);
+                        assert(vec.capacity() == 3);
+                        assert(vec[0] == "Well");
+                        assert(vec[1] == "Hello");
+                        assert(vec[2] == "There");
+                }
+                assert(allocator::active() == usage);
+        }
+        {
                 ft::vector<std::string> vec;
                 ASSERT_THROW(vec.reserve(std::numeric_limits<size_t>::max()),
                              std::length_error);
