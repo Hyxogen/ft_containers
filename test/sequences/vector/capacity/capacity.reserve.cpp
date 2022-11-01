@@ -19,6 +19,7 @@
 #include <cassert>
 #include <string>
 #include <vector.hpp>
+#include <stdexcept>
 
 int main() {
         {
@@ -54,6 +55,18 @@ int main() {
                 assert(vec[0] == "Well");
                 assert(vec[1] == "Hello");
                 assert(vec[2] == "There");
+        }
+        {
+                ft::vector<std::string> vec;
+                ASSERT_THROW(vec.reserve(std::numeric_limits<size_t>::max()),
+                             std::length_error);
+                ASSERT_THROW(
+                    vec.reserve(
+                        (std::numeric_limits<
+                             std::allocator<std::string>::size_type>::max()
+                         / sizeof(std::string))
+                        + 1),
+                    std::length_error);
         }
         return 0;
 }

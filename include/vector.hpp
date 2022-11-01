@@ -23,6 +23,8 @@
 #include <iterator.hpp>
 #include <iterator>
 #include <memory>
+#include <limits>
+#include <stdexcept>
 #include <type_traits.hpp>
 
 namespace ft {
@@ -193,6 +195,11 @@ class vector : public vector_base<Allocator> {
                 return *this;
         }
 
+        size_type max_size() const {
+                return std::numeric_limits<size_type>::max()
+                       / sizeof(value_type);
+        }
+
         void assign(size_type count, const_reference value) {
                 clear();
                 initialize_aux(count, value, ft::true_type());
@@ -240,7 +247,10 @@ class vector : public vector_base<Allocator> {
         }
 
         void reserve(size_type new_cap) {
-                //TODO add check if new_cap > max_size() and throw exception
+                if (new_cap > max_size()) {
+                        throw std::length_error(
+                            "new_cap exceeds max_size() in vector::reserve");
+                }
                 if (new_cap <= capacity())
                         return;
                 vector new_vec(*this, new_cap);
