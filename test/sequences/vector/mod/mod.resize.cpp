@@ -14,12 +14,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#include <vector.hpp>
-#include <assert.hpp>
-#include <classes.hpp>
 #include <allocators.hpp>
+#include <assert.hpp>
 #include <cassert>
+#include <classes.hpp>
 #include <cstddef>
+#include <vector.hpp>
 
 int main() {
         {
@@ -53,16 +53,15 @@ int main() {
                 }
         }
         {
-                typedef test::allocator_tracker<std::string> allocator;
-                ft::vector<std::string, allocator> vec(200, "<thing> rules!");
-                std::size_t active = allocator::active();
+                typedef test::tracking_class clazz;
+
+                const std::size_t active = clazz::instances();
+                ft::vector<clazz> vec(200);
                 vec.resize(100);
-                assert(allocator::active() == (active - 100));
-                assert(vec[10] == "<thing> rules!");
+                assert(clazz::instances() == active + 100);
                 vec.resize(0);
-                assert(allocator::active() == (active - 200));
+                assert(clazz::instances() == active);
                 assert(vec.size() == 0);
-                assert(vec.capacity() == 0);
         }
         {
                 ft::vector<std::string> vec(100, "<language> rules!");
@@ -88,9 +87,9 @@ int main() {
                 vec.push_back("you");
 
                 const std::size_t cap = vec.capacity();
-                
+
                 allocator::set_limit(0);
-                ASSERT_THROW(vec.resize(2), std::bad_alloc);
+                ASSERT_THROW(vec.resize(cap + 10), std::bad_alloc);
 
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 8);
@@ -106,16 +105,14 @@ int main() {
         {
                 typedef test::throwing_class<std::string> clazz;
                 ft::vector<clazz> vec(10, clazz("foo"));
-                
+
                 clazz::make_next_throw();
                 std::size_t cap = vec.capacity();
                 ASSERT_THROW(vec.resize(3), test::too_many_instantiations);
 
                 assert(vec.capacity() == cap);
                 assert(vec.size() == 10);
-                ft::vector<clazz>::iterator it = vec.begin(),
-                                            begin = vec.begin();
-                const ft::vector<clazz>::iterator end = vec.end();
+                ft::vector<clazz>::iterator it = vec.begin(), end = vec.end();
                 for (; it != end; ++it) {
                         assert(*it == "foo");
                 }
@@ -127,7 +124,8 @@ int main() {
                 clazz::make_next_throw();
                 ASSERT_THROW(vec.resize(100, clazz("bar")),
                              test::too_many_instantiations);
-                it = begin;
+                it = vec.begin();
+                end = vec.end();
 
                 for (; it != end - 1; ++it) {
                         assert(*it == "foo");

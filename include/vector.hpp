@@ -247,12 +247,11 @@ class vector : public vector_base<Allocator> {
                 swap(new_vec);
         }
 
-        // TODO write resize tests
-        void resize(size_type count) {
-                if (count < capacity()) {
-                        shrink(count);
-                } else if (count > capacity()) {
-                        grow_append(count, value_type());
+        void resize(size_type count, T value = T()) {
+                if (count > size()) {
+                        insert(end(), count - size(), value);
+                } else if (count < size()) {
+                        erase(begin() + count, end());
                 }
         }
 
