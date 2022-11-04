@@ -17,6 +17,7 @@
 #ifndef FT_VECTOR_HPP
 #define FT_VECTOR_HPP
 
+#include <algorithm.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <iterator.hpp>
@@ -391,4 +392,16 @@ class vector : public vector_base<Allocator> {
 };
 } // namespace ft
 
+template <class T, class Alloc>
+bool operator==(const ft::vector<T, Alloc> &lhs,
+                const ft::vector<T, Alloc> &rhs) {
+        return lhs.size() == rhs.size()
+               && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+template <class T, class Alloc>
+bool operator!=(const ft::vector<T, Alloc> &lhs,
+                const ft::vector<T, Alloc> &rhs) {
+        return !(lhs == rhs);
+}
 #endif /* FT_VECTOR_HPP */
