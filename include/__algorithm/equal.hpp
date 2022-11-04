@@ -1,4 +1,4 @@
-// custom stl algorithm implementation
+// custom equal implementation
 
 // Copyright (C) 2022 Daan Meijer
 //
@@ -14,10 +14,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#ifndef ALGORITHM_HPP
-#define ALGORITHM_HPP
+#ifndef EQUAL_HPP
+#define EQUAL_HPP
 
-#include <__algorithm/lexicographical_compare.hpp>
-#include <__algorithm/equal.hpp>
+namespace ft {
 
-#endif /* ALGORITHM_HPP */
+template <class InputIt1, class InputIt2>
+bool equal(InputIt1 first1, InputIt1 last1, InputIt2 first2) {
+        for (; first1 != last1; ++first1, ++first2) {
+                if (*first1 != *first2) {
+                        return false;
+                }
+        }
+        return true;
+}
+}
+
+#endif /* EQUAL_HPP */
