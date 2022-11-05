@@ -38,6 +38,8 @@ template <typename Allocator> class vector_base {
         typedef typename Allocator::const_pointer const_pointer;
         typedef pointer iterator;
         typedef const_pointer const_iterator;
+        typedef ft::reverse_iterator<iterator> reverse_iterator;
+        typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef typename Allocator::size_type size_type;
         typedef Allocator allocator_type;
 
@@ -85,9 +87,17 @@ template <typename Allocator> class vector_base {
         const_pointer data() const { return _data; }
         size_type capacity() const { return _capacity; }
         iterator begin() { return data(); }
-        const_iterator begin() const { return data(); }
         iterator end() { return begin() + capacity(); }
+        const_iterator begin() const { return data(); }
         const_iterator end() const { return begin() + capacity(); }
+        reverse_iterator rbegin() { return reverse_iterator(end()); }
+        reverse_iterator rend() { return reverse_iterator(begin()); }
+        const_reverse_iterator rbegin() const {
+                return reverse_iterator(end());
+        }
+        const_reverse_iterator rend() const {
+                return const_reverse_iterator(begin());
+        }
 
         void destroy_at(pointer p) { _alloc.destroy(p); }
 
@@ -108,6 +118,8 @@ class vector : public vector_base<Allocator> {
         typedef typename _base::const_reference const_reference;
         typedef typename _base::pointer iterator;
         typedef typename _base::const_pointer const_iterator;
+        typedef typename _base::reverse_iterator reverse_iterator;
+        typedef typename _base::const_reverse_iterator const_reverse_iterator;
         typedef typename _base::allocator_type allocator_type;
         typedef typename _base::size_type size_type;
 
@@ -182,6 +194,12 @@ class vector : public vector_base<Allocator> {
         iterator end() { return begin() + size(); }
         const_iterator begin() const { return _base::begin(); }
         const_iterator end() const { return begin() + size(); }
+        reverse_iterator rbegin() { return _base::rbegin(); }
+        reverse_iterator rend() { return reverse_iterator(begin()); }
+        const_reverse_iterator rbegin() const { return _base::rbegin(); }
+        const_reverse_iterator rend() const {
+                return reverse_iterator(begin());
+        }
         size_type size() const { return _size; }
         size_type capacity() const { return _base::capacity(); }
         bool empty() const { return _size == 0; }
@@ -390,8 +408,6 @@ class vector : public vector_base<Allocator> {
                 insert(pos, tmp.begin(), tmp.end());
         }
 };
-} // namespace ft
-
 template <class T, class Alloc>
 bool operator==(const ft::vector<T, Alloc> &lhs,
                 const ft::vector<T, Alloc> &rhs) {
@@ -429,4 +445,5 @@ bool operator>=(const ft::vector<T, Alloc> &lhs,
                 const ft::vector<T, Alloc> &rhs) {
         return !(lhs < rhs);
 }
+} // namespace ft
 #endif /* FT_VECTOR_HPP */
