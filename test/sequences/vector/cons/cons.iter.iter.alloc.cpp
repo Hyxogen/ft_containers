@@ -16,12 +16,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <allocators.hpp>
 #include <cassert>
+#include <classes.hpp>
 #include <iterator>
 #include <iterators.hpp>
 #include <sstream>
 #include <string>
 #include <vector.hpp>
 #include <vector>
+#include <new>
 
 int main() {
         std::vector<int> stdvec(test::range_iterator<int>(0),
@@ -54,6 +56,53 @@ int main() {
                 assert(*it++ == std::string("there"));
                 assert(*it++ == std::string(":)"));
                 assert(it == vec.end());
+        }
+        {
+                typedef test::throwing_class<test::tracking_class> clazz;
+                typedef test::allocator_tracker<clazz> allocator;
+                typedef test::input_iterator<std::vector<clazz>::iterator>
+                    input_iterator;
+                std::vector<clazz> input(300);
+
+                clazz::throw_after(150);
+                const std::size_t instances
+                    = test::tracking_class::instances();
+                const std::size_t usage = allocator::active();
+
+                try {
+                        ft::vector<clazz, allocator> vec(
+                            input_iterator(input.begin()),
+                            input_iterator(input.end()));
+                        assert(0);
+                } catch (const test::too_many_instantiations &ex) {
+                } catch (...) {
+                        assert(0);
+                }
+
+                assert(test::tracking_class::instances() == instances);
+                assert(allocator::active() == usage);
+                clazz::reset();
+        }
+        {
+                typedef test::limited_allocator<int> allocator;
+                typedef test::input_iterator<std::vector<int>::iterator>
+                    input_iterator;
+
+                allocator::set_limit(160);
+                const std::size_t usage = allocator::active();
+
+                try {
+                        ft::vector<int, allocator>(
+                            input_iterator(stdvec.begin()),
+                            input_iterator(stdvec.end()));
+                        assert(0);
+                } catch (const std::bad_alloc &ex) {
+                } catch (...) {
+                        assert(0);
+                }
+
+                assert(allocator::active() == usage);
+                allocator::reset_limit();
         }
         return 0;
 }

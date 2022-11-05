@@ -118,5 +118,61 @@ template <typename T> struct range_iterator {
 
         reference operator[](difference_type n) const { return _value + n; }
 };
+
+template <typename Iterator>
+struct input_iterator
+    : public std::iterator<
+          std::input_iterator_tag,
+          typename std::iterator_traits<Iterator>::value_type,
+          typename std::iterator_traits<Iterator>::difference_type,
+          typename std::iterator_traits<Iterator>::pointer,
+          typename std::iterator_traits<Iterator>::reference> {
+
+      protected:
+        Iterator _current;
+
+        input_iterator() : _current() {}
+      public:
+        typedef typename std::iterator_traits<Iterator>::reference reference;
+        typedef typename std::iterator_traits<Iterator>::pointer pointer;
+
+        input_iterator(const Iterator &other) : _current(other) {}
+
+        input_iterator(const input_iterator &other)
+            : _current(other._current) {}
+
+        input_iterator& operator=(const input_iterator &other) {
+                if (this != &other) {
+                        _current = other._current;
+                }
+                return *this;
+        }
+
+        bool operator==(const input_iterator &other) {
+                return _current == other._current;
+        }
+
+        bool operator!=(const input_iterator &other) {
+                return _current != other._current;
+        }
+
+        reference operator*() const {
+                return *_current;
+        }
+
+        pointer operator->() const {
+                return &(operator*());
+        }
+
+        input_iterator &operator++() {
+                ++_current;
+                return *this;
+        }
+
+        input_iterator operator++(int) {
+                ++_current;
+                return input_iterator();
+        }
+};
 } /* namespace test */
 #endif /* ITERATORS_HPP */
