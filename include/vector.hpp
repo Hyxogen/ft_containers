@@ -194,12 +194,12 @@ class vector : public vector_base<Allocator> {
         iterator end() { return begin() + size(); }
         const_iterator begin() const { return _base::begin(); }
         const_iterator end() const { return begin() + size(); }
-        reverse_iterator rbegin() { return _base::rbegin(); }
-        reverse_iterator rend() { return reverse_iterator(begin()); }
-        const_reverse_iterator rbegin() const { return _base::rbegin(); }
-        const_reverse_iterator rend() const {
-                return reverse_iterator(begin());
+        reverse_iterator rbegin() { return reverse_iterator(end()); }
+        reverse_iterator rend() { return _base::rend(); }
+        const_reverse_iterator rbegin() const {
+                return reverse_iteator(end());
         }
+        const_reverse_iterator rend() const { return _base::rend(); }
         size_type size() const { return _size; }
         size_type capacity() const { return _base::capacity(); }
         bool empty() const { return _size == 0; }
