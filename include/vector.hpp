@@ -167,8 +167,7 @@ class vector : public vector_base<Allocator> {
 
         reference operator[](size_type n) {
                 return *(begin() + n);
-        } /*TODO
-            perhaps make this not use begin() */
+        }
 
         const_reference operator[](size_type n) const {
                 return *(begin() + n);
