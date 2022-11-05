@@ -81,17 +81,13 @@ class tracking_class {
       public:
         tracking_class() { _instances += 1; }
 
-        tracking_class(const tracking_class &) {
-                _instances += 1;
-        }
+        tracking_class(const tracking_class &) { _instances += 1; }
 
         ~tracking_class() { _instances -= 1; }
 
         static std::size_t instances() { return _instances; }
 
-        tracking_class &operator=(const tracking_class &) {
-                return *this;
-        }
+        tracking_class &operator=(const tracking_class &) { return *this; }
 };
 
 std::size_t tracking_class::_instances = 0;

@@ -14,11 +14,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#include <map>
-#include <new>
-#include <memory>
-#include <string>
 #include <limits>
+#include <map>
+#include <memory>
+#include <new>
+#include <string>
 
 namespace test {
 namespace {
@@ -90,15 +90,15 @@ struct allocator_tracker : Base {
 
       private:
         static size_type _active;
-	static std::size_t _alloc_count;
+        static std::size_t _alloc_count;
 
       public:
         static size_type active() { return _active; }
-	static std::size_t alloc_count() { return _alloc_count; }
+        static std::size_t alloc_count() { return _alloc_count; }
 
         typename Base::pointer allocate(size_type n, const void *hint = 0) {
                 _active += n;
-		_alloc_count += 1;
+                _alloc_count += 1;
                 return Base::allocate(n, hint);
         }
 
@@ -108,18 +108,15 @@ struct allocator_tracker : Base {
         }
 };
 
-template <typename T>
-struct limited_allocator : allocator_tracker<T> {
+template <typename T> struct limited_allocator : allocator_tracker<T> {
         typedef allocator_tracker<T> _base;
         typedef typename _base::size_type size_type;
 
       private:
         static size_type _limit;
-        
+
       public:
-        static void set_limit(size_type limit) {
-                _limit = limit;
-        }
+        static void set_limit(size_type limit) { _limit = limit; }
 
         static void reset_limit() {
                 _limit = std::numeric_limits<

@@ -132,6 +132,7 @@ struct input_iterator
         Iterator _current;
 
         input_iterator() : _current() {}
+
       public:
         typedef typename std::iterator_traits<Iterator>::reference reference;
         typedef typename std::iterator_traits<Iterator>::pointer pointer;
@@ -141,7 +142,7 @@ struct input_iterator
         input_iterator(const input_iterator &other)
             : _current(other._current) {}
 
-        input_iterator& operator=(const input_iterator &other) {
+        input_iterator &operator=(const input_iterator &other) {
                 if (this != &other) {
                         _current = other._current;
                 }
@@ -156,13 +157,9 @@ struct input_iterator
                 return _current != other._current;
         }
 
-        reference operator*() const {
-                return *_current;
-        }
+        reference operator*() const { return *_current; }
 
-        pointer operator->() const {
-                return &(operator*());
-        }
+        pointer operator->() const { return &(operator*()); }
 
         input_iterator &operator++() {
                 ++_current;

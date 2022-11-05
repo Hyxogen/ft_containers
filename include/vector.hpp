@@ -165,9 +165,7 @@ class vector : public vector_base<Allocator> {
       public:
         ~vector() { clear(); }
 
-        reference operator[](size_type n) {
-                return *(begin() + n);
-        }
+        reference operator[](size_type n) { return *(begin() + n); }
 
         const_reference operator[](size_type n) const {
                 return *(begin() + n);
