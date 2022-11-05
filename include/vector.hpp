@@ -203,6 +203,10 @@ class vector : public vector_base<Allocator> {
         size_type size() const { return _size; }
         size_type capacity() const { return _base::capacity(); }
         bool empty() const { return _size == 0; }
+        reference front() { return *begin(); }
+        reference back() { return *rbegin(); }
+        const_reference front() const { return *begin(); }
+        const_reference back() const { return *rbegin(); }
 
         vector &operator=(const vector &other) {
                 if (this != &other) {
