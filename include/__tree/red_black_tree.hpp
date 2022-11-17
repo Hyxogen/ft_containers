@@ -19,6 +19,10 @@
 
 #include <stdexcept>
 #include <cstddef>
+// todo for debug purposes, remove
+#include <iostream>
+#include <string>
+#include <cassert>
 
 namespace ft {
 namespace detail {
@@ -78,22 +82,18 @@ class rbnode {
                                                     : left_height;
         }
 
-        void rotate_left() {
-                rbnode *new_root = right;
-
-                right = new_root->left;
-                if (new_root->left != NULL)
-                        new_root->left->parent = this;
-                new_root->parent = parent;
-                if (parent != NULL) {
-                        if (parent->left == this)
-                                parent->left = new_root;
-                        else
-                                parent->right = new_root;
+        static void debug_print(const rbnode *node, std::size_t indent = 0) {
+                std::cout << std::string(indent, ' ');
+                if (node == NULL) {
+                        
+                        std::cout << '-' << std::endl;
+                } else {
+                        std::cout << node->value << ","
+                                  << (node->color == RB_BLACK ? 'B' : 'R')
+                                  << std::endl;
+                        debug_print(node->left, indent + 4);
+                        debug_print(node->right, indent + 4);
                 }
-                new_root->left = this;
-                parent = new_root;
-                return new_root;
         }
 };
 
@@ -104,6 +104,7 @@ struct rbtree {
         node_type *_root;
 
         node_type* rotate_left(node_type *node) {
+                assert(node->right != NULL && "cannot rotate further left");
                 node_type *new_root = node->right;
 
                 node->right = new_root->left;
@@ -121,7 +122,39 @@ struct rbtree {
                 node->parent = new_root;
                 return new_root;
         }
+
+        node_type* rotate_right(node_type *node) {
+                assert(node->left != NULL && "cannot rotate further right");
+                node_type *new_root = node->left;
+
+                node->left = new_root->right;
+                if (new_root->right != NULL)
+                        new_root->right->parent = node;
+                new_root->parent = node->parent;
+                if (node->parent == NULL) {
+                        _root = new_root;
+                } else if (node == node->parent->right) {
+                        node->parent->right = new_root;
+                } else {
+                        node->parent->left = new_root;
+                }
+                new_root->right = node;
+                node->parent = new_root;
+                return new_root;
+        }
+
 };
+
+template <typename ValueType>
+bool operator==(const rbnode<ValueType> &lhs, const rbnode<ValueType> &rhs) {
+        if (lhs.value != rhs.value)
+                return false;
+
+        return ((lhs.left == NULL && rhs.left == NULL)
+                || (rhs.left != NULL && *lhs.left == *rhs.left))
+               && ((lhs.right == NULL && rhs.right == NULL)
+                   || (rhs.right != NULL && *lhs.right == *rhs.right));
+}
 
 }
 }
