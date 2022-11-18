@@ -19,6 +19,7 @@
 
 #include <stdexcept>
 #include <cstddef>
+#include <memory>
 // todo for debug purposes, remove
 #include <iostream>
 #include <string>
@@ -36,54 +37,68 @@ template <typename T>
 class rbnode {
         typedef rbnode this_type;
       public:
-        rbcolor color;
         T value;
+        rbcolor color;
         
         this_type *parent;
         this_type *right;
         this_type *left;
 
-        rbnode(rbcolor color, const T &value = T(), this_type *parent = NULL,
-               this_type *right = NULL, this_type *left = NULL)
-            : color(color), value(value), parent(parent), right(right),
+        rbnode(const T &value = T(), rbcolor color = RB_BLACK,
+               this_type *parent = NULL, this_type *right = NULL,
+               this_type *left = NULL)
+            : value(value), color(color), parent(parent), right(right),
               left(left) {}
+
+        ~rbnode() {
+                delete left;
+                delete right;
+        }
 
         static rbcolor node_color(const rbnode *node) {
                 if (node == NULL)
                         return RB_BLACK;
                 return node->color;
         }
-
-        bool is_bst() {
-                return (
-                    (left == NULL || (left->value < value && left->is_bst()))
-                    && (right == NULL
-                        || (right->value > value && right->is_bst())));
-        }
         
-        std::size_t black_height() {
-                if (color == RB_RED
-                    && (node_color(left) == RB_RED
-                        || node_color(right) == RB_RED))
-                        throw std::logic_error("red violation");
-
-                std::size_t left_height
-                    = left == NULL ? 0 : left->black_height();
-                std::size_t right_height
-                    = right == NULL ? 0 : right->black_height();
-
-                if ((left != NULL && left->value >= value)
-                    || (right != NULL && right->value <= value))
-                        throw std::logic_error("bst violation");
-
-                if (left_height != right_height)
-                        throw std::logic_error("black violation");
-                return color == RB_BLACK ? left_height + 1
-                                                    : left_height;
+        static bool is_bst(const this_type *node) {
+                if (node == NULL)
+                        return true;
+                return (node->left == NULL
+                        || (node->left->value < node->value
+                            && is_bst(node->left)))
+                       && (node->right == NULL
+                           || (node->right->value > node->value
+                               && is_bst(node->right)));
         }
 
-        static void debug_print(const rbnode *node, std::size_t indent = 0,
-                                const rbnode *special = NULL) {
+
+        static std::size_t black_height(const this_type *node) {
+                if (node == NULL)
+                        return 1;
+
+                if (node_color(node) == RB_RED
+                    && (node_color(node->left) == RB_RED
+                        || node_color(node->right) == RB_RED))
+                        return 0;
+
+                const std::size_t left_height = black_height(node->left);
+                const std::size_t right_height = black_height(node->right);
+
+                if (left_height == 0 || right_height == 0
+                    || left_height != right_height)
+                        return 0;
+                return left_height + right_height
+                       + (node_color(node) == RB_BLACK ? 1 : 0);
+        }
+
+        static bool is_valid(const this_type *node) {
+                return is_bst(node) && black_height(node) != 0;
+        }
+
+        static void debug_print(const rbnode *node,
+                                const rbnode *special = NULL,
+                                std::size_t indent = 0) {
                 std::cout << std::string(indent, ' ');
                 if (node == NULL) {
                         
@@ -93,31 +108,106 @@ class rbnode {
                                   << node->value << ","
                                   << (node->color == RB_BLACK ? 'B' : 'R')
                                   << std::endl;
-                        debug_print(node->left, indent + 4, special);
-                        debug_print(node->right, indent + 4, special);
+                        debug_print(node->left, special, indent + 4);
+                        debug_print(node->right, special, indent + 4);
                 }
         }
 };
 
-template <typename KeyType, typename ValueType>
+template <typename KeyType, typename ValueType, typename Allocator>
 struct rbtree {
         typedef rbnode<ValueType> node_type;
         
+      protected:
+        typedef KeyType key_type;
+        typedef ValueType value_type;
+        typedef Allocator allocator_type;
+        typedef std::size_t size_type;
+
+      private:
         node_type *_root;
+        size_type _size;
+        allocator_type _allocator;
+        
+      public:
+        rbtree() : _root(NULL), _size(0) {}
 
-        rbtree() : _root(NULL) {}
+        ~rbtree() { destroy_tree(_root); }
 
-        void print_error(const node_type *node, const std::string &msg) {
-                node_type::debug_print(_root, 0, node);
-                std::cerr << msg << std::endl;
+        node_type *root() {
+                return _root;
         }
 
-        node_type* rotate_left(node_type *node) {
-                if (node->right == NULL) {
-                        print_error(node,
-                                    "cannot rotate further left on node");
+        void insert(const value_type &value) {
+                node_type *insert_node = _root;
+                node_type *parent_node = NULL;
+
+                while (insert_node != NULL) {
+                        parent_node = insert_node;
+                        if (value < parent_node->value)
+                                insert_node = parent_node->left;
+                        else
+                                insert_node = parent_node->right;
+                }
+
+                node_type *node = _allocator.allocate(1);
+                _allocator.construct(node, node_type(value));
+                
+                node->parent = parent_node;
+                if (parent_node == NULL)
+                        _root = node;
+                else if (node->value < parent_node->value)
+                        parent_node->left = node;
+                else
+                        parent_node->right = node;
+                node->left = NULL;
+                node->right = NULL;
+                node->color = RB_RED;
+                insert_fix(node);
+        }
+
+        friend bool operator==(const rbtree &lhs, const rbtree &rhs) {
+                if (lhs._root == NULL || rhs._root == NULL)
+                        return lhs._root == rhs._root;
+                return *lhs._root == *rhs._root;
+        }
+
+        bool is_bst() const {
+                return _root == NULL || node_type::is_bst(_root);
+        }
+
+        bool is_valid() const {
+                return node_type::node_color(_root) == RB_BLACK
+                       && node_type::is_valid(_root);
+        }
+
+        void print() const {
+                node_type::debug_print(_root, NULL);
+        }
+
+      private:
+        void tree_assert(int condition, const node_type *node,
+                         const std::string &msg = "assertion failed") {
+                if (!condition) {
+                        node_type::debug_print(_root, node);
+                        std::cerr << msg << std::endl;
                         assert(0);
                 }
+        }
+
+        void destroy_tree(node_type *node) {
+                if (node == NULL)
+                        return;
+                destroy_tree(node->left);
+                destroy_tree(node->right);
+                _allocator.destroy(node);
+                _allocator.deallocate(node, 1);
+        }
+
+      public: // TODO make private
+        node_type* rotate_left(node_type *node) {
+                tree_assert(node->right != NULL, node,
+                            "cannot rotate further left on node");
                 node_type *new_root = node->right;
 
                 node->right = new_root->left;
@@ -136,12 +226,9 @@ struct rbtree {
                 return new_root;
         }
 
-        node_type* rotate_right(node_type *node) {
-                if (node->left == NULL) {
-                        print_error(node,
-                                    "cannot rotate further right on node");
-                        assert(0);
-                }
+        node_type *rotate_right(node_type *node) {
+                tree_assert(node->left != NULL, node,
+                            "cannot rotate further right on node");
                 node_type *new_root = node->left;
 
                 node->left = new_root->right;
@@ -160,6 +247,7 @@ struct rbtree {
                 return new_root;
         }
 
+      private:
         void insert_fix(node_type *node) {
                 while (node_type::node_color(node->parent) == RB_RED) {
                         if (node->parent == node->parent->parent->left) {
@@ -198,30 +286,6 @@ struct rbtree {
                 }
                 _root->color = RB_BLACK;
         }
-
-        void insert(node_type *node) {
-                node_type *insert_node = _root;
-                node_type *parent_node = NULL;
-
-                while (parent_node != NULL) {
-                        parent_node = insert_node;
-                        if (node->value < parent_node->value)
-                                insert_node = parent_node->left;
-                        else
-                                insert_node = parent_node->right;
-                }
-                node->parent = parent_node;
-                if (parent_node == NULL)
-                        _root = node;
-                else if (node->value < parent_node->value)
-                        parent_node->left = node;
-                else
-                        parent_node->right = node;
-                node->left = NULL;
-                node->right = NULL;
-                node->color = RB_RED;
-                insert_fix(node);
-        }
 };
 
 template <typename ValueType>
@@ -234,6 +298,7 @@ bool operator==(const rbnode<ValueType> &lhs, const rbnode<ValueType> &rhs) {
                && ((lhs.right == NULL && rhs.right == NULL)
                    || (rhs.right != NULL && *lhs.right == *rhs.right));
 }
+
 
 }
 }
