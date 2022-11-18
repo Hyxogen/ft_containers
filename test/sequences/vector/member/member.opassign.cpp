@@ -79,7 +79,7 @@ int main() {
                         }
                 }
                 test::throwing_class<int>::reset();
-                vec.push_back(42);
+                vec.push_back(test::throwing_class<int>(42));
                 assert(vec[81] == 42);
         }
         return 0;

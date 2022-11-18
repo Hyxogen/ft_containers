@@ -53,14 +53,14 @@ int main() {
                 typedef test::throwing_class<int> clazz;
                 typedef test::limited_allocator<clazz> allocator;
                 ft::vector<clazz, allocator> a, b;
-                a.push_back(5);
-                a.push_back(862);
-                a.push_back(3124);
-                a.push_back(9438);
-                b.push_back(742);
-                b.push_back(486);
-                b.push_back(14);
-                b.push_back(5342);
+                a.push_back(test::throwing_class<int>(5));
+                a.push_back(test::throwing_class<int>(862));
+                a.push_back(test::throwing_class<int>(3124));
+                a.push_back(test::throwing_class<int>(9438));
+                b.push_back(test::throwing_class<int>(742));
+                b.push_back(test::throwing_class<int>(486));
+                b.push_back(test::throwing_class<int>(14));
+                b.push_back(test::throwing_class<int>(5342));
                 clazz::make_next_throw();
                 allocator::set_limit(
                     test::allocator_tracker<clazz>::active());

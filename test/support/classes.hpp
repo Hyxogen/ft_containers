@@ -35,7 +35,7 @@ template <typename T> class throwing_class {
       public:
         throwing_class() { check(); }
 
-        throwing_class(const T &data) : _data(data) { check(); }
+        explicit throwing_class(const T &data) : _data(data) { check(); }
 
         throwing_class(const throwing_class &other) : _data(other._data) {
                 check();
@@ -62,6 +62,35 @@ template <typename T> class throwing_class {
         bool operator==(const T &data) const { return _data == data; }
 
         bool operator!=(const T &data) const { return !(_data == data); }
+
+        bool operator==(const throwing_class &other) const {
+                return _data == other._data;
+        }
+
+        bool operator!=(const throwing_class &other) const {
+                return _data != other._data;
+        }
+
+        bool operator>(const throwing_class &other) const {
+                return _data > other._data;
+        }
+
+        bool operator>=(const throwing_class &other) const {
+                return _data >= other._data;
+        }
+
+        bool operator<(const throwing_class &other) const {
+                return _data < other._data;
+        }
+
+        bool operator<=(const throwing_class &other) const {
+                return _data <= other._data;
+        }
+
+        friend std::ostream &operator<<(std::ostream &stream,
+                                        const throwing_class &clazz) {
+                return stream << clazz._data;
+        }
 
       private:
         static void check() {
