@@ -111,8 +111,7 @@ class rbnode {
                 if (left_height == 0 || right_height == 0
                     || left_height != right_height)
                         return 0;
-                return left_height + right_height
-                       + (node_color(node) == RB_BLACK ? 1 : 0);
+                return left_height + (node_color(node) == RB_BLACK ? 1 : 0);
         }
 
         static bool is_valid(const this_type *node) {
