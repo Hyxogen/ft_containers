@@ -13,11 +13,8 @@ int main() {
                 rbtree tree;
 
                 tree.insert(1);
-                tree.print();
                 tree.insert(0);
-                tree.print();
                 tree.insert(2);
-                tree.print();
                 assert(tree.is_valid());
 
                 tree.rotate_left(tree.root());
