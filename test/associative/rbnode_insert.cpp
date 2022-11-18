@@ -78,7 +78,19 @@ int main() {
                 clazz::reset();
                 insert_and_validate(tree, clazz(-1));
         }
-        // TODO add more tests (check if everything is properly deallocated at
-        // the end, inserting random values (or semi random at least),
-        // exception safety
+        {
+                typedef test::allocator_tracker<ft::detail::rbnode<int> > allocator;
+                typedef ft::detail::rbtree<int, int, allocator> rbtree;
+
+                const std::size_t active = allocator::active();
+
+                {
+                        rbtree tree;
+
+                        for (int i = 0; i < 500; ++i) {
+                                insert_and_validate(tree, i);
+                        }
+                }
+                assert(active == allocator::active());
+        }
 }
