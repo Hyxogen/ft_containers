@@ -19,7 +19,6 @@
 
 #include <stdexcept>
 #include <cstddef>
-#include <memory>
 // todo for debug purposes, remove
 #include <iostream>
 #include <string>
