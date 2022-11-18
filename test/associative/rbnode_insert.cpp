@@ -1,12 +1,11 @@
 #include <__tree/red_black_tree.hpp>
-#include <cassert>
-#include <memory>
-#include <classes.hpp>
 #include <allocators.hpp>
 #include <assert.hpp>
+#include <cassert>
+#include <classes.hpp>
+#include <memory>
 
-template <typename T, typename U>
-void insert_and_validate(T &t, const U &u) {
+template <typename T, typename U> void insert_and_validate(T &t, const U &u) {
         t.insert(u);
         assert(t.is_valid());
 }
@@ -15,9 +14,7 @@ int main() {
         typedef ft::detail::rbtree<int, int,
                                    std::allocator<ft::detail::rbnode<int> > >
             irbtree;
-        {
-                irbtree tree;
-        }
+        { irbtree tree; }
         {
                 irbtree tree;
 
@@ -67,19 +64,23 @@ int main() {
                     rbtree;
 
                 rbtree tree;
-                
+
                 for (int i = 0; i < 250; ++i) {
-                        insert_and_validate(tree, clazz(test::tracking_class(i)));
+                        insert_and_validate(tree,
+                                            clazz(test::tracking_class(i)));
                 }
                 clazz::throw_after(2);
                 const std::size_t count = test::tracking_class::instances();
-                ASSERT_THROW(insert_and_validate(tree, clazz(test::tracking_class(-1))), test::too_many_instantiations);
+                ASSERT_THROW(
+                    insert_and_validate(tree, clazz(test::tracking_class(-1))),
+                    test::too_many_instantiations);
                 assert(count == test::tracking_class::instances());
                 clazz::reset();
                 insert_and_validate(tree, clazz(-1));
         }
         {
-                typedef test::allocator_tracker<ft::detail::rbnode<int> > allocator;
+                typedef test::allocator_tracker<ft::detail::rbnode<int> >
+                    allocator;
                 typedef ft::detail::rbtree<int, int, allocator> rbtree;
 
                 const std::size_t active = allocator::active();

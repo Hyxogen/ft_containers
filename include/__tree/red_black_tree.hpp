@@ -17,28 +17,25 @@
 #ifndef RED_BLACK_TREE_HPP
 #define RED_BLACK_TREE_HPP
 
-#include <stdexcept>
 #include <cstddef>
+#include <stdexcept>
 // todo for debug purposes, remove
+#include <cassert>
 #include <iostream>
 #include <string>
-#include <cassert>
 
 namespace ft {
 namespace detail {
 
-enum rbcolor {
-        RB_RED,
-        RB_BLACK
-};
+enum rbcolor { RB_RED, RB_BLACK };
 
-template <typename T>
-class rbnode {
+template <typename T> class rbnode {
         typedef rbnode this_type;
+
       public:
         T value;
         rbcolor color;
-        
+
         this_type *parent;
         this_type *right;
         this_type *left;
@@ -49,15 +46,14 @@ class rbnode {
             : value(value), color(color), parent(parent), right(right),
               left(left) {}
 
-        ~rbnode() {
-        }
+        ~rbnode() {}
 
         static rbcolor node_color(const rbnode *node) {
                 if (node == NULL)
                         return RB_BLACK;
                 return node->color;
         }
-        
+
         static bool is_bst(const this_type *node) {
                 if (node == NULL)
                         return true;
@@ -71,12 +67,12 @@ class rbnode {
 
         static bool
         mismatch(const this_type *lhs, const this_type *rhs,
-                 std::pair<const this_type *, const this_type *>** mpair) {
+                 std::pair<const this_type *, const this_type *> **mpair) {
                 if (lhs == NULL || rhs == NULL) {
                         if (lhs != rhs) {
                                 *mpair = new std::pair<const this_type *,
-                                                          const this_type *>(
-                                    lhs, rhs);
+                                                       const this_type *>(lhs,
+                                                                          rhs);
                                 return true;
                         } else {
                                 return false;
@@ -84,7 +80,7 @@ class rbnode {
                 }
                 if (lhs->value != rhs->value) {
                         *mpair = new std::pair<const this_type *,
-                                                  const this_type *>(lhs, rhs);
+                                               const this_type *>(lhs, rhs);
                         return true;
                 }
                 if (mismatch(lhs->left, rhs->left, mpair))
@@ -121,7 +117,7 @@ class rbnode {
                                 std::size_t indent = 0) {
                 std::cout << std::string(indent, ' ');
                 if (node == NULL) {
-                        
+
                         std::cout << '-' << std::endl;
                 } else {
                         std::cout << (special == node ? "*" : "")
@@ -137,7 +133,7 @@ class rbnode {
 template <typename KeyType, typename ValueType, typename Allocator>
 struct rbtree {
         typedef rbnode<ValueType> node_type;
-        
+
       protected:
         typedef KeyType key_type;
         typedef ValueType value_type;
@@ -148,15 +144,13 @@ struct rbtree {
         node_type *_root;
         size_type _size;
         allocator_type _allocator;
-        
+
       public:
         rbtree() : _root(NULL), _size(0) {}
 
         ~rbtree() { destroy_tree(_root); }
 
-        node_type *root() {
-                return _root;
-        }
+        node_type *root() { return _root; }
 
         node_type *create_node(const value_type &value) {
                 node_type *node = _allocator.allocate(1);
@@ -182,7 +176,7 @@ struct rbtree {
                 }
 
                 node_type *node = create_node(value);
-                
+
                 node->parent = parent_node;
                 if (parent_node == NULL)
                         _root = node;
@@ -222,9 +216,7 @@ struct rbtree {
                        && node_type::is_valid(_root);
         }
 
-        void print() const {
-                node_type::debug_print(_root, NULL);
-        }
+        void print() const { node_type::debug_print(_root, NULL); }
 
       private:
         void tree_assert(int condition, const node_type *node,
@@ -246,7 +238,7 @@ struct rbtree {
         }
 
       public: // TODO make private
-        node_type* rotate_left(node_type *node) {
+        node_type *rotate_left(node_type *node) {
                 tree_assert(node->right != NULL, node,
                             "cannot rotate further left on node");
                 node_type *new_root = node->right;
@@ -339,7 +331,6 @@ bool operator==(const rbnode<ValueType> &lhs, const rbnode<ValueType> &rhs) {
                && ((lhs.right == NULL && rhs.right == NULL)
                    || (rhs.right != NULL && *lhs.right == *rhs.right));
 }
-
 
 }
 }
