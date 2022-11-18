@@ -2,19 +2,21 @@
 #include <cassert>
 #include <memory>
 
+template <typename T, typename U>
+void insert_and_validate(T &t, const U &u) {
+        t.insert(u);
+        assert(t.is_valid());
+}
+
 int main() {
-        using namespace ft::detail;
+        typedef ft::detail::rbtree<int, int,
+                                   std::allocator<ft::detail::rbnode<int> > >
+            rbtree;
         {
-                rbtree<int, int, std::allocator<rbnode<int> > > tree;
-                tree.insert(0);
-                assert(tree.is_valid());
-                tree.insert(1);
-                assert(tree.is_valid());
-                tree.insert(2);
-                assert(tree.is_valid());
-                tree.insert(3);
-                assert(tree.is_valid());
-                tree.insert(4);
-                assert(tree.is_valid());
+                rbtree tree;
+
+                for (int i = 0; i < 100; ++i) {
+                        insert_and_validate(tree, i);
+                }
         }
 }
