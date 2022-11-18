@@ -125,34 +125,28 @@ template <typename T = int> class __tracking_class {
         static std::size_t instances() { return _instances; }
 
         __tracking_class &operator=(const __tracking_class &) { return *this; }
-        friend bool operator>(const __tracking_class &lhs,
-                              const __tracking_class &rhs) {
-                return lhs._value > rhs._value;
+        bool operator>(const __tracking_class &other) const {
+                return _value > other._value;
         }
 
-        friend bool operator>=(const __tracking_class &lhs,
-                               const __tracking_class &rhs) {
-                return lhs._value >= rhs._value;
+        bool operator>=(const __tracking_class &other) const {
+                return _value >= other._value;
         }
 
-        friend bool operator<(const __tracking_class &lhs,
-                              const __tracking_class &rhs) {
-                return lhs._value < rhs._value;
+        bool operator<(const __tracking_class &other) const {
+                return _value < other._value;
         }
 
-        friend bool operator<=(const __tracking_class &lhs,
-                               const __tracking_class &rhs) {
-                return lhs._value <= rhs._value;
+        bool operator<=(const __tracking_class &other) const {
+                return _value <= other._value;
         }
 
-        friend bool operator==(const __tracking_class &lhs,
-                               const __tracking_class &rhs) {
-                return lhs._value == rhs._value;
+        bool operator==(const __tracking_class &other) const {
+                return _value == other._value;
         }
 
-        friend bool operator!=(const __tracking_class &lhs,
-                               const __tracking_class &rhs) {
-                return lhs._value != rhs._value;
+        bool operator!=(const __tracking_class &other) const {
+                return _value != other._value;
         }
 
         friend std::ostream &operator<<(std::ostream &stream,
