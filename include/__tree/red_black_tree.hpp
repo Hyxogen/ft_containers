@@ -158,6 +158,17 @@ struct rbtree {
                 return _root;
         }
 
+        node_type *create_node(const value_type &value) {
+                node_type *node = _allocator.allocate(1);
+                try {
+                        _allocator.construct(node, node_type(value));
+                } catch (...) {
+                        _allocator.deallocate(node, 1);
+                        throw;
+                }
+                return node;
+        }
+
         void insert(const value_type &value) {
                 node_type *insert_node = _root;
                 node_type *parent_node = NULL;
@@ -170,8 +181,7 @@ struct rbtree {
                                 insert_node = parent_node->right;
                 }
 
-                node_type *node = _allocator.allocate(1);
-                _allocator.construct(node, node_type(value));
+                node_type *node = create_node(value);
                 
                 node->parent = parent_node;
                 if (parent_node == NULL)

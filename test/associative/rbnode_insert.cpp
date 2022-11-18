@@ -3,6 +3,7 @@
 #include <memory>
 #include <classes.hpp>
 #include <allocators.hpp>
+#include <assert.hpp>
 
 template <typename T, typename U>
 void insert_and_validate(T &t, const U &u) {
@@ -58,6 +59,24 @@ int main() {
                         }
                 }
                 assert(count == clazz::instances());
+        }
+        {
+                typedef test::throwing_class<test::tracking_class> clazz;
+                typedef ft::detail::rbtree<
+                    clazz, clazz, std::allocator<ft::detail::rbnode<clazz> > >
+                    rbtree;
+
+                rbtree tree;
+                
+                for (int i = 0; i < 250; ++i) {
+                        insert_and_validate(tree, clazz(test::tracking_class(i)));
+                }
+                clazz::throw_after(2);
+                const std::size_t count = test::tracking_class::instances();
+                ASSERT_THROW(insert_and_validate(tree, clazz(test::tracking_class(-1))), test::too_many_instantiations);
+                assert(count == test::tracking_class::instances());
+                clazz::reset();
+                insert_and_validate(tree, clazz(-1));
         }
         // TODO add more tests (check if everything is properly deallocated at
         // the end, inserting random values (or semi random at least),
