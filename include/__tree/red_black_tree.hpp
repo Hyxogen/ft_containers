@@ -71,6 +71,30 @@ class rbnode {
                                && is_bst(node->right)));
         }
 
+        static bool
+        mismatch(const this_type *lhs, const this_type *rhs,
+                 std::pair<const this_type *, const this_type *>** mpair) {
+                if (lhs == NULL || rhs == NULL) {
+                        if (lhs != rhs) {
+                                *mpair = new std::pair<const this_type *,
+                                                          const this_type *>(
+                                    lhs, rhs);
+                                return true;
+                        } else {
+                                return false;
+                        }
+                }
+                if (lhs->value != rhs->value) {
+                        *mpair = new std::pair<const this_type *,
+                                                  const this_type *>(lhs, rhs);
+                        return true;
+                }
+                if (mismatch(lhs->left, rhs->left, mpair))
+                        return true;
+                if (mismatch(lhs->right, rhs->right, mpair))
+                        return true;
+                return false;
+        }
 
         static std::size_t black_height(const this_type *node) {
                 if (node == NULL)
@@ -163,6 +187,17 @@ struct rbtree {
                 node->right = NULL;
                 node->color = RB_RED;
                 insert_fix(node);
+        }
+
+        static void assert_equal(const rbtree &lhs, const rbtree &rhs) {
+                std::pair<const node_type *, const node_type *> *mismatch;
+                if (node_type::mismatch(lhs._root, rhs._root, &mismatch)) {
+                        std::cerr << "lhs:" << std::endl;
+                        node_type::debug_print(lhs._root, mismatch->first);
+                        std::cerr << "rhs:" << std::endl;
+                        node_type::debug_print(rhs._root, mismatch->second);
+                        assert(0 && "lhs != rhs");
+                }
         }
 
         friend bool operator==(const rbtree &lhs, const rbtree &rhs) {
