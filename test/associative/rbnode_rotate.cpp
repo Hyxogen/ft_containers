@@ -33,24 +33,4 @@ int main() {
 
                 assert(root == croot);
         }
-        {
-                rbnode<int> root(RB_BLACK, 1), left(RB_BLACK, 0),
-                        right(RB_BLACK, 2);
-
-                root.left = &left;
-                root.right = &right;
-                try {
-                        assert(root.black_height() == 2);
-                } catch (const std::logic_error &ex) {
-                        std::cerr << ex.what() << std::endl;
-                }
-
-                rbtree<int, int> tree;
-                tree._root = &root;
-
-                tree.rotate_left(tree._root);
-                assert(tree._root->is_bst());
-                tree.rotate_left(tree._root);
-                assert(tree._root->is_bst());
-        }
 }

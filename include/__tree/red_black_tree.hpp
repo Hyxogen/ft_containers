@@ -82,17 +82,19 @@ class rbnode {
                                                     : left_height;
         }
 
-        static void debug_print(const rbnode *node, std::size_t indent = 0) {
+        static void debug_print(const rbnode *node, std::size_t indent = 0,
+                                const rbnode *special = NULL) {
                 std::cout << std::string(indent, ' ');
                 if (node == NULL) {
                         
                         std::cout << '-' << std::endl;
                 } else {
-                        std::cout << node->value << ","
+                        std::cout << (special == node ? "*" : "")
+                                  << node->value << ","
                                   << (node->color == RB_BLACK ? 'B' : 'R')
                                   << std::endl;
-                        debug_print(node->left, indent + 4);
-                        debug_print(node->right, indent + 4);
+                        debug_print(node->left, indent + 4, special);
+                        debug_print(node->right, indent + 4, special);
                 }
         }
 };
@@ -103,8 +105,19 @@ struct rbtree {
         
         node_type *_root;
 
+        rbtree() : _root(NULL) {}
+
+        void print_error(const node_type *node, const std::string &msg) {
+                node_type::debug_print(_root, 0, node);
+                std::cerr << msg << std::endl;
+        }
+
         node_type* rotate_left(node_type *node) {
-                assert(node->right != NULL && "cannot rotate further left");
+                if (node->right == NULL) {
+                        print_error(node,
+                                    "cannot rotate further left on node");
+                        assert(0);
+                }
                 node_type *new_root = node->right;
 
                 node->right = new_root->left;
@@ -124,7 +137,11 @@ struct rbtree {
         }
 
         node_type* rotate_right(node_type *node) {
-                assert(node->left != NULL && "cannot rotate further right");
+                if (node->left == NULL) {
+                        print_error(node,
+                                    "cannot rotate further right on node");
+                        assert(0);
+                }
                 node_type *new_root = node->left;
 
                 node->left = new_root->right;
@@ -143,6 +160,68 @@ struct rbtree {
                 return new_root;
         }
 
+        void insert_fix(node_type *node) {
+                while (node_type::node_color(node->parent) == RB_RED) {
+                        if (node->parent == node->parent->parent->left) {
+                                node_type *uncle = node->parent->parent->right;
+                                if (node_type::node_color(uncle) == RB_RED) {
+                                        node->parent->color = RB_BLACK;
+                                        uncle->color = RB_BLACK;
+                                        node->parent->parent->color = RB_RED;
+                                        node = node->parent->parent;
+                                } else {
+                                        if (node == node->parent->right) {
+                                                node = node->parent;
+                                                rotate_left(node);
+                                        }
+                                        node->parent->color = RB_BLACK;
+                                        node->parent->parent->color = RB_RED;
+                                        rotate_right(node->parent->parent);
+                                }
+                        } else {
+                                node_type *uncle = node->parent->parent->left;
+                                if (node_type::node_color(uncle) == RB_RED) {
+                                        node->parent->color = RB_BLACK;
+                                        uncle->color = RB_BLACK;
+                                        node->parent->parent->color = RB_RED;
+                                        node = node->parent->parent;
+                                } else {
+                                        if (node == node->parent->left) {
+                                                node = node->parent;
+                                                rotate_right(node);
+                                        }
+                                        node->parent->color = RB_BLACK;
+                                        node->parent->parent->color = RB_RED;
+                                        rotate_left(node->parent->parent);
+                                }
+                        }
+                }
+                _root->color = RB_BLACK;
+        }
+
+        void insert(node_type *node) {
+                node_type *insert_node = _root;
+                node_type *parent_node = NULL;
+
+                while (parent_node != NULL) {
+                        parent_node = insert_node;
+                        if (node->value < parent_node->value)
+                                insert_node = parent_node->left;
+                        else
+                                insert_node = parent_node->right;
+                }
+                node->parent = parent_node;
+                if (parent_node == NULL)
+                        _root = node;
+                else if (node->value < parent_node->value)
+                        parent_node->left = node;
+                else
+                        parent_node->right = node;
+                node->left = NULL;
+                node->right = NULL;
+                node->color = RB_RED;
+                insert_fix(node);
+        }
 };
 
 template <typename ValueType>
