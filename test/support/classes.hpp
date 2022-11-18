@@ -19,6 +19,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <ostream>
 
 namespace test {
 
@@ -75,22 +76,65 @@ template <typename T> class throwing_class {
 
 template <typename T> long throwing_class<T>::_throw_after = -1;
 
-class tracking_class {
+template <typename T = int> class __tracking_class {
         static std::size_t _instances;
 
+        T _value;
+
       public:
-        tracking_class() { _instances += 1; }
+        __tracking_class() : _value() { _instances += 1; }
 
-        tracking_class(const tracking_class &) { _instances += 1; }
+        __tracking_class(const T value) : _value(value) { _instances += 1; }
 
-        ~tracking_class() { _instances -= 1; }
+        __tracking_class(const __tracking_class &other)
+            : _value(other._value) {
+                _instances += 1;
+        }
+
+        ~__tracking_class() { _instances -= 1; }
 
         static std::size_t instances() { return _instances; }
 
-        tracking_class &operator=(const tracking_class &) { return *this; }
+        __tracking_class &operator=(const __tracking_class &) { return *this; }
+        friend bool operator>(const __tracking_class &lhs,
+                              const __tracking_class &rhs) {
+                return lhs._value > rhs._value;
+        }
+
+        friend bool operator>=(const __tracking_class &lhs,
+                               const __tracking_class &rhs) {
+                return lhs._value >= rhs._value;
+        }
+
+        friend bool operator<(const __tracking_class &lhs,
+                              const __tracking_class &rhs) {
+                return lhs._value < rhs._value;
+        }
+
+        friend bool operator<=(const __tracking_class &lhs,
+                               const __tracking_class &rhs) {
+                return lhs._value <= rhs._value;
+        }
+
+        friend bool operator==(const __tracking_class &lhs,
+                               const __tracking_class &rhs) {
+                return lhs._value == rhs._value;
+        }
+
+        friend bool operator!=(const __tracking_class &lhs,
+                               const __tracking_class &rhs) {
+                return lhs._value != rhs._value;
+        }
+
+        friend std::ostream &operator<<(std::ostream &stream,
+                                        const __tracking_class<T> &clazz) {
+                return stream << clazz._value;
+        }
 };
 
-std::size_t tracking_class::_instances = 0;
+typedef __tracking_class<int> tracking_class;
+
+template <typename T> std::size_t __tracking_class<T>::_instances = 0;
 }
 
 #endif /* CLASSES_HPP */

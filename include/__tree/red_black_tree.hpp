@@ -50,8 +50,6 @@ class rbnode {
               left(left) {}
 
         ~rbnode() {
-                delete left;
-                delete right;
         }
 
         static rbcolor node_color(const rbnode *node) {
@@ -233,6 +231,7 @@ struct rbtree {
                         return;
                 destroy_tree(node->left);
                 destroy_tree(node->right);
+                _allocator.destroy(node);
                 _allocator.deallocate(node, 1);
         }
 
