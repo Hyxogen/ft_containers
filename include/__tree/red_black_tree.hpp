@@ -60,8 +60,6 @@ struct rbdir {
         inline rbdir opposite() const { return this->operator!(); }
 };
 
-//TODO use this
-
 template <bool Direction> struct base_dir : public rbdir {
       base_dir() : rbdir(Direction) {}
 };
