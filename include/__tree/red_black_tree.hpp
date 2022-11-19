@@ -31,6 +31,18 @@
 namespace ft {
 namespace detail {
 
+struct rb_violation : public std::logic_error {
+
+      private:
+        const void *const _where;
+
+      public:
+        rb_violation(const std::string &what, const void *where)
+            : std::logic_error(what), _where(where) {}
+
+        inline const void *where() const { return _where; }
+};
+
 enum rbcolor { RB_RED, RB_BLACK };
 
 template <typename T> class rbnode {
@@ -121,8 +133,40 @@ template <typename T> class rbnode {
                        && black_height(node, sentinel) != 0;
         }
 
-        static void debug_print(const rbnode *node, const rbnode *sentinel,
-                                const rbnode *special = NULL,
+        static std::size_t self_check(const this_type *node,
+                               const this_type *sentinel) {
+                if (node == sentinel) {
+                        assert(node->color == RB_BLACK
+                               && "sentinel is not black");
+                        return 0;
+                }
+
+                if (node->color == RB_RED
+                    && (node->left->color == RB_RED
+                        || node->right->color == RB_RED))
+                        throw rb_violation("red violation", node);
+                
+
+                const std::size_t left_height
+                    = self_check(node->left, sentinel);
+                const std::size_t right_height
+                    = self_check(node->right, sentinel);
+
+                if (left_height != right_height)
+                        throw rb_violation("black violation", node);
+
+                assert(
+                    (node->left == sentinel || node->left->value < node->value)
+                    && "bst violation left side");
+                assert((node->right == sentinel
+                        || node->right->value > node->value)
+                       && "bst violation right side");
+                return left_height + (node->color == RB_BLACK ? 1 : 0);
+        }
+
+        static void debug_print(const rbnode *node,
+                                const rbnode *const sentinel,
+                                const rbnode *const special = NULL,
                                 std::size_t indent = 0) {
                 std::cout << std::string(indent, ' ');
                 if (node == sentinel) {
@@ -133,8 +177,8 @@ template <typename T> class rbnode {
                                   << node->value << ","
                                   << (node->color == RB_BLACK ? 'B' : 'R')
                                   << std::endl;
-                        debug_print(node->left, special, sentinel, indent + 4);
-                        debug_print(node->right, special, sentinel,
+                        debug_print(node->left, sentinel, special, indent + 4);
+                        debug_print(node->right, sentinel, special,
                                     indent + 4);
                 }
         }
@@ -143,8 +187,6 @@ template <typename T> class rbnode {
 template <typename KeyType, typename ValueType, typename Allocator>
 struct rbtree {
         typedef rbnode<ValueType> node_type;
-
-      protected:
         typedef KeyType key_type;
         typedef ValueType value_type;
         typedef Allocator allocator_type;
@@ -152,7 +194,6 @@ struct rbtree {
 
       private:
         node_type *_root;
-        //TODO do not allow to read value of sentinel node
         node_type _sentinel;
         size_type _size;
         allocator_type _allocator;
@@ -163,6 +204,7 @@ struct rbtree {
         ~rbtree() { destroy_tree(_root); }
 
         node_type *root() { return _root; }
+        const node_type *root() const { return _root; }
         node_type *sentinel() { return &_sentinel; }
         const node_type *sentinel() const { return &_sentinel; }
 
@@ -206,14 +248,114 @@ struct rbtree {
                 insert_fix(node);
         }
 
+        void transplant(node_type *to, node_type *from) {
+                if (to->parent == sentinel())
+                        _root = from;
+                else if (to->parent->left == to)
+                        to->parent->left = from;
+                else
+                        to->parent->right = from;
+                from->parent = to->parent;
+        }
+
+        node_type *minimum(node_type *node) {
+                assert(node != sentinel()
+                       && "cannot take minumum of sentinel");
+                /*
+                if (node == sentinel())
+                        return node;
+                */
+                while (node->left != sentinel())
+                        node = node->left;
+                return node;
+        }
+        
+        node_type *minimum() {
+                return minimum(root());
+        }
+
+      private:
+        //TODO solve collision with other search with integral types
+        node_type *search(node_type *start, const value_type &key) {
+                node_type *current = start;
+                while (current != sentinel() && current->value != key) {
+                        if (key < current->value)
+                                current = current->left;
+                        else
+                                current = current->right;
+                }
+                return current;
+        }
+
+        const node_type *search(const node_type *start,
+                                const value_type &key) const {
+                const node_type *current = start;
+                while (current != sentinel() && current->value != key) {
+                        if (key < current->value)
+                                current = current->left;
+                        else
+                                current = current->right;
+                }
+                return current;
+        }
+
+      public:
+
+        node_type *search(const value_type &value) {
+                return search(root(), value);
+        }
+
+        const node_type *search(const value_type &value) const {
+                return search(root(), value);
+        }
+
+        void delete_node(node_type * const node) {
+                rbcolor old_color = node->color;
+                node_type *moved_node = sentinel();
+                
+                if (node->left == sentinel()) {
+                        moved_node = node->right;
+                        transplant(node, node->right);
+                } else if (node->right == sentinel()) {
+                        moved_node = node->left;
+                        transplant(node, node->left);
+                } else {
+                        node_type *min = minimum(node->right);
+                        old_color = min->color;
+                        moved_node = min->right;
+                        if (min != node->right) {
+                                transplant(min, min->right);
+                                min->right = node->right;
+                                min->right->parent = min;
+                        } else {
+                                moved_node->parent = min;
+                        }
+                        transplant(node, min);
+                        min->left = node->left;
+                        min->left->parent = min;
+                        min->color = node->color;
+                }
+                destroy_node(node);
+                if (old_color == RB_BLACK)
+                        delete_fix(moved_node);
+        }
+
+        void delete_key(const value_type &value) {
+                node_type *node = search(value);
+                if (node != sentinel())
+                        delete_node(node);
+        }
+
         static void assert_equal(const rbtree &lhs, const rbtree &rhs) {
                 std::pair<const node_type *, const node_type *> *mismatch;
                 if (node_type::mismatch(lhs._root, rhs._root, lhs.sentinel(),
                                         rhs.sentinel(), &mismatch)) {
                         std::cerr << "lhs:" << std::endl;
-                        node_type::debug_print(lhs._root, mismatch->first);
+                        node_type::debug_print(lhs._root, lhs.sentinel(),
+                                               mismatch->first);
                         std::cerr << "rhs:" << std::endl;
-                        node_type::debug_print(rhs._root, mismatch->second);
+                        node_type::debug_print(rhs._root, rhs.sentinel(),
+                                               mismatch->second);
                         assert(0 && "lhs != rhs");
                 }
         }
@@ -222,7 +364,8 @@ struct rbtree {
                 //TODO this code can probably be refactored to something simpler
                 //using the sentinel
                 if (lhs._root == lhs.sentinel() || rhs._root == rhs.sentinel())
-                        return lhs._root == rhs._root;
+                        return lhs._root == lhs.sentinel()
+                               && rhs._root() == rhs.sentinel();
                 return *lhs._root == *rhs._root;
         }
 
@@ -231,11 +374,26 @@ struct rbtree {
         }
 
         bool is_valid() const {
+                assert(sentinel()->color == RB_BLACK && "sentinel not black");
                 return node_type::node_color(_root) == RB_BLACK
                        && node_type::is_valid(_root, sentinel());
         }
 
-        void print() const { node_type::debug_print(_root, NULL); }
+        void self_check() const {
+                assert(node_type::node_color(_root) == RB_BLACK
+                       && "root not black");
+                try {
+                        node_type::self_check(_root, sentinel());
+                } catch (const rb_violation &ex) {
+                        std::cerr << ex.what() << std::endl;
+                        node_type::debug_print(
+                            _root, sentinel(),
+                            reinterpret_cast<const node_type *>(ex.where()));
+                        assert(0);
+                }
+        }
+
+        void print() const { node_type::debug_print(_root, sentinel()); }
 
       private:
         void tree_assert(int condition, const node_type *node,
@@ -247,13 +405,17 @@ struct rbtree {
                 }
         }
 
+        void destroy_node(node_type *node) {
+                _allocator.destroy(node);
+                _allocator.deallocate(node, 1);
+        }
+
         void destroy_tree(node_type *node) {
                 if (node == sentinel())
                         return;
                 destroy_tree(node->left);
                 destroy_tree(node->right);
-                _allocator.destroy(node);
-                _allocator.deallocate(node, 1);
+                destroy_node(node);
         }
 
       public: // TODO make private
@@ -337,6 +499,66 @@ struct rbtree {
                         }
                 }
                 _root->color = RB_BLACK;
+        }
+
+        void delete_fix(node_type *node) {
+                while (node != root() && node->color == RB_BLACK) {
+                        if (node == node->parent->left) {
+                                node_type *sibling = node->parent->right;
+                                if (sibling->color == RB_RED) {
+                                        sibling->color = RB_BLACK;
+                                        node->parent->color = RB_RED;
+                                        rotate_left(node->parent);
+                                        sibling = node->parent->right;
+                                }
+                                if (sibling->left->color == RB_BLACK
+                                    && sibling->right->color == RB_BLACK) {
+                                        sibling->color = RB_RED;
+                                        node = node->parent;
+                                } else {
+                                        if (sibling->right->color
+                                            == RB_BLACK) {
+                                                sibling->left->color
+                                                    = RB_BLACK;
+                                                sibling->color = RB_RED;
+                                                rotate_right(sibling);
+                                                sibling = node->parent->right;
+                                        }
+                                        sibling->color = node->parent->color;
+                                        node->parent->color = RB_BLACK;
+                                        sibling->right->color = RB_BLACK;
+                                        rotate_left(node->parent);
+                                        node = root();
+                                }
+                        } else {
+                                node_type *sibling = node->parent->left;
+                                if (sibling->color == RB_RED) {
+                                        sibling->color = RB_BLACK;
+                                        node->parent->color = RB_RED;
+                                        rotate_right(node->parent);
+                                        sibling = node->parent->left;
+                                }
+                                if (sibling->right->color == RB_BLACK
+                                    && sibling->left->color == RB_BLACK) {
+                                        sibling->color = RB_RED;
+                                        node = node->parent;
+                                } else {
+                                        if (sibling->left->color == RB_BLACK) {
+                                                sibling->right->color
+                                                    = RB_BLACK;
+                                                sibling->color = RB_RED;
+                                                rotate_left(sibling);
+                                                sibling = node->parent->left;
+                                        }
+                                        sibling->color = node->parent->color;
+                                        node->parent->color = RB_BLACK;
+                                        sibling->left->color = RB_BLACK;
+                                        rotate_right(node->parent);
+                                        node = root();
+                                }
+                        }
+                }
+                node->color = RB_BLACK;
         }
 };
 
