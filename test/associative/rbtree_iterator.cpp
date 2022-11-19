@@ -5,6 +5,7 @@
 #include <memory>
 #include <set>
 #include <vector>
+#include <ctime>
 
 int main() {
         typedef ft::detail::rbtree<int, int,
@@ -55,33 +56,34 @@ int main() {
                 tree.insert(0);
 
                 rbtree::iterator it = tree.begin();
-                assert(*it == 0);
-                assert(++it == tree.end());
+                assert(*it++ == 0);
+                assert(it == tree.end());
 
                 tree.insert(-1);
                 it = tree.begin();
-                assert(*it == -1);
-                assert(*++it == 0);
-                assert(++it == tree.end());
+                assert(*it++ == -1);
+                assert(*it++ == 0);
+                assert(it++ == tree.end());
 
                 tree.insert(1);
                 it = tree.begin();
-                assert(*it == -1);
-                assert(*++it == 0);
-                assert(*++it == 1);
-                assert(++it == tree.end());
+                assert(*it++ == -1);
+                assert(*it++ == 0);
+                assert(*it++ == 1);
+                assert(it == tree.end());
 
                 tree.delete_key(1);
                 it = tree.begin();
-                assert(*it == -1);
-                assert(*++it == 0);
-                assert(++it == tree.end());
+                assert(*it++ == -1);
+                assert(*it++ == 0);
+                assert(it == tree.end());
         }
         {
-                // TODO check why this test case fails
                 rbtree tree;
                 std::vector<int> numbers;
                 std::set<int> set;
+
+                std::srand(static_cast<unsigned int>(std::time(NULL)));
 
                 for (int i = 0; i < 800; ++i) {
                         int val = rand();
