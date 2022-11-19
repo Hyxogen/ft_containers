@@ -518,59 +518,33 @@ struct rbtree {
 
         void delete_fix(node_type *node) {
                 while (node != root() && node->color == RB_BLACK) {
-                        if (node == node->parent->left) {
-                                node_type *sibling = node->parent->right;
-                                if (sibling->color == RB_RED) {
-                                        sibling->color = RB_BLACK;
-                                        node->parent->color = RB_RED;
-                                        rotate_left(node->parent);
-                                        sibling = node->parent->right;
-                                }
-                                if (sibling->left->color == RB_BLACK
-                                    && sibling->right->color == RB_BLACK) {
-                                        sibling->color = RB_RED;
-                                        node = node->parent;
-                                } else {
-                                        if (sibling->right->color
-                                            == RB_BLACK) {
-                                                sibling->left->color
-                                                    = RB_BLACK;
-                                                sibling->color = RB_RED;
-                                                rotate_right(sibling);
-                                                sibling = node->parent->right;
-                                        }
-                                        sibling->color = node->parent->color;
-                                        node->parent->color = RB_BLACK;
-                                        sibling->right->color = RB_BLACK;
-                                        rotate_left(node->parent);
-                                        node = root();
-                                }
+                        const rbdir dir = node->get_dir();
+                        node_type *sibling = node->parent->get(dir.opposite());
+                        if (sibling->color == RB_RED) {
+                                sibling->color = RB_BLACK;
+                                node->parent->color = RB_RED;
+                                rotate(node->parent, dir);
+                                sibling = node->parent->get(dir.opposite());
+                        }
+                        if (sibling->get(dir)->color == RB_BLACK
+                            && sibling->get(dir.opposite())->color
+                                   == RB_BLACK) {
+                                sibling->color = RB_RED;
+                                node = node->parent;
                         } else {
-                                node_type *sibling = node->parent->left;
-                                if (sibling->color == RB_RED) {
-                                        sibling->color = RB_BLACK;
-                                        node->parent->color = RB_RED;
-                                        rotate_right(node->parent);
-                                        sibling = node->parent->left;
-                                }
-                                if (sibling->right->color == RB_BLACK
-                                    && sibling->left->color == RB_BLACK) {
+                                if (sibling->get(dir.opposite())->color
+                                    == RB_BLACK) {
+                                        sibling->get(dir)->color = RB_BLACK;
                                         sibling->color = RB_RED;
-                                        node = node->parent;
-                                } else {
-                                        if (sibling->left->color == RB_BLACK) {
-                                                sibling->right->color
-                                                    = RB_BLACK;
-                                                sibling->color = RB_RED;
-                                                rotate_left(sibling);
-                                                sibling = node->parent->left;
-                                        }
-                                        sibling->color = node->parent->color;
-                                        node->parent->color = RB_BLACK;
-                                        sibling->left->color = RB_BLACK;
-                                        rotate_right(node->parent);
-                                        node = root();
+                                        rotate(sibling, dir.opposite());
+                                        sibling = node->parent->get(
+                                            dir.opposite());
                                 }
+                                sibling->color = node->parent->color;
+                                node->parent->color = RB_BLACK;
+                                sibling->get(dir.opposite())->color = RB_BLACK;
+                                rotate(node->parent, dir);
+                                node = root();
                         }
                 }
                 node->color = RB_BLACK;
