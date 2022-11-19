@@ -112,6 +112,13 @@ template <typename T> class rbnode {
                 return node->color;
         }
 
+        static this_type *bound(const rbdir &dir, this_type *node,
+                                const this_type *const sentinel) {
+                while (node->get(dir) != sentinel)
+                        node = node->get(dir);
+                return node;
+        }
+
         static this_type *minimum(this_type *node,
                                   const this_type *const sentinel) {
                 while (node->left != sentinel)
@@ -280,17 +287,16 @@ struct rbtree_iterator {
         reference operator*() const { return _current->value; }
         pointer operator->() const { return &(this->operator*()); }
 
-        // TODO refactor operator++ and operator-- into one function using
-        // rbdir
-        rbtree_iterator &operator++() {
-                if (_current->right != _sentinel) {
-                        _current
-                            = node_type::minimum(_current->right, _sentinel);
+        //TODO check performance loss by using this abstraction instead of
+        //hardcoding operator++ and operator-- separately
+        rbtree_iterator &advance(const rbdir &dir) {
+                if (_current->get(dir) != _sentinel) {
+                        _current = node_type::bound(
+                            dir.opposite(), _current->get(dir), _sentinel);
                 } else {
                         node_type *parent = _current->parent;
-                        // TODO refactor to do while loop
                         while (parent != _sentinel
-                               && _current == parent->right) {
+                               && _current == parent->get(dir)) {
                                 _current = parent;
                                 parent = parent->parent;
                         }
@@ -298,21 +304,13 @@ struct rbtree_iterator {
                 }
                 return *this;
         }
-
+        
+        rbtree_iterator &operator++() {
+                return advance(right_dir());
+        }
+        
         rbtree_iterator &operator--() {
-                if (_current->left != _sentinel) {
-                        _current
-                            = node_type::maximum(_current->left, _sentinel);
-                } else {
-                        node_type *parent = _current->parent;
-                        while (parent != _sentinel
-                               && _current == parent->left) {
-                                _current = parent;
-                                parent = parent->parent;
-                        }
-                        _current = parent;
-                }
-                return *this;
+                return advance(left_dir());
         }
 };
 
