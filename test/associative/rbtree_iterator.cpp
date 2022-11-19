@@ -1,10 +1,10 @@
 #include <__tree/red_black_tree.hpp>
-#include <cassert>
-#include <memory>
-#include <vector>
-#include <set>
-#include <cstdlib>
 #include <algorithm>
+#include <cassert>
+#include <cstdlib>
+#include <memory>
+#include <set>
+#include <vector>
 
 int main() {
         typedef ft::detail::rbtree<int, int,
@@ -78,7 +78,7 @@ int main() {
                 assert(++it == tree.end());
         }
         {
-                //TODO check why this test case fails
+                // TODO check why this test case fails
                 rbtree tree;
                 std::vector<int> numbers;
                 std::set<int> set;
@@ -117,10 +117,10 @@ int main() {
                                 tree.delete_key(val);
                                 set.erase(val);
                         }
-                        assert(std::equal(set.begin(), set.end(),
-                                          tree.begin()));
+                        assert(
+                            std::equal(set.begin(), set.end(), tree.begin()));
                 }
         }
-        //TODO write tests that make sure the iterators stay correct when
-        //removing or inserting to the ends of the tree
+        // TODO write tests that make sure the iterators stay correct when
+        // removing or inserting to the ends of the tree
 }
