@@ -18,9 +18,9 @@
 #define RED_BLACK_TREE_HPP
 
 #include <cstddef>
-#include <stdexcept>
-#include <iterator>
 #include <iterator.hpp>
+#include <iterator>
+#include <stdexcept>
 // todo for debug purposes, remove
 #include <cassert>
 #include <iostream>
@@ -52,7 +52,7 @@ struct rbdir {
 
       protected:
         rbdir(bool dir) : dir(dir) {}
-        
+
       public:
         inline bool operator==(const rbdir &other) const {
                 return dir == other.dir;
@@ -62,7 +62,7 @@ struct rbdir {
 };
 
 template <bool Direction> struct base_dir : public rbdir {
-      base_dir() : rbdir(Direction) {}
+        base_dir() : rbdir(Direction) {}
 };
 
 typedef base_dir<true> right_dir;
@@ -79,9 +79,9 @@ template <typename T> class rbnode {
         this_type *right;
         this_type *left;
 
-        rbnode(rbcolor color = RB_BLACK,
-               this_type *parent = NULL, this_type *right = NULL,
-               this_type *left = NULL, const T &value = T())
+        rbnode(rbcolor color = RB_BLACK, this_type *parent = NULL,
+               this_type *right = NULL, this_type *left = NULL,
+               const T &value = T())
             : value(value), color(color), parent(parent), right(right),
               left(left) {}
 
@@ -280,14 +280,17 @@ struct rbtree_iterator {
         reference operator*() const { return _current->value; }
         pointer operator->() const { return &(this->operator*()); }
 
-        //TODO refactor operator++ and operator-- into one function using rbdir
+        // TODO refactor operator++ and operator-- into one function using
+        // rbdir
         rbtree_iterator &operator++() {
                 if (_current->right != _sentinel) {
-                        _current = node_type::minimum(_current->right, _sentinel);
+                        _current
+                            = node_type::minimum(_current->right, _sentinel);
                 } else {
                         node_type *parent = _current->parent;
-                        //TODO refactor to do while loop
-                        while (parent != _sentinel && _current == parent->right) {
+                        // TODO refactor to do while loop
+                        while (parent != _sentinel
+                               && _current == parent->right) {
                                 _current = parent;
                                 parent = parent->parent;
                         }
@@ -298,10 +301,12 @@ struct rbtree_iterator {
 
         rbtree_iterator &operator--() {
                 if (_current->left != _sentinel) {
-                        _current = node_type::maximum(_current->left, _sentinel);
+                        _current
+                            = node_type::maximum(_current->left, _sentinel);
                 } else {
                         node_type *parent = _current->parent;
-                        while (parent != _sentinel && _current == parent->left) {
+                        while (parent != _sentinel
+                               && _current == parent->left) {
                                 _current = parent;
                                 parent = parent->parent;
                         }
@@ -310,7 +315,6 @@ struct rbtree_iterator {
                 return *this;
         }
 };
-
 
 template <typename KeyType, typename ValueType, typename Allocator>
 struct rbtree {
@@ -321,9 +325,9 @@ struct rbtree {
         typedef std::size_t size_type;
         typedef value_type
             *pointer; // TODO make this use allocator member types
-        typedef value_type& reference;
-        typedef const value_type* const_pointer;
-        typedef const value_type& const_reference;
+        typedef value_type &reference;
+        typedef const value_type *const_pointer;
+        typedef const value_type &const_reference;
         typedef rbtree_iterator<value_type, pointer, reference> iterator;
         typedef rbtree_iterator<value_type, const_pointer, const_reference>
             const_iterator;
@@ -389,7 +393,7 @@ struct rbtree {
                 node->right = sentinel();
                 node->color = RB_RED;
 
-                //update iterator positions
+                // update iterator positions
                 if (sentinel()->left == sentinel()) {
                         sentinel()->left = node;
                         sentinel()->right = node;
@@ -398,7 +402,7 @@ struct rbtree {
                 } else if (sentinel()->right->left != sentinel()) {
                         sentinel()->right = sentinel()->right->left;
                 }
-                
+
                 insert_fix(node);
         }
 
@@ -487,12 +491,12 @@ struct rbtree {
                         min->color = node->color;
                 }
 
-                //update iterator positions
+                // update iterator positions
                 if (node == sentinel()->left)
                         sentinel()->left = node->parent;
                 if (node == sentinel()->right)
                         sentinel()->right = node->parent;
-                
+
                 destroy_node(node);
                 if (old_color == RB_BLACK)
                         delete_fix(moved_node);
@@ -576,7 +580,7 @@ struct rbtree {
                 destroy_tree(node->right);
                 destroy_node(node);
         }
-        
+
         node_type *rotate(node_type *node, const rbdir &dir) {
                 tree_assert(node->get(dir.opposite()) != sentinel(), node,
                             "cannot rotate further");
@@ -610,7 +614,8 @@ struct rbtree {
         void insert_fix(node_type *node) {
                 while (node_type::node_color(node->parent) == RB_RED) {
                         const rbdir parent_dir = node->parent->get_dir();
-                        node_type *uncle = node->parent->parent->get(parent_dir.opposite());
+                        node_type *uncle
+                            = node->parent->parent->get(parent_dir.opposite());
                         if (node_type::node_color(uncle) == RB_RED) {
                                 node->parent->color = RB_BLACK;
                                 uncle->color = RB_BLACK;
@@ -618,13 +623,16 @@ struct rbtree {
                                 node = node->parent->parent;
                         } else {
                                 const rbdir node_dir = node->get_dir();
-                                if (node == node->parent->get(parent_dir.opposite())) {
+                                if (node
+                                    == node->parent->get(
+                                        parent_dir.opposite())) {
                                         node = node->parent;
                                         rotate(node, parent_dir);
                                 }
                                 node->parent->color = RB_BLACK;
                                 node->parent->parent->color = RB_RED;
-                                rotate(node->parent->parent, parent_dir.opposite());
+                                rotate(node->parent->parent,
+                                       parent_dir.opposite());
                         }
                 }
                 _root->color = RB_BLACK;
