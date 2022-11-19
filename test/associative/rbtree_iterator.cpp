@@ -2,6 +2,7 @@
 #include <cassert>
 #include <memory>
 #include <vector>
+#include <set>
 #include <cstdlib>
 #include <algorithm>
 
@@ -80,6 +81,7 @@ int main() {
                 //TODO check why this test case fails
                 rbtree tree;
                 std::vector<int> numbers;
+                std::set<int> set;
 
                 for (int i = 0; i < 800; ++i) {
                         int val = rand();
@@ -89,6 +91,7 @@ int main() {
                         }
                         numbers.push_back(val);
                         tree.insert(val);
+                        set.insert(val);
                 }
 
                 for (int i = 0; i < 8000; ++i) {
@@ -103,6 +106,7 @@ int main() {
                                 }
                                 numbers.push_back(val);
                                 tree.insert(val);
+                                set.insert(val);
                         } else {
                                 unsigned int offset
                                     = static_cast<unsigned int>(std::abs(val))
@@ -111,8 +115,9 @@ int main() {
 
                                 numbers.erase(numbers.begin() + offset);
                                 tree.delete_key(val);
+                                set.erase(val);
                         }
-                        assert(std::equal(numbers.begin(), numbers.end(),
+                        assert(std::equal(set.begin(), set.end(),
                                           tree.begin()));
                 }
         }
