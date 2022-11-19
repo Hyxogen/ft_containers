@@ -263,8 +263,9 @@ struct rbtree_iterator {
         const node_type *const _sentinel;
 
       public:
-        rbtree_iterator(node_type *current, const node_type *sentinel)
-            : _current(current), _sentinel(sentinel) {}
+        rbtree_iterator(const node_type *current, const node_type *sentinel)
+            : _current(const_cast<node_type *>(current)), _sentinel(sentinel) {
+        }
 
         rbtree_iterator(const rbtree_iterator &other)
             : _current(other._current), _sentinel(other._sentinel) {}
