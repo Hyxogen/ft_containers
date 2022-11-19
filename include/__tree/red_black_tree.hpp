@@ -405,6 +405,7 @@ struct rbtree {
                 node->color = RB_RED;
 
                 // update iterator positions
+                // TODO move this to a separate function
                 if (sentinel()->left == sentinel()) {
                         sentinel()->left = node;
                         sentinel()->right = node;
@@ -503,6 +504,7 @@ struct rbtree {
                 }
 
                 // update iterator positions
+                // TODO move this to a separate function
                 if (node == sentinel()->left)
                         sentinel()->left = node->parent;
                 if (node == sentinel()->right)
