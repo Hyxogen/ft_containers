@@ -305,13 +305,25 @@ struct rbtree_iterator {
                 }
                 return *this;
         }
-        
+
         rbtree_iterator &operator++() {
                 return advance(right_dir());
+        }
+
+        rbtree_iterator operator++(int) {
+                const rbtree_iterator tmp(*this);
+                advance(right_dir());
+                return tmp;
         }
         
         rbtree_iterator &operator--() {
                 return advance(left_dir());
+        }
+
+        rbtree_iterator operator--(int) {
+                const rbtree_iterator tmp(*this);
+                advance(left_dir());
+                return tmp;
         }
 };
 
