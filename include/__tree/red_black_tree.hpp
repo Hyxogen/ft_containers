@@ -462,8 +462,7 @@ struct rbtree {
         }
 
       public: // TODO make private
-        template <typename Direction>
-        node_type *rotate(node_type *node, const Direction &dir) {
+         node_type *rotate(node_type *node, const rbdir &dir) {
                 /*
                 tree_assert(node->get(dir.opposite()) != sentinel(),
                             "cannot rotate further");
