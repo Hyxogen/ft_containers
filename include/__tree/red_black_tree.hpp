@@ -487,50 +487,10 @@ struct rbtree {
         
         node_type *rotate_left(node_type *node) {
                 return rotate(node, left_dir());
-                /*
-                tree_assert(node->right != sentinel(), node,
-                            "cannot rotate further left on node");
-                node_type *new_root = node->right;
-
-                node->right = new_root->left;
-                if (new_root->left != sentinel())
-                        new_root->left->parent = node;
-                new_root->parent = node->parent;
-                if (node->parent == sentinel()) {
-                        _root = new_root;
-                } else if (node == node->parent->left) {
-                        node->parent->left = new_root;
-                } else {
-                        node->parent->right = new_root;
-                }
-                new_root->left = node;
-                node->parent = new_root;
-                return new_root;
-                */
         }
 
         node_type *rotate_right(node_type *node) {
                 return rotate(node, right_dir());
-                /*
-                tree_assert(node->left != sentinel(), node,
-                            "cannot rotate further right on node");
-                node_type *new_root = node->left;
-
-                node->left = new_root->right;
-                if (new_root->right != sentinel())
-                        new_root->right->parent = node;
-                new_root->parent = node->parent;
-                if (node->parent == sentinel()) {
-                        _root = new_root;
-                } else if (node == node->parent->right) {
-                        node->parent->right = new_root;
-                } else {
-                        node->parent->left = new_root;
-                }
-                new_root->right = node;
-                node->parent = new_root;
-                return new_root;
-                */
         }
 
       private:
