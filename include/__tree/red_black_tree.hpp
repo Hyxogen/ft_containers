@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <stdexcept>
+#include <type_traits.hpp>
 // todo for debug purposes, remove
 #include <cassert>
 #include <iostream>
@@ -45,6 +46,29 @@ struct rb_violation : public std::logic_error {
 
 enum rbcolor { RB_RED, RB_BLACK };
 
+struct rbdir {
+        const bool dir;
+
+      protected:
+        rbdir(bool dir) : dir(dir) {}
+        
+      public:
+        inline bool operator==(const rbdir &other) const {
+                return dir == other.dir;
+        }
+        inline rbdir operator!() const { return rbdir(!dir); }
+        inline rbdir opposite() const { return this->operator!(); }
+};
+
+//TODO use this
+
+template <bool Direction> struct base_dir : public rbdir {
+      base_dir() : rbdir(Direction) {}
+};
+
+typedef base_dir<true> right_dir;
+typedef base_dir<false> left_dir;
+
 template <typename T> class rbnode {
         typedef rbnode this_type;
 
@@ -63,6 +87,25 @@ template <typename T> class rbnode {
               left(left) {}
 
         ~rbnode() {}
+
+        this_type *get(const rbdir &dir) {
+                if (dir == right_dir())
+                        return right;
+                return left;
+        }
+
+        void set(const rbdir &dir, this_type *ptr) {
+                if (dir == right_dir())
+                        right = ptr;
+                else
+                        left = ptr;
+        }
+
+        inline rbdir get_dir() const {
+                if (parent->left == this)
+                        return left_dir();
+                return right_dir();
+        }
 
         static rbcolor node_color(const rbnode *node) {
                 if (node == NULL)
@@ -419,7 +462,32 @@ struct rbtree {
         }
 
       public: // TODO make private
+        template <typename Direction>
+        node_type *rotate(node_type *node, const Direction &dir) {
+                /*
+                tree_assert(node->get(dir.opposite()) != sentinel(),
+                            "cannot rotate further");
+                */
+                node_type *new_root = node->get(dir.opposite());
+
+                node->set(dir.opposite(), new_root->get(dir));
+                if (new_root->get(dir) != sentinel())
+                        new_root->get(dir)->parent = node;
+                new_root->parent = node->parent;
+                if (node->parent == sentinel())
+                        _root = new_root;
+                else if (node == node->parent->get(dir))
+                        node->parent->set(dir, new_root);
+                else
+                        node->parent->set(dir.opposite(), new_root);
+                new_root->set(dir, node);
+                node->parent = new_root;
+                return new_root;
+        }
+        
         node_type *rotate_left(node_type *node) {
+                return rotate(node, left_dir());
+                /*
                 tree_assert(node->right != sentinel(), node,
                             "cannot rotate further left on node");
                 node_type *new_root = node->right;
@@ -438,9 +506,12 @@ struct rbtree {
                 new_root->left = node;
                 node->parent = new_root;
                 return new_root;
+                */
         }
 
         node_type *rotate_right(node_type *node) {
+                return rotate(node, right_dir());
+                /*
                 tree_assert(node->left != sentinel(), node,
                             "cannot rotate further right on node");
                 node_type *new_root = node->left;
@@ -459,6 +530,7 @@ struct rbtree {
                 new_root->right = node;
                 node->parent = new_root;
                 return new_root;
+                */
         }
 
       private:
