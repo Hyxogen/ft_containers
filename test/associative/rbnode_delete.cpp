@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <memory>
 #include <vector>
+#include <classes.hpp>
+#include <allocators.hpp>
 
 template <typename T, typename U> void delete_and_validate(T &t, const U &u) {
         t.delete_node(u);
@@ -93,6 +95,52 @@ int main() {
                                 numbers.erase(numbers.begin() + offset);
                                 delete_key_and_validate(tree, val);
                         }
+                }
+        }
+        {
+                typedef test::tracking_class clazz;
+                ft::detail::rbtree<clazz, clazz, std::allocator<ft::detail::rbnode<clazz > > > tree;
+
+                for (int i = 0; i < 500; ++i) {
+                        tree.insert(clazz(i));
+                }
+
+                const std::size_t count = clazz::instances();
+                for (unsigned int i = 0; i < 500; ++i) {
+                        delete_key_and_validate(tree, static_cast<int>(i));
+                        assert(clazz::instances() == count - (i + 1));
+                }
+        }
+        {
+                typedef test::allocator_tracker<ft::detail::rbnode<int> >
+                    allocator;
+
+                ft::detail::rbtree<int, int, allocator> tree;
+                
+                for (int i = 0; i < 500; ++i) {
+                        tree.insert(i);
+                }
+
+                const std::size_t count = allocator::active();
+                for (unsigned int i = 0; i < 500; ++i) {
+                        delete_key_and_validate(tree, static_cast<int>(i));
+                        assert(allocator::active() == count - (i + 1));
+                }
+        }
+        {
+                typedef test::throwing_class<int> clazz;
+
+                ft::detail::rbtree<clazz, clazz,
+                                   std::allocator<ft::detail::rbnode<clazz> > >
+                    tree;
+
+                for (int i = 0; i < 500; ++i) {
+                        tree.insert(clazz(i));
+                }
+                for (int i = 0; i < 500; ++i) {
+                        clazz::throw_after(1);
+                        delete_key_and_validate(tree, clazz(i));
+                        clazz::reset();
                 }
         }
 }
