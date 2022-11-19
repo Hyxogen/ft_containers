@@ -463,10 +463,10 @@ struct rbtree {
 
       public: // TODO make private
          node_type *rotate(node_type *node, const rbdir &dir) {
-                /*
-                tree_assert(node->get(dir.opposite()) != sentinel(),
+        
+        node_type *rotate(node_type *node, const rbdir &dir) {
+                tree_assert(node->get(dir.opposite()) != sentinel(), node,
                             "cannot rotate further");
-                */
                 node_type *new_root = node->get(dir.opposite());
 
                 node->set(dir.opposite(), new_root->get(dir));
