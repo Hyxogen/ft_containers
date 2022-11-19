@@ -19,7 +19,8 @@
 
 #include <cstddef>
 #include <stdexcept>
-#include <type_traits.hpp>
+#include <iterator>
+#include <iterator.hpp>
 // todo for debug purposes, remove
 #include <cassert>
 #include <iostream>
@@ -78,9 +79,9 @@ template <typename T> class rbnode {
         this_type *right;
         this_type *left;
 
-        rbnode(rbcolor color = RB_BLACK, const T &value = T(),
+        rbnode(rbcolor color = RB_BLACK,
                this_type *parent = NULL, this_type *right = NULL,
-               this_type *left = NULL)
+               this_type *left = NULL, const T &value = T())
             : value(value), color(color), parent(parent), right(right),
               left(left) {}
 
@@ -109,6 +110,20 @@ template <typename T> class rbnode {
                 if (node == NULL)
                         return RB_BLACK;
                 return node->color;
+        }
+
+        static this_type *minimum(this_type *node,
+                                  const this_type *const sentinel) {
+                while (node->left != sentinel)
+                        node = node->left;
+                return node;
+        }
+
+        static this_type *maximum(this_type *node,
+                                  const this_type *const sentinel) {
+                while (node->right != sentinel)
+                        node = node->right;
+                return node;
         }
 
         static bool is_bst(const this_type *node, const this_type *sentinel) {
@@ -227,6 +242,76 @@ template <typename T> class rbnode {
         }
 };
 
+template <typename T, typename Pointer, typename Reference>
+struct rbtree_iterator {
+        typedef std::bidirectional_iterator_tag iterator_category;
+        typedef T value_type;
+        typedef std::ptrdiff_t difference_type;
+        typedef Pointer pointer;
+        typedef Reference reference;
+        typedef rbnode<T> node_type;
+
+      protected:
+        node_type *_current;
+        const node_type *const _sentinel;
+
+      public:
+        rbtree_iterator(node_type *current, const node_type *sentinel)
+            : _current(current), _sentinel(sentinel) {}
+
+        rbtree_iterator(const rbtree_iterator &other)
+            : _current(other._current), _sentinel(other._sentinel) {}
+
+        rbtree_iterator &operator=(const rbtree_iterator &other) {
+                if (this != &other) {
+                        _current = other._current;
+                }
+                return *this;
+        }
+
+        inline bool operator==(const rbtree_iterator &other) const {
+                return _current == other._current;
+        }
+
+        inline bool operator!=(const rbtree_iterator &other) const {
+                return !(*this == other);
+        }
+
+        reference operator*() const { return _current->value; }
+        pointer operator->() const { return &(this->operator*()); }
+
+        //TODO refactor operator++ and operator-- into one function using rbdir
+        rbtree_iterator &operator++() {
+                if (_current->right != _sentinel) {
+                        _current = node_type::minimum(_current->right, _sentinel);
+                } else {
+                        node_type *parent = _current->parent;
+                        //TODO refactor to do while loop
+                        while (parent != _sentinel && _current == parent->right) {
+                                _current = parent;
+                                parent = parent->parent;
+                        }
+                        _current = parent;
+                }
+                return *this;
+        }
+
+        rbtree_iterator &operator--() {
+                if (_current->left != _sentinel) {
+                        _current = node_type::maximum(_current->left, _sentinel);
+                } else {
+                        node_type *parent = _current->parent;
+                        while (parent != _sentinel && _current == parent->left) {
+                                _current = parent;
+                                parent = parent->parent;
+                        }
+                        _current = parent;
+                }
+                return *this;
+        }
+};
+
+
 template <typename KeyType, typename ValueType, typename Allocator>
 struct rbtree {
         typedef rbnode<ValueType> node_type;
@@ -234,6 +319,15 @@ struct rbtree {
         typedef ValueType value_type;
         typedef Allocator allocator_type;
         typedef std::size_t size_type;
+        typedef value_type
+            *pointer; // TODO make this use allocator member types
+        typedef value_type& reference;
+        typedef const value_type* const_pointer;
+        typedef const value_type& const_reference;
+        typedef rbtree_iterator<value_type, pointer, reference> iterator;
+        typedef rbtree_iterator<value_type, const_pointer, const_reference>
+            const_iterator;
+        typedef reverse_iterator<iterator> reverse_iterator;
 
       private:
         node_type *_root;
@@ -242,7 +336,9 @@ struct rbtree {
         allocator_type _allocator;
 
       public:
-        rbtree() : _root(&_sentinel), _sentinel(RB_BLACK), _size(0) {}
+        rbtree()
+            : _root(&_sentinel),
+              _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel), _size(0) {}
 
         ~rbtree() { destroy_tree(_root); }
 
@@ -250,13 +346,17 @@ struct rbtree {
         const node_type *root() const { return _root; }
         node_type *sentinel() { return &_sentinel; }
         const node_type *sentinel() const { return &_sentinel; }
+        iterator begin() { return iterator(sentinel()->right, sentinel()); }
+        iterator end() { return iterator(sentinel(), sentinel()); }
+        reverse_iterator rbegin() { return reverse_iterator(end()); }
+        reverse_iterator rend() { return reverse_iterator(begin()); }
 
         node_type *create_node(const value_type &value) {
                 node_type *node = _allocator.allocate(1);
                 try {
-                        _allocator.construct(node, node_type(RB_BLACK, value,
-                                                             sentinel(),
-                                                             sentinel()));
+                        _allocator.construct(
+                            node, node_type(RB_BLACK, NULL, sentinel(),
+                                            sentinel(), value));
                 } catch (...) {
                         _allocator.deallocate(node, 1);
                         throw;
@@ -288,6 +388,17 @@ struct rbtree {
                 node->left = sentinel();
                 node->right = sentinel();
                 node->color = RB_RED;
+
+                //update iterator positions
+                if (sentinel()->left == sentinel()) {
+                        sentinel()->left = node;
+                        sentinel()->right = node;
+                } else if (sentinel()->left->right != sentinel()) {
+                        sentinel()->left = sentinel()->left->right;
+                } else if (sentinel()->right->left != sentinel()) {
+                        sentinel()->right = sentinel()->right->left;
+                }
+                
                 insert_fix(node);
         }
 
@@ -375,6 +486,13 @@ struct rbtree {
                         min->left->parent = min;
                         min->color = node->color;
                 }
+
+                //update iterator positions
+                if (node == sentinel()->left)
+                        sentinel()->left = node->parent;
+                if (node == sentinel()->right)
+                        sentinel()->right = node->parent;
+                
                 destroy_node(node);
                 if (old_color == RB_BLACK)
                         delete_fix(moved_node);
