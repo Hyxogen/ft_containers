@@ -119,6 +119,8 @@ int main() {
                         }
                         assert(
                             std::equal(set.begin(), set.end(), tree.begin()));
+                        assert(std::equal(set.rbegin(), set.rend(),
+                                          tree.rbegin()));
                 }
         }
         // TODO write tests that make sure the iterators stay correct when
