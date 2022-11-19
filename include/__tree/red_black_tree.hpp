@@ -24,9 +24,9 @@
 #include <iostream>
 #include <string>
 
-//TODO
-//Check how to handle insert of a value that already exists
-//Make rbtree take a Compare functor
+// TODO
+// Check how to handle insert of a value that already exists
+// Make rbtree take a Compare functor
 
 namespace ft {
 namespace detail {
@@ -82,7 +82,8 @@ template <typename T> class rbnode {
         }
 
         static bool
-        mismatch(const this_type *lhs, const this_type *rhs, const this_type *lhs_sentinel, const this_type *rhs_sentinel,
+        mismatch(const this_type *lhs, const this_type *rhs,
+                 const this_type *lhs_sentinel, const this_type *rhs_sentinel,
                  std::pair<const this_type *, const this_type *> **mpair) {
                 if (lhs == lhs_sentinel || rhs == rhs_sentinel) {
                         if (lhs != lhs_sentinel || rhs != rhs_sentinel) {
@@ -108,7 +109,8 @@ template <typename T> class rbnode {
                 return false;
         }
 
-        static std::size_t black_height(const this_type *node, const this_type *sentinel) {
+        static std::size_t black_height(const this_type *node,
+                                        const this_type *sentinel) {
                 if (node == sentinel)
                         return 1;
 
@@ -128,13 +130,14 @@ template <typename T> class rbnode {
                 return left_height + (node_color(node) == RB_BLACK ? 1 : 0);
         }
 
-        static bool is_valid(const this_type *node, const this_type *sentinel) {
+        static bool is_valid(const this_type *node,
+                             const this_type *sentinel) {
                 return is_bst(node, sentinel)
                        && black_height(node, sentinel) != 0;
         }
 
         static std::size_t self_check(const this_type *node,
-                               const this_type *sentinel) {
+                                      const this_type *sentinel) {
                 if (node == sentinel) {
                         assert(node->color == RB_BLACK
                                && "sentinel is not black");
@@ -145,7 +148,6 @@ template <typename T> class rbnode {
                     && (node->left->color == RB_RED
                         || node->right->color == RB_RED))
                         throw rb_violation("red violation", node);
-                
 
                 const std::size_t left_height
                     = self_check(node->left, sentinel);
@@ -269,13 +271,11 @@ struct rbtree {
                         node = node->left;
                 return node;
         }
-        
-        node_type *minimum() {
-                return minimum(root());
-        }
+
+        node_type *minimum() { return minimum(root()); }
 
       private:
-        //TODO solve collision with other search with integral types
+        // TODO solve collision with other search with integral types
         node_type *search(node_type *start, const value_type &key) {
                 node_type *current = start;
                 while (current != sentinel() && current->value != key) {
@@ -300,7 +300,6 @@ struct rbtree {
         }
 
       public:
-
         node_type *search(const value_type &value) {
                 return search(root(), value);
         }
@@ -309,10 +308,10 @@ struct rbtree {
                 return search(root(), value);
         }
 
-        void delete_node(node_type * const node) {
+        void delete_node(node_type *const node) {
                 rbcolor old_color = node->color;
                 node_type *moved_node = sentinel();
-                
+
                 if (node->left == sentinel()) {
                         moved_node = node->right;
                         transplant(node, node->right);
@@ -359,10 +358,10 @@ struct rbtree {
                         assert(0 && "lhs != rhs");
                 }
         }
-        
+
         friend bool operator==(const rbtree &lhs, const rbtree &rhs) {
-                //TODO this code can probably be refactored to something simpler
-                //using the sentinel
+                // TODO this code can probably be refactored to something
+                // simpler using the sentinel
                 if (lhs._root == lhs.sentinel() || rhs._root == rhs.sentinel())
                         return lhs._root == lhs.sentinel()
                                && rhs._root() == rhs.sentinel();
@@ -370,7 +369,8 @@ struct rbtree {
         }
 
         bool is_bst() const {
-                return _root == sentinel() || node_type::is_bst(_root, sentinel());
+                return _root == sentinel()
+                       || node_type::is_bst(_root, sentinel());
         }
 
         bool is_valid() const {

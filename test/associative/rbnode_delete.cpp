@@ -1,9 +1,9 @@
 #include <__tree/red_black_tree.hpp>
+#include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <memory>
 #include <vector>
-#include <cstdlib>
-#include <algorithm>
 
 template <typename T, typename U> void delete_and_validate(T &t, const U &u) {
         t.delete_node(u);
@@ -29,7 +29,6 @@ int main() {
                 tree.insert(1);
                 delete_and_validate(tree, tree.root());
                 assert(tree.root() == tree.sentinel());
-                std::cout << std::endl;
         }
         {
                 rbtree tree;
@@ -63,7 +62,7 @@ int main() {
                 rbtree tree;
                 std::vector<int> numbers;
 
-                for (int i = 0; i < 500; ++i) {
+                for (int i = 0; i < 800; ++i) {
                         int val = rand();
                         while (std::find(numbers.begin(), numbers.end(), val)
                                != numbers.end()) {
@@ -72,8 +71,8 @@ int main() {
                         numbers.push_back(val);
                         tree.insert(val);
                 }
-                
-                for (int i = 0; i < 5000; ++i) {
+
+                for (int i = 0; i < 8000; ++i) {
                         int del_or_ins = rand();
                         int val = rand();
 
