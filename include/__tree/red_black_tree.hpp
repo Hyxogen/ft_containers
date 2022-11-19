@@ -460,9 +460,6 @@ struct rbtree {
                 destroy_tree(node->right);
                 destroy_node(node);
         }
-
-      public: // TODO make private
-         node_type *rotate(node_type *node, const rbdir &dir) {
         
         node_type *rotate(node_type *node, const rbdir &dir) {
                 tree_assert(node->get(dir.opposite()) != sentinel(), node,
@@ -483,7 +480,8 @@ struct rbtree {
                 node->parent = new_root;
                 return new_root;
         }
-        
+
+      public: // TODO delete these two functions
         node_type *rotate_left(node_type *node) {
                 return rotate(node, left_dir());
         }
