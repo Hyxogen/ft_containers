@@ -24,6 +24,10 @@
 #include <iostream>
 #include <string>
 
+//TODO
+//Check how to handle insert of a value that already exists
+//Make rbtree take a Compare functor
+
 namespace ft {
 namespace detail {
 
@@ -40,7 +44,7 @@ template <typename T> class rbnode {
         this_type *right;
         this_type *left;
 
-        rbnode(const T &value = T(), rbcolor color = RB_BLACK,
+        rbnode(rbcolor color = RB_BLACK, const T &value = T(),
                this_type *parent = NULL, this_type *right = NULL,
                this_type *left = NULL)
             : value(value), color(color), parent(parent), right(right),
@@ -54,22 +58,22 @@ template <typename T> class rbnode {
                 return node->color;
         }
 
-        static bool is_bst(const this_type *node) {
-                if (node == NULL)
+        static bool is_bst(const this_type *node, const this_type *sentinel) {
+                if (node == sentinel)
                         return true;
-                return (node->left == NULL
+                return (node->left == sentinel
                         || (node->left->value < node->value
-                            && is_bst(node->left)))
-                       && (node->right == NULL
+                            && is_bst(node->left, sentinel)))
+                       && (node->right == sentinel
                            || (node->right->value > node->value
-                               && is_bst(node->right)));
+                               && is_bst(node->right, sentinel)));
         }
 
         static bool
-        mismatch(const this_type *lhs, const this_type *rhs,
+        mismatch(const this_type *lhs, const this_type *rhs, const this_type *lhs_sentinel, const this_type *rhs_sentinel,
                  std::pair<const this_type *, const this_type *> **mpair) {
-                if (lhs == NULL || rhs == NULL) {
-                        if (lhs != rhs) {
+                if (lhs == lhs_sentinel || rhs == rhs_sentinel) {
+                        if (lhs != lhs_sentinel || rhs != rhs_sentinel) {
                                 *mpair = new std::pair<const this_type *,
                                                        const this_type *>(lhs,
                                                                           rhs);
@@ -83,15 +87,17 @@ template <typename T> class rbnode {
                                                const this_type *>(lhs, rhs);
                         return true;
                 }
-                if (mismatch(lhs->left, rhs->left, mpair))
+                if (mismatch(lhs->left, rhs->left, lhs_sentinel, rhs_sentinel,
+                             mpair))
                         return true;
-                if (mismatch(lhs->right, rhs->right, mpair))
+                if (mismatch(lhs->right, rhs->right, lhs_sentinel,
+                             rhs_sentinel, mpair))
                         return true;
                 return false;
         }
 
-        static std::size_t black_height(const this_type *node) {
-                if (node == NULL)
+        static std::size_t black_height(const this_type *node, const this_type *sentinel) {
+                if (node == sentinel)
                         return 1;
 
                 if (node_color(node) == RB_RED
@@ -99,8 +105,10 @@ template <typename T> class rbnode {
                         || node_color(node->right) == RB_RED))
                         return 0;
 
-                const std::size_t left_height = black_height(node->left);
-                const std::size_t right_height = black_height(node->right);
+                const std::size_t left_height
+                    = black_height(node->left, sentinel);
+                const std::size_t right_height
+                    = black_height(node->right, sentinel);
 
                 if (left_height == 0 || right_height == 0
                     || left_height != right_height)
@@ -108,15 +116,16 @@ template <typename T> class rbnode {
                 return left_height + (node_color(node) == RB_BLACK ? 1 : 0);
         }
 
-        static bool is_valid(const this_type *node) {
-                return is_bst(node) && black_height(node) != 0;
+        static bool is_valid(const this_type *node, const this_type *sentinel) {
+                return is_bst(node, sentinel)
+                       && black_height(node, sentinel) != 0;
         }
 
-        static void debug_print(const rbnode *node,
+        static void debug_print(const rbnode *node, const rbnode *sentinel,
                                 const rbnode *special = NULL,
                                 std::size_t indent = 0) {
                 std::cout << std::string(indent, ' ');
-                if (node == NULL) {
+                if (node == sentinel) {
 
                         std::cout << '-' << std::endl;
                 } else {
@@ -124,8 +133,9 @@ template <typename T> class rbnode {
                                   << node->value << ","
                                   << (node->color == RB_BLACK ? 'B' : 'R')
                                   << std::endl;
-                        debug_print(node->left, special, indent + 4);
-                        debug_print(node->right, special, indent + 4);
+                        debug_print(node->left, special, sentinel, indent + 4);
+                        debug_print(node->right, special, sentinel,
+                                    indent + 4);
                 }
         }
 };
@@ -142,20 +152,26 @@ struct rbtree {
 
       private:
         node_type *_root;
+        //TODO do not allow to read value of sentinel node
+        node_type _sentinel;
         size_type _size;
         allocator_type _allocator;
 
       public:
-        rbtree() : _root(NULL), _size(0) {}
+        rbtree() : _root(&_sentinel), _sentinel(RB_BLACK), _size(0) {}
 
         ~rbtree() { destroy_tree(_root); }
 
         node_type *root() { return _root; }
+        node_type *sentinel() { return &_sentinel; }
+        const node_type *sentinel() const { return &_sentinel; }
 
         node_type *create_node(const value_type &value) {
                 node_type *node = _allocator.allocate(1);
                 try {
-                        _allocator.construct(node, node_type(value));
+                        _allocator.construct(node, node_type(RB_BLACK, value,
+                                                             sentinel(),
+                                                             sentinel()));
                 } catch (...) {
                         _allocator.deallocate(node, 1);
                         throw;
@@ -165,9 +181,9 @@ struct rbtree {
 
         void insert(const value_type &value) {
                 node_type *insert_node = _root;
-                node_type *parent_node = NULL;
+                node_type *parent_node = sentinel();
 
-                while (insert_node != NULL) {
+                while (insert_node != sentinel()) {
                         parent_node = insert_node;
                         if (value < parent_node->value)
                                 insert_node = parent_node->left;
@@ -178,21 +194,22 @@ struct rbtree {
                 node_type *node = create_node(value);
 
                 node->parent = parent_node;
-                if (parent_node == NULL)
+                if (parent_node == sentinel())
                         _root = node;
                 else if (node->value < parent_node->value)
                         parent_node->left = node;
                 else
                         parent_node->right = node;
-                node->left = NULL;
-                node->right = NULL;
+                node->left = sentinel();
+                node->right = sentinel();
                 node->color = RB_RED;
                 insert_fix(node);
         }
 
         static void assert_equal(const rbtree &lhs, const rbtree &rhs) {
                 std::pair<const node_type *, const node_type *> *mismatch;
-                if (node_type::mismatch(lhs._root, rhs._root, &mismatch)) {
+                if (node_type::mismatch(lhs._root, rhs._root, lhs.sentinel(),
+                                        rhs.sentinel(), &mismatch)) {
                         std::cerr << "lhs:" << std::endl;
                         node_type::debug_print(lhs._root, mismatch->first);
                         std::cerr << "rhs:" << std::endl;
@@ -200,20 +217,22 @@ struct rbtree {
                         assert(0 && "lhs != rhs");
                 }
         }
-
+        
         friend bool operator==(const rbtree &lhs, const rbtree &rhs) {
-                if (lhs._root == NULL || rhs._root == NULL)
+                //TODO this code can probably be refactored to something simpler
+                //using the sentinel
+                if (lhs._root == lhs.sentinel() || rhs._root == rhs.sentinel())
                         return lhs._root == rhs._root;
                 return *lhs._root == *rhs._root;
         }
 
         bool is_bst() const {
-                return _root == NULL || node_type::is_bst(_root);
+                return _root == sentinel() || node_type::is_bst(_root, sentinel());
         }
 
         bool is_valid() const {
                 return node_type::node_color(_root) == RB_BLACK
-                       && node_type::is_valid(_root);
+                       && node_type::is_valid(_root, sentinel());
         }
 
         void print() const { node_type::debug_print(_root, NULL); }
@@ -222,14 +241,14 @@ struct rbtree {
         void tree_assert(int condition, const node_type *node,
                          const std::string &msg = "assertion failed") {
                 if (!condition) {
-                        node_type::debug_print(_root, node);
+                        node_type::debug_print(_root, sentinel(), node);
                         std::cerr << msg << std::endl;
                         assert(0);
                 }
         }
 
         void destroy_tree(node_type *node) {
-                if (node == NULL)
+                if (node == sentinel())
                         return;
                 destroy_tree(node->left);
                 destroy_tree(node->right);
@@ -239,15 +258,15 @@ struct rbtree {
 
       public: // TODO make private
         node_type *rotate_left(node_type *node) {
-                tree_assert(node->right != NULL, node,
+                tree_assert(node->right != sentinel(), node,
                             "cannot rotate further left on node");
                 node_type *new_root = node->right;
 
                 node->right = new_root->left;
-                if (new_root->left != NULL)
+                if (new_root->left != sentinel())
                         new_root->left->parent = node;
                 new_root->parent = node->parent;
-                if (node->parent == NULL) {
+                if (node->parent == sentinel()) {
                         _root = new_root;
                 } else if (node == node->parent->left) {
                         node->parent->left = new_root;
@@ -260,15 +279,15 @@ struct rbtree {
         }
 
         node_type *rotate_right(node_type *node) {
-                tree_assert(node->left != NULL, node,
+                tree_assert(node->left != sentinel(), node,
                             "cannot rotate further right on node");
                 node_type *new_root = node->left;
 
                 node->left = new_root->right;
-                if (new_root->right != NULL)
+                if (new_root->right != sentinel())
                         new_root->right->parent = node;
                 new_root->parent = node->parent;
-                if (node->parent == NULL) {
+                if (node->parent == sentinel()) {
                         _root = new_root;
                 } else if (node == node->parent->right) {
                         node->parent->right = new_root;
@@ -326,10 +345,11 @@ bool operator==(const rbnode<ValueType> &lhs, const rbnode<ValueType> &rhs) {
         if (lhs.value != rhs.value)
                 return false;
 
-        return ((lhs.left == NULL && rhs.left == NULL)
-                || (rhs.left != NULL && *lhs.left == *rhs.left))
-               && ((lhs.right == NULL && rhs.right == NULL)
-                   || (rhs.right != NULL && *lhs.right == *rhs.right));
+        return ((lhs.left == lhs.sentinel() && rhs.left == rhs.sentinel())
+                || (rhs.left != rhs.sentinel() && *lhs.left == *rhs.left))
+               && ((lhs.right == lhs.sentinel() && rhs.right == rhs.sentinel())
+                   || (rhs.right != rhs.entinel()
+                       && *lhs.right == *rhs.right));
 }
 
 }
