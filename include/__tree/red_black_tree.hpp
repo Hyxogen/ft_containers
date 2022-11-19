@@ -536,38 +536,22 @@ struct rbtree {
       private:
         void insert_fix(node_type *node) {
                 while (node_type::node_color(node->parent) == RB_RED) {
-                        if (node->parent == node->parent->parent->left) {
-                                node_type *uncle = node->parent->parent->right;
-                                if (node_type::node_color(uncle) == RB_RED) {
-                                        node->parent->color = RB_BLACK;
-                                        uncle->color = RB_BLACK;
-                                        node->parent->parent->color = RB_RED;
-                                        node = node->parent->parent;
-                                } else {
-                                        if (node == node->parent->right) {
-                                                node = node->parent;
-                                                rotate_left(node);
-                                        }
-                                        node->parent->color = RB_BLACK;
-                                        node->parent->parent->color = RB_RED;
-                                        rotate_right(node->parent->parent);
-                                }
+                        const rbdir parent_dir = node->parent->get_dir();
+                        node_type *uncle = node->parent->parent->get(parent_dir.opposite());
+                        if (node_type::node_color(uncle) == RB_RED) {
+                                node->parent->color = RB_BLACK;
+                                uncle->color = RB_BLACK;
+                                node->parent->parent->color = RB_RED;
+                                node = node->parent->parent;
                         } else {
-                                node_type *uncle = node->parent->parent->left;
-                                if (node_type::node_color(uncle) == RB_RED) {
-                                        node->parent->color = RB_BLACK;
-                                        uncle->color = RB_BLACK;
-                                        node->parent->parent->color = RB_RED;
-                                        node = node->parent->parent;
-                                } else {
-                                        if (node == node->parent->left) {
-                                                node = node->parent;
-                                                rotate_right(node);
-                                        }
-                                        node->parent->color = RB_BLACK;
-                                        node->parent->parent->color = RB_RED;
-                                        rotate_left(node->parent->parent);
+                                const rbdir node_dir = node->get_dir();
+                                if (node == node->parent->get(parent_dir.opposite())) {
+                                        node = node->parent;
+                                        rotate(node, parent_dir);
                                 }
+                                node->parent->color = RB_BLACK;
+                                node->parent->parent->color = RB_RED;
+                                rotate(node->parent->parent, parent_dir.opposite());
                         }
                 }
                 _root->color = RB_BLACK;
