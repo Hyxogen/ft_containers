@@ -317,6 +317,7 @@ struct rbtree_iterator {
         // TODO check for performance loss by using this abstraction instead of
         // hardcoding operator++ and operator-- separately
         rbtree_iterator &advance(const rbdir &dir) {
+                //TODO use node_type::next here
                 if (_current->get(dir) != _sentinel) {
                         _current = node_type::bound(
                             dir.opposite(), _current->get(dir), _sentinel);
@@ -398,6 +399,9 @@ struct rbtree {
         }
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         reverse_iterator rend() { return reverse_iterator(begin()); }
+
+        //TODO implement a node next abstraction etc. here so that you don't
+        //have to pass the sentinel every time
 
         node_type *create_node(const value_type &value) {
                 node_type *node = _allocator.allocate(1);
