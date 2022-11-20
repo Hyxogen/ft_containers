@@ -133,6 +133,33 @@ template <typename T> class rbnode {
                 return node;
         }
 
+        static this_type *next(this_type *node, const this_type *sentinel,
+                               const rbdir &dir) {
+                if (node->get(dir) != sentinel) {
+                        node = bound(
+                            dir.opposite(), node->get(dir), sentinel);
+                } else {
+                        this_type *parent = node->parent;
+                        while (parent != sentinel
+                               && node == parent->get(dir)) {
+                                node = parent;
+                                parent = parent->parent;
+                        }
+                        node = parent;
+                }
+                return node;
+        }
+
+        static this_type *predecessor(this_type *node,
+                                      const this_type *sentinel) {
+                return next(node, sentinel, left_dir());
+        }
+
+        static this_type *successor(this_type *node,
+                                      const this_type *sentinel) {
+                return next(node, sentinel, right_dir());
+        }
+
         static bool is_bst(const this_type *node, const this_type *sentinel) {
                 if (node == sentinel)
                         return true;
@@ -257,22 +284,21 @@ struct rbtree_iterator {
         typedef Pointer pointer;
         typedef Reference reference;
         typedef rbnode<T> node_type;
+        typedef rbtree_iterator<T, T *, T &> iterator;
 
-      protected:
         node_type *_current;
-        const node_type *const _sentinel;
+        const node_type * _sentinel;
 
-      public:
+        rbtree_iterator(const iterator &other)
+            : _current(other._current), _sentinel(other._sentinel) {}
         rbtree_iterator(const node_type *current, const node_type *sentinel)
             : _current(const_cast<node_type *>(current)), _sentinel(sentinel) {
         }
 
-        rbtree_iterator(const rbtree_iterator &other)
-            : _current(other._current), _sentinel(other._sentinel) {}
-
-        rbtree_iterator &operator=(const rbtree_iterator &other) {
+        rbtree_iterator &operator=(const iterator &other) {
                 if (this != &other) {
                         _current = other._current;
+                        _sentinel = other._sentinel;
                 }
                 return *this;
         }
@@ -288,8 +314,8 @@ struct rbtree_iterator {
         reference operator*() const { return _current->value; }
         pointer operator->() const { return &(this->operator*()); }
 
-        //TODO check performance loss by using this abstraction instead of
-        //hardcoding operator++ and operator-- separately
+        // TODO check for performance loss by using this abstraction instead of
+        // hardcoding operator++ and operator-- separately
         rbtree_iterator &advance(const rbdir &dir) {
                 if (_current->get(dir) != _sentinel) {
                         _current = node_type::bound(
@@ -339,8 +365,9 @@ struct rbtree {
         typedef value_type &reference;
         typedef const value_type *const_pointer;
         typedef const value_type &const_reference;
-        typedef rbtree_iterator<value_type, pointer, reference> iterator;
-        typedef rbtree_iterator<value_type, const_pointer, const_reference>
+        typedef rbtree_iterator<ValueType, ValueType *, ValueType &> iterator;
+        typedef rbtree_iterator<ValueType, const ValueType *,
+                                const ValueType &>
             const_iterator;
         typedef reverse_iterator<iterator> reverse_iterator;
 
@@ -363,6 +390,12 @@ struct rbtree {
         const node_type *sentinel() const { return &_sentinel; }
         iterator begin() { return iterator(sentinel()->right, sentinel()); }
         iterator end() { return iterator(sentinel(), sentinel()); }
+        const_iterator begin() const {
+                return const_iterator(sentinel()->right, sentinel());
+        }
+        const_iterator end() const {
+                return const_iterator(sentinel(), sentinel());
+        }
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         reverse_iterator rend() { return reverse_iterator(begin()); }
 
@@ -505,10 +538,13 @@ struct rbtree {
 
                 // update iterator positions
                 // TODO move this to a separate function
-                if (node == sentinel()->left)
-                        sentinel()->left = node->parent;
-                if (node == sentinel()->right)
-                        sentinel()->right = node->parent;
+                if (node == sentinel()->left) {
+                        sentinel()->left
+                            = node_type::predecessor(node, sentinel());
+                } if (node == sentinel()->right) {
+                        sentinel()->right
+                            = node_type::successor(node, sentinel());
+                }
 
                 destroy_node(node);
                 if (old_color == RB_BLACK)
