@@ -441,7 +441,7 @@ struct rbtree {
                         else if (comp(current->value, key))
                                 current = current->right;
                         else
-                                return current;
+                                break;
                 }
                 return current;
         }
