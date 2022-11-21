@@ -318,18 +318,7 @@ struct rbtree_iterator {
         // hardcoding operator++ and operator-- separately
         rbtree_iterator &advance(const rbdir &dir) {
                 //TODO use node_type::next here
-                if (_current->get(dir) != _sentinel) {
-                        _current = node_type::bound(
-                            dir.opposite(), _current->get(dir), _sentinel);
-                } else {
-                        node_type *parent = _current->parent;
-                        while (parent != _sentinel
-                               && _current == parent->get(dir)) {
-                                _current = parent;
-                                parent = parent->parent;
-                        }
-                        _current = parent;
-                }
+                _current = node_type::next(_current, _sentinel, dir);
                 return *this;
         }
 
@@ -468,16 +457,18 @@ struct rbtree {
         node_type *minimum(node_type *node) {
                 assert(node != sentinel()
                        && "cannot take minumum of sentinel");
-                /*
-                if (node == sentinel())
-                        return node;
-                */
-                while (node->left != sentinel())
-                        node = node->left;
-                return node;
+                return node_type::minimum(node, sentinel());
         }
 
         node_type *minimum() { return minimum(root()); }
+
+        node_type *successor(node_type *node) {
+                return node_type::next(node, sentinel(), right_dir());
+        }
+
+        node_type *predecessor(node_type *node) {
+                return node_type::next(node, sentinel(), left_dir());
+        }
 
       private:
         // TODO solve collision with other search with integral types
@@ -543,11 +534,9 @@ struct rbtree {
                 // update iterator positions
                 // TODO move this to a separate function
                 if (node == sentinel()->left) {
-                        sentinel()->left
-                            = node_type::predecessor(node, sentinel());
+                        sentinel()->left = predecessor(node);
                 } if (node == sentinel()->right) {
-                        sentinel()->right
-                            = node_type::successor(node, sentinel());
+                        sentinel()->right = successor(node);
                 }
 
                 destroy_node(node);
