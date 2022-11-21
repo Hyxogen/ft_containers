@@ -121,16 +121,12 @@ template <typename T> class rbnode {
 
         static this_type *minimum(this_type *node,
                                   const this_type *const sentinel) {
-                while (node->left != sentinel)
-                        node = node->left;
-                return node;
+                return bound(left_dir(), node, sentinel);
         }
 
         static this_type *maximum(this_type *node,
                                   const this_type *const sentinel) {
-                while (node->right != sentinel)
-                        node = node->right;
-                return node;
+                return bound(right_dir(), node, sentinel);
         }
 
         static this_type *next(this_type *node, const this_type *sentinel,
