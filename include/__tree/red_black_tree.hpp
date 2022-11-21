@@ -158,7 +158,7 @@ template <typename T> class rbnode {
                                     const this_type *sentinel) {
                 return next(node, sentinel, right_dir());
         }
-        
+
         static bool
         mismatch(const this_type *lhs, const this_type *rhs,
                  const this_type *lhs_sentinel, const this_type *rhs_sentinel,
@@ -297,7 +297,8 @@ struct rbtree_iterator {
         }
 };
 
-template <typename KeyType, typename ValueType, typename Allocator, typename Compare>
+template <typename KeyType, typename ValueType, typename Allocator,
+          typename Compare>
 struct rbtree {
         typedef rbnode<ValueType> node_type;
         typedef KeyType key_type;
@@ -315,7 +316,7 @@ struct rbtree {
                                 const ValueType &>
             const_iterator;
         typedef reverse_iterator<iterator> reverse_iterator;
-        
+
       private:
         node_type *_root;
         node_type _sentinel;
@@ -538,20 +539,16 @@ struct rbtree {
                         return true;
                 const node_type *const left = node->left;
                 const node_type *const right = node->right;
-                
-                if (left != sentinel()
-                    && !comp(left->value, node->value))
+
+                if (left != sentinel() && !comp(left->value, node->value))
                         return false;
-                if (right != sentinel()
-                    && comp(right->value, node->value))
+                if (right != sentinel() && comp(right->value, node->value))
                         return false;
                 return is_bst(left) && is_bst(right);
         }
 
-        bool is_bst() const {
-                return is_bst(root());
-        }
-        
+        bool is_bst() const { return is_bst(root()); }
+
         std::size_t self_check(const node_type *node) const {
                 if (node == sentinel()) {
                         assert(node->color == RB_BLACK
@@ -563,8 +560,7 @@ struct rbtree {
                 const node_type *const right = node->right;
 
                 if (node->color == RB_RED
-                    && (left->color == RB_RED
-                        || right->color == RB_RED))
+                    && (left->color == RB_RED || right->color == RB_RED))
                         throw rb_violation("red violation", node);
 
                 const std::size_t left_height = self_check(left);
@@ -573,19 +569,15 @@ struct rbtree {
                 if (left_height != right_height)
                         throw rb_violation("black violation", node);
 
-                if (left != sentinel()
-                    && !comp(left->value, node->value))
+                if (left != sentinel() && !comp(left->value, node->value))
                         throw rb_violation("bst violation left side", node);
-                if (right != sentinel()
-                    && comp(right->value, node->value))
+                if (right != sentinel() && comp(right->value, node->value))
                         throw rb_violation("bst violation right side", node);
-                
+
                 return left_height + (node->color == RB_BLACK ? 1 : 0);
         }
 
-        void self_check() const {
-                self_check(root());
-        }
+        void self_check() const { self_check(root()); }
 
         void print() const { node_type::debug_print(_root, sentinel()); }
 
