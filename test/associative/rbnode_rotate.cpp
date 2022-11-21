@@ -3,11 +3,13 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <functional>
 
 int main() {
         {
                 typedef ft::detail::rbtree<
-                    int, int, std::allocator<ft::detail::rbnode<int> > >
+                    int, int, std::allocator<ft::detail::rbnode<int> >,
+                    std::less<int> >
                     rbtree;
 
                 rbtree tree;
@@ -15,13 +17,13 @@ int main() {
                 tree.insert(1);
                 tree.insert(0);
                 tree.insert(2);
-                assert(tree.is_valid());
-
+                tree.self_check();
+                
                 tree.rotate_left(tree.root());
                 assert(tree.is_bst());
 
                 tree.rotate_right(tree.root());
-                assert(tree.is_valid());
+                tree.self_check();
 
                 rbtree ctree;
 

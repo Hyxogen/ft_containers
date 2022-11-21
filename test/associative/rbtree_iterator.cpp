@@ -9,7 +9,8 @@
 
 int main() {
         typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> > >
+                                   std::allocator<ft::detail::rbnode<int> >,
+                                   std::less<int> >
             rbtree;
         {
                 rbtree tree;

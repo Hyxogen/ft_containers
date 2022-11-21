@@ -6,24 +6,22 @@
 #include <vector>
 #include <classes.hpp>
 #include <allocators.hpp>
+#include <functional>
 
 template <typename T, typename U> void delete_and_validate(T &t, const U &u) {
         t.delete_node(u);
-        assert(t.is_valid());
+        t.self_check();
 }
 
 template <typename T, typename U>
 void delete_key_and_validate(T &t, const U &u) {
         t.delete_key(u);
-        if (!t.is_valid()) {
-                t.print();
-                t.self_check();
-        }
+        t.self_check();
 }
 
 int main() {
         typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> > >
+                                   std::allocator<ft::detail::rbnode<int> >, std::less<int> >
             rbtree;
         {
                 rbtree tree;
@@ -99,7 +97,7 @@ int main() {
         }
         {
                 typedef test::tracking_class clazz;
-                ft::detail::rbtree<clazz, clazz, std::allocator<ft::detail::rbnode<clazz > > > tree;
+                ft::detail::rbtree<clazz, clazz, std::allocator<ft::detail::rbnode<clazz > >, std::less<clazz> > tree;
 
                 for (int i = 0; i < 500; ++i) {
                         tree.insert(clazz(i));
@@ -115,7 +113,7 @@ int main() {
                 typedef test::allocator_tracker<ft::detail::rbnode<int> >
                     allocator;
 
-                ft::detail::rbtree<int, int, allocator> tree;
+                ft::detail::rbtree<int, int, allocator, std::less<int> > tree;
                 
                 for (int i = 0; i < 500; ++i) {
                         tree.insert(i);
@@ -131,7 +129,8 @@ int main() {
                 typedef test::throwing_class<int> clazz;
 
                 ft::detail::rbtree<clazz, clazz,
-                                   std::allocator<ft::detail::rbnode<clazz> > >
+                                   std::allocator<ft::detail::rbnode<clazz> >,
+                                   std::less<clazz> >
                     tree;
 
                 for (int i = 0; i < 500; ++i) {

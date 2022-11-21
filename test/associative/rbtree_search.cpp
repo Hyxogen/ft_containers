@@ -1,5 +1,6 @@
 #include <__tree/red_black_tree.hpp>
 #include <cassert>
+#include <functional>
 
 template <typename T, typename U>
 void assert_find(const T &t, const U &u) {
@@ -16,7 +17,8 @@ void assert_no_find(const T &t, const U &u) {
 
 int main() {
         typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> > >
+                                   std::allocator<ft::detail::rbnode<int> >,
+                                   std::less<int> >
             rbtree;
         {
                 rbtree tree;

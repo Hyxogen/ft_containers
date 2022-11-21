@@ -4,15 +4,16 @@
 #include <cassert>
 #include <classes.hpp>
 #include <memory>
+#include <functional>
 
 template <typename T, typename U> void insert_and_validate(T &t, const U &u) {
         t.insert(u);
-        assert(t.is_valid());
+        t.self_check();
 }
 
 int main() {
         typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> > >
+                                   std::allocator<ft::detail::rbnode<int> >, std::less<int> >
             irbtree;
         { irbtree tree; }
         {
@@ -43,7 +44,7 @@ int main() {
         {
                 typedef test::tracking_class clazz;
                 typedef ft::detail::rbtree<
-                    clazz, clazz, std::allocator<ft::detail::rbnode<clazz> > >
+                        clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >, std::less<clazz> >
                     rbtree;
 
                 const std::size_t count = clazz::instances();
@@ -60,7 +61,7 @@ int main() {
         {
                 typedef test::throwing_class<test::tracking_class> clazz;
                 typedef ft::detail::rbtree<
-                    clazz, clazz, std::allocator<ft::detail::rbnode<clazz> > >
+                        clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >, std::less<clazz> >
                     rbtree;
 
                 rbtree tree;
@@ -81,7 +82,7 @@ int main() {
         {
                 typedef test::allocator_tracker<ft::detail::rbnode<int> >
                     allocator;
-                typedef ft::detail::rbtree<int, int, allocator> rbtree;
+                typedef ft::detail::rbtree<int, int, allocator, std::less<int> > rbtree;
 
                 const std::size_t active = allocator::active();
 
