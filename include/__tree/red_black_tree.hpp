@@ -136,8 +136,7 @@ template <typename T> class rbnode {
         static this_type *next(this_type *node, const this_type *sentinel,
                                const rbdir &dir) {
                 if (node->get(dir) != sentinel) {
-                        node = bound(
-                            dir.opposite(), node->get(dir), sentinel);
+                        node = bound(dir.opposite(), node->get(dir), sentinel);
                 } else {
                         this_type *parent = node->parent;
                         while (parent != sentinel
@@ -156,7 +155,7 @@ template <typename T> class rbnode {
         }
 
         static this_type *successor(this_type *node,
-                                      const this_type *sentinel) {
+                                    const this_type *sentinel) {
                 return next(node, sentinel, right_dir());
         }
 
@@ -287,7 +286,7 @@ struct rbtree_iterator {
         typedef rbtree_iterator<T, T *, T &> iterator;
 
         node_type *_current;
-        const node_type * _sentinel;
+        const node_type *_sentinel;
 
         rbtree_iterator(const iterator &other)
             : _current(other._current), _sentinel(other._sentinel) {}
@@ -317,24 +316,20 @@ struct rbtree_iterator {
         // TODO check for performance loss by using this abstraction instead of
         // hardcoding operator++ and operator-- separately
         rbtree_iterator &advance(const rbdir &dir) {
-                //TODO use node_type::next here
+                // TODO use node_type::next here
                 _current = node_type::next(_current, _sentinel, dir);
                 return *this;
         }
 
-        rbtree_iterator &operator++() {
-                return advance(right_dir());
-        }
+        rbtree_iterator &operator++() { return advance(right_dir()); }
 
         rbtree_iterator operator++(int) {
                 const rbtree_iterator tmp(*this);
                 advance(right_dir());
                 return tmp;
         }
-        
-        rbtree_iterator &operator--() {
-                return advance(left_dir());
-        }
+
+        rbtree_iterator &operator--() { return advance(left_dir()); }
 
         rbtree_iterator operator--(int) {
                 const rbtree_iterator tmp(*this);
@@ -389,8 +384,8 @@ struct rbtree {
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         reverse_iterator rend() { return reverse_iterator(begin()); }
 
-        //TODO implement a node next abstraction etc. here so that you don't
-        //have to pass the sentinel every time
+        // TODO implement a node next abstraction etc. here so that you don't
+        // have to pass the sentinel every time
 
         node_type *create_node(const value_type &value) {
                 node_type *node = _allocator.allocate(1);
@@ -535,7 +530,8 @@ struct rbtree {
                 // TODO move this to a separate function
                 if (node == sentinel()->left) {
                         sentinel()->left = predecessor(node);
-                } if (node == sentinel()->right) {
+                }
+                if (node == sentinel()->right) {
                         sentinel()->right = successor(node);
                 }
 
