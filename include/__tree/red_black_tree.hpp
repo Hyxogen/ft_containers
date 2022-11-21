@@ -105,13 +105,7 @@ template <typename T> class rbnode {
                         return left_dir();
                 return right_dir();
         }
-
-        static rbcolor node_color(const rbnode *node) {
-                if (node == NULL)
-                        return RB_BLACK;
-                return node->color;
-        }
-
+        
         static this_type *bound(const rbdir &dir, this_type *node,
                                 const this_type *const sentinel) {
                 while (node->get(dir) != sentinel)
@@ -631,11 +625,11 @@ struct rbtree {
 
       private:
         void insert_fix(node_type *node) {
-                while (node_type::node_color(node->parent) == RB_RED) {
+                while (node->parent->color == RB_RED) {
                         const rbdir parent_dir = node->parent->get_dir();
                         node_type *uncle
                             = node->parent->parent->get(parent_dir.opposite());
-                        if (node_type::node_color(uncle) == RB_RED) {
+                        if (uncle->color == RB_RED) {
                                 node->parent->color = RB_BLACK;
                                 uncle->color = RB_BLACK;
                                 node->parent->parent->color = RB_RED;
