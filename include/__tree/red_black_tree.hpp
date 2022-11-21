@@ -28,7 +28,6 @@
 
 // TODO
 // Check how to handle insert of a value that already exists
-// Make rbtree take a Compare functor
 
 namespace ft {
 namespace detail {
@@ -436,11 +435,13 @@ struct rbtree {
         const node_type *search(const node_type *start,
                                 const value_type &key) const {
                 const node_type *current = start;
-                while (current != sentinel() && current->value != key) {
+                while (current != sentinel()) {
                         if (comp(key, current->value))
                                 current = current->left;
-                        else
+                        else if (comp(current->value, key))
                                 current = current->right;
+                        else
+                                return current;
                 }
                 return current;
         }

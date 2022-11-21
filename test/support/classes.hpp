@@ -155,6 +155,36 @@ template <typename T = int> class __tracking_class {
         }
 };
 
+template <typename T>
+class compare_class {
+
+        T _data;
+
+      public:
+        compare_class(const T &data = T()) : _data(data) {}
+        compare_class(const compare_class &other) : _data(other._data) {}
+
+        compare_class &operator=(const compare_class &other) {
+                if (this != &other) {
+                        _data = other._data;
+                }
+                return *this;
+        }
+
+        bool operator<(const compare_class &other) const {
+                return _data < other._data;
+        }
+
+        bool operator>(const compare_class &other) const {
+                return _data > other._data;
+        }
+
+        friend std::ostream &operator<<(std::ostream &stream,
+                                        const compare_class &clazz) {
+                return stream << clazz._data;
+        }
+};
+
 typedef __tracking_class<int> tracking_class;
 
 template <typename T> std::size_t __tracking_class<T>::_instances = 0;
