@@ -34,12 +34,12 @@ template <class T1, class T2> struct pair {
         pair(const pair<U, V> &p) : first(p.first), second(p.second) {}
 };
 
+// TODO implement other comparison operators
 template <class T1, class T2>
 bool operator==(const pair<T1, T2> &x, const pair<T1, T2> &y) {
         return x.first == y.first && x.second == y.second;
 }
 
-// TODO check if operator<= also needs to be made
 template <class T1, class T2>
 bool operator<(const pair<T1, T2> &x, const pair<T1, T2> &y) {
         return x.first < y.first
