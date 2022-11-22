@@ -49,6 +49,8 @@ class map : detail::rbtree<Key, ft::pair<const Key, Value>, Compare,
             const Allocator &alloc = Allocator())
             : _base(first, last, comp, alloc) {}
 
+        map(const map &other) : _base(other) {}
+
         using _base::insert;
         using _base::begin;
         using _base::end;
