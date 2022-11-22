@@ -16,9 +16,17 @@
 #ifdef BENCHMARK_STD
 #include <vector>
 #define vector std::vector
+#include <map>
+#define map std::map
+#include <set>
+#define set std::set
 #else
 #include <vector.hpp>
 #define vector ft::vector
+#include <map.hpp>
+#define map ft::map
+#include <set.hpp>
+#define set ft::set
 #endif
 
 #define DO_NOT_OPTIMIZE(statement)                                            \

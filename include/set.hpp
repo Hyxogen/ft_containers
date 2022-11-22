@@ -42,6 +42,7 @@ class set
 
         set() {}
 
+        // TODO write benchmark for this function
         ft::pair<iterator, bool> insert(const value_type &value) {
                 return _base::insert(value);
         }
