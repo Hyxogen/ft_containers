@@ -57,8 +57,8 @@ template <typename T> struct use_self : public std::unary_function<T, T> {
 
 template <typename Pair>
 struct use_first
-    : public std::unary_function<Pair, typename Pair::second_type> {
-        typedef std::unary_function<Pair, typename Pair::second_type> base;
+    : public std::unary_function<Pair, typename Pair::first_type> {
+        typedef std::unary_function<Pair, typename Pair::first_type> base;
         typedef typename base::argument_type argument_type;
         typedef typename base::result_type result_type;
 
