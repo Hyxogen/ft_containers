@@ -19,6 +19,7 @@
 #define ITERATORS_HPP
 
 #include <iterator>
+#include <stdexcept>
 
 namespace test {
 template <typename T> struct range_iterator {
@@ -119,6 +120,7 @@ template <typename T> struct range_iterator {
         reference operator[](difference_type n) const { return _value + n; }
 };
 
+//TODO add a check that value is read only once
 template <typename Iterator>
 struct input_iterator
     : public std::iterator<
@@ -130,21 +132,24 @@ struct input_iterator
 
       protected:
         Iterator _current;
-
+        mutable bool _read;
+        
         input_iterator() : _current() {}
 
       public:
         typedef typename std::iterator_traits<Iterator>::reference reference;
         typedef typename std::iterator_traits<Iterator>::pointer pointer;
 
-        input_iterator(const Iterator &other) : _current(other) {}
+        input_iterator(const Iterator &other)
+            : _current(other), _read(false) {}
 
         input_iterator(const input_iterator &other)
-            : _current(other._current) {}
+            : _current(other._current), _read(other._read) {}
 
         input_iterator &operator=(const input_iterator &other) {
                 if (this != &other) {
                         _current = other._current;
+                        _read = other._read;
                 }
                 return *this;
         }
@@ -157,17 +162,33 @@ struct input_iterator
                 return _current != other._current;
         }
 
-        reference operator*() const { return *_current; }
+        reference operator*() const {
+                if (_read) {
+                        throw std::logic_error(
+                            "reading more than once from an input iterator");
+                }
+                _read = true;
+                return *_current;
+        }
 
-        pointer operator->() const { return &(operator*()); }
+        pointer operator->() const {
+                if (_read) {
+                        throw std::logic_error(
+                            "reading more than once from an input iterator");
+                }
+                _read = true;
+                return &(operator*());
+        }
 
         input_iterator &operator++() {
                 ++_current;
+                _read = false;
                 return *this;
         }
 
         input_iterator operator++(int) {
                 ++_current;
+                _read = false;
                 return input_iterator();
         }
 };
