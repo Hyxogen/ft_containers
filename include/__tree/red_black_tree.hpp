@@ -341,17 +341,17 @@ struct rbtree_base
         typedef rbtree_base_types<KeyType, PairType, use_first<PairType>,
                                   Compare, Allocator>
             base;
-        typedef typename base::node_type node_type;
-        typedef typename base::key_type key_type;
-        typedef typename base::value_type value_type;
-        typedef typename base::key_compare key_compare;
         // TODO add value_compare type
-        typedef typename base::allocator_type allocator_type;
-        typedef typename base::size_type size_type;
-        typedef typename base::iterator iterator;
-        typedef typename base::const_iterator const_iterator;
-        typedef typename base::reverse_iterator reverse_iterator;
-        typedef typename base::key_extract_type key_extract_type;
+        using typename base::node_type;
+        using typename base::key_type;
+        using typename base::value_type;
+        using typename base::key_compare;
+        using typename base::allocator_type;
+        using typename base::size_type;
+        using typename base::iterator;
+        using typename base::const_iterator;
+        using typename base::reverse_iterator;
+        using typename base::key_extract_type;
 };
 
 template <typename KeyType, typename Compare, typename Allocator>
@@ -361,70 +361,61 @@ struct rbtree_base<KeyType, KeyType, Compare, Allocator>
         typedef rbtree_base_types<KeyType, KeyType, use_self<KeyType>, Compare,
                                   Allocator>
             base;
-        typedef typename base::node_type node_type;
-        typedef typename base::key_type key_type;
-        typedef typename base::value_type value_type;
-        typedef typename base::key_compare key_compare;
         // TODO add value_compare type
-        typedef typename base::allocator_type allocator_type;
-        typedef typename base::size_type size_type;
-        typedef typename base::iterator iterator;
-        typedef typename base::const_iterator const_iterator;
-        typedef typename base::reverse_iterator reverse_iterator;
-        typedef typename base::key_extract_type key_extract_type;
+        using typename base::node_type;
+        using typename base::key_type;
+        using typename base::value_type;
+        using typename base::key_compare;
+        using typename base::allocator_type;
+        using typename base::size_type;
+        using typename base::iterator;
+        using typename base::const_iterator;
+        using typename base::reverse_iterator;
+        using typename base::key_extract_type;
 };
 
 template <typename KeyType, typename ValueType, typename Compare,
           typename Allocator>
-struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
+struct rbtree_base_alloc
+    : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
         typedef rbtree_base<KeyType, ValueType, Compare, Allocator> base;
-        typedef typename base::node_type node_type;
-        typedef typename base::key_type key_type;
-        typedef typename base::value_type value_type;
-        typedef typename base::key_compare key_compare;
-        // TODO add value_compare type
-        typedef typename base::allocator_type allocator_type;
-        typedef typename base::size_type size_type;
-        typedef typename base::iterator iterator;
-        typedef typename base::const_iterator const_iterator;
-        typedef typename base::reverse_iterator reverse_iterator;
-        typedef typename base::key_extract_type key_extract_type;
 
-      private:
+        using typename base::node_type;
+        using typename base::key_type;
+        using typename base::value_type;
+        using typename base::key_compare;
+        using typename base::allocator_type;
+        using typename base::size_type;
+        using typename base::iterator;
+        using typename base::const_iterator;
+        using typename base::reverse_iterator;
+        using typename base::key_extract_type;
+        // TODO add value_compare type
+        
+      protected:
         node_type *_root;
         node_type _sentinel;
-        size_type _size;
         allocator_type _allocator;
-        const key_extract_type _key_extract;
-        const key_compare _key_compare;
 
-      public:
-        rbtree()
+        rbtree_base_alloc(const allocator_type &alloc = allocator_type())
             : _root(&_sentinel),
-              _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel), _size(0),
-              _allocator(), _key_extract(), _key_compare() {}
+              _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel),
+              _allocator(alloc) {}
 
-        rbtree(const key_compare &comp, const allocator_type &alloc)
-            : _root(&_sentinel),
-              _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel), _size(0),
-              _allocator(alloc), _key_compare(comp) {}
+        ~rbtree_base_alloc() { destroy_tree(_root); }
 
-        ~rbtree() { destroy_tree(_root); }
-
-        node_type *root() { return _root; }
-        const node_type *root() const { return _root; }
-        node_type *sentinel() { return &_sentinel; }
-        const node_type *sentinel() const { return &_sentinel; }
-        iterator begin() { return iterator(sentinel()->right, sentinel()); }
-        iterator end() { return iterator(sentinel(), sentinel()); }
-        const_iterator begin() const {
-                return const_iterator(sentinel()->right, sentinel());
+        void destroy_node(node_type *node) {
+                _allocator.destroy(node);
+                _allocator.deallocate(node, 1);
         }
-        const_iterator end() const {
-                return const_iterator(sentinel(), sentinel());
+
+        void destroy_tree(node_type *node) {
+                if (node == sentinel())
+                        return;
+                destroy_tree(node->left);
+                destroy_tree(node->right);
+                destroy_node(node);
         }
-        reverse_iterator rbegin() { return reverse_iterator(end()); }
-        reverse_iterator rend() { return reverse_iterator(begin()); }
 
         node_type *create_node(const value_type &value) {
                 node_type *node = _allocator.allocate(1);
@@ -438,6 +429,69 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
                 }
                 return node;
         }
+
+      public:
+        node_type *root() { return _root; }
+        const node_type *root() const { return _root; }
+        node_type *sentinel() { return &_sentinel; }
+        const node_type *sentinel() const { return &_sentinel; }
+};
+
+template <typename KeyType, typename ValueType, typename Compare,
+          typename Allocator>
+struct rbtree
+    : public rbtree_base_alloc<KeyType, ValueType, Compare, Allocator> {
+        typedef rbtree_base_alloc<KeyType, ValueType, Compare, Allocator> base;
+        using typename base::node_type;
+        using typename base::key_type;
+        using typename base::value_type;
+        using typename base::key_compare;
+        using typename base::allocator_type;
+        using typename base::size_type;
+        using typename base::iterator;
+        using typename base::const_iterator;
+        using typename base::reverse_iterator;
+        using typename base::key_extract_type;
+        //typedef typename base::value_type value_type;
+         // TODO add value_compare type
+ 
+      private:
+        using base::_root;
+        size_type _size;
+        const key_extract_type _key_extract;
+        const key_compare _key_compare;
+
+      public:
+        rbtree() : base(), _size(0), _key_extract(), _key_compare() {}
+
+        rbtree(const key_compare &comp, const allocator_type &alloc)
+            : base(alloc), _size(0), _key_extract(), _key_compare(comp) {}
+
+        template <typename InputIt>
+        rbtree(InputIt first, InputIt last,
+               const key_compare &comp = key_compare(),
+               const allocator_type &alloc = allocator_type())
+            : base(alloc), _size(0), _key_extract(), _key_compare(comp) {
+                for (; first != last; ++first) {
+                        insert(*first);
+                }
+        }
+
+        // TODO remove these two and make everything that use it refer to base
+        using base::sentinel;
+        using base::root;
+
+        iterator begin() { return iterator(sentinel()->right, sentinel()); }
+        iterator end() { return iterator(sentinel(), sentinel()); }
+        const_iterator begin() const {
+                return const_iterator(sentinel()->right, sentinel());
+        }
+        const_iterator end() const {
+                return const_iterator(sentinel(), sentinel());
+        }
+        reverse_iterator rbegin() { return reverse_iterator(end()); }
+        reverse_iterator rend() { return reverse_iterator(begin()); }
+        //TODO add const_reverse_iterator
 
         bool comp(const value_type &a, const value_type &b) const {
                 return _key_compare(_key_extract(a), _key_extract(b));
@@ -455,7 +509,7 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
         }
 
         ft::pair<iterator, bool> insert(const value_type &value) {
-                node_type *insert_node = _root;
+                node_type *insert_node = root();
                 node_type *parent_node = sentinel();
 
                 while (insert_node != sentinel()) {
@@ -469,7 +523,7 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
                                     iterator(parent_node, sentinel()), false);
                         }
                 }
-                node_type *node = create_node(value);
+                node_type *node = base::create_node(value);
 
                 node->parent = parent_node;
                 if (parent_node == sentinel())
@@ -585,7 +639,7 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
                         sentinel()->right = successor(node);
                 }
 
-                destroy_node(node);
+                base::destroy_node(node);
                 if (old_color == RB_BLACK)
                         delete_fix(moved_node);
         }
@@ -674,19 +728,6 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
                         std::cerr << msg << std::endl;
                         assert(0);
                 }
-        }
-
-        void destroy_node(node_type *node) {
-                _allocator.destroy(node);
-                _allocator.deallocate(node, 1);
-        }
-
-        void destroy_tree(node_type *node) {
-                if (node == sentinel())
-                        return;
-                destroy_tree(node->left);
-                destroy_tree(node->right);
-                destroy_node(node);
         }
 
         node_type *rotate(node_type *node, const rbdir &dir) {

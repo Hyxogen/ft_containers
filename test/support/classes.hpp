@@ -87,6 +87,16 @@ template <typename T> class throwing_class {
                 return _data <= other._data;
         }
 
+        throwing_class &operator++() {
+                ++_data;
+                return *this;
+        }
+
+        throwing_class &operator--() {
+                --_data;
+                return *this;
+        }
+
         friend std::ostream &operator<<(std::ostream &stream,
                                         const throwing_class &clazz) {
                 return stream << clazz._data;
@@ -147,6 +157,16 @@ template <typename T = int> class __tracking_class {
 
         bool operator!=(const __tracking_class &other) const {
                 return _value != other._value;
+        }
+
+        __tracking_class &operator++() {
+                ++_value;
+                return *this;
+        }
+
+        __tracking_class &operator--() {
+                --_value;
+                return *this;
         }
 
         friend std::ostream &operator<<(std::ostream &stream,
