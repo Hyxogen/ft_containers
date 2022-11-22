@@ -49,6 +49,8 @@ class set
         set(InputIt first, InputIt last, const Compare &comp = Compare(),
             const Allocator &alloc = Allocator())
             : _base(first, last, comp, alloc) {}
+
+        set(const set &other) : _base(other) {}
         
         using _base::insert;
         using _base::begin;
