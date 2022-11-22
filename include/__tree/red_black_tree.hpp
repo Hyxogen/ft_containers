@@ -411,6 +411,13 @@ struct rbtree_base_alloc
               _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel),
               _allocator(alloc) {}
 
+        // This copy constructor only copies the allocator
+        // It will not copy any nodes
+        rbtree_base_alloc(const rbtree_base_alloc &other)
+            : _root(&_sentinel),
+              _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel),
+              _allocator(other._allocator) {}
+
         ~rbtree_base_alloc() { destroy_tree(_root); }
 
         void destroy_node(node_type *node) {
@@ -482,9 +489,13 @@ struct rbtree
                const key_compare &comp = key_compare(),
                const allocator_type &alloc = allocator_type())
             : base(alloc), _size(0), _key_extract(), _key_compare(comp) {
-                for (; first != last; ++first) {
-                        insert(*first);
-                }
+                insert(first, last);
+        }
+
+        rbtree(const rbtree &other)
+            : base(other), _size(0), _key_extract(),
+              _key_compare(other._key_compare) {
+                insert(other.begin(), other.end());
         }
 
         // TODO remove these two and make everything that use it refer to base
@@ -553,6 +564,13 @@ struct rbtree
                 insert_fix_iterators(node);
                 insert_fix(node);
                 return ft::make_pair(iterator(node, sentinel()), true);
+        }
+
+        template <typename InputIt>
+        void insert(InputIt first, InputIt last) {
+                for (; first != last; ++first) {
+                        insert(*first);
+                }
         }
 
         void transplant(node_type *to, node_type *from) {
