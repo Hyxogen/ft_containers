@@ -313,7 +313,7 @@ template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
 struct rbtree_base_types {
         typedef KeyType key_type;
-        typedef KeyType value_type;
+        typedef ValueType value_type;
         typedef rbnode<value_type> node_type;
         typedef Compare key_compare;
         typedef Allocator allocator_type;
