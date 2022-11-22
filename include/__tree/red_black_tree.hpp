@@ -45,6 +45,29 @@ struct rb_violation : public std::logic_error {
         inline const void *where() const { return _where; }
 };
 
+template <typename T>
+struct use_self : public std::unary_function<T, T> {
+        typedef std::unary_function<T, T> base;
+        typedef typename base::argument_type argument_type;
+        typedef typename base::result_type result_type;
+        
+        const result_type &operator()(const argument_type &x) const {
+                return x;
+        }
+};
+
+template <typename Pair>
+struct use_first
+    : public std::unary_function<Pair, typename Pair::second_type> {
+        typedef std::unary_function<Pair, typename Pair::second_type> base;
+        typedef typename base::argument_type argument_type;
+        typedef typename base::result_type result_type;
+        
+        const result_type &operator()(const argument_type &x) const {
+                return x.first;
+        }
+};
+
 enum rbcolor { RB_RED, RB_BLACK };
 
 struct rbdir {
@@ -286,6 +309,43 @@ struct rbtree_iterator {
                 return tmp;
         }
 };
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+struct rbtree_base_types {
+        typedef KeyType key_type;
+        typedef KeyType value_type;
+        typedef rbnode<value_type> node_type;
+        typedef Compare key_compare;
+        typedef Allocator allocator;
+        typedef std::size_t size_type;
+        typedef typename Allocator::pointer pointer;
+        typedef typename Allocator::reference reference;
+        typedef typename Allocator::const_pointer const_pointer;
+        typedef typename Allocator::const_reference const_reference;
+        typedef rbtree_iterator<value_type, pointer, reference> iterator;
+        typedef rbtree_iterator<value_type, const_pointer, const_reference>
+            const_iterator;
+        typedef reverse_iterator<iterator> reverse_iterator;
+        //TODO check why this doesn't work
+        //typedef reverse_iterator<const_iterator> const_reverse_iterator;
+        typedef KeyExtract key_extract_type;
+};
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+struct rbtree_base;
+
+template <typename KeyType, typename Compare, typename Allocator>
+struct rbtree_base<KeyType, KeyType, use_self<KeyType>, Compare, Allocator>
+    : public rbtree_base_types<KeyType, KeyType, use_self<KeyType>, Compare,
+                               Allocator> {};
+
+template <typename KeyType, typename Pair, typename Compare,
+          typename Allocator>
+struct rbtree_base<KeyType, Pair, use_first<Pair>, Compare, Allocator>
+    : public rbtree_base_types<KeyType, Pair, use_first<Pair>, Compare,
+                               Allocator> {};
 
 template <typename KeyType, typename ValueType, typename Allocator,
           typename Compare>
