@@ -87,6 +87,9 @@ struct allocator_wrapper : Base {
 template <typename T, typename Base = std::allocator<T> >
 struct allocator_tracker : Base {
         typedef typename Base::size_type size_type;
+        template <class U> struct rebind {
+                typedef allocator_tracker<U> other;
+        };
 
       private:
         static size_type _active;
@@ -111,6 +114,9 @@ struct allocator_tracker : Base {
 template <typename T> struct limited_allocator : allocator_tracker<T> {
         typedef allocator_tracker<T> _base;
         typedef typename _base::size_type size_type;
+        template <class U> struct rebind {
+                typedef limited_allocator<U> other;
+        };
 
       private:
         static size_type _limit;

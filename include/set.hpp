@@ -20,8 +20,7 @@
 #include <__tree/red_black_tree.hpp>
 #include <memory>
 #include <functional>
-//TODO use custom pair class
-#include <utility>
+#include <utility.hpp>
 
 namespace ft {
 
@@ -45,8 +44,8 @@ class set
 
         set() {}
 
-        std::pair<iterator, bool> insert(const value_type &value) {
-                _base::insert(value);
+        ft::pair<iterator, bool> insert(const value_type &value) {
+                return _base::insert(value);
         }
 };
 }
