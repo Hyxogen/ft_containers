@@ -189,7 +189,19 @@ int main() {
                         assert(*it == i);
                 }
         }
+        {
+                rbtree tree;
+
+                for (int i = 0; i < 1000; ++i) {
+                        tree.insert(i);
+                }
+
+                rbtree::const_reverse_iterator it = tree.rbegin(), end = tree.rend();
+                for (int i = 1; it != end; ++it, ++i) {
+                        assert(*it == (1000 - i));
+                        
+                }
+        }
         // TODO write tests that make sure the iterators stay correct when
         // removing or inserting to the ends of the tree
-        // TODO add tests for postfix decrement operator rbtree_iterator
 }

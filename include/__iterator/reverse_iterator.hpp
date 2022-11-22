@@ -44,8 +44,7 @@ class reverse_iterator
         reverse_iterator() : _current() {}
         explicit reverse_iterator(Iterator x) : _current(x) {}
         template <class U>
-        reverse_iterator(const reverse_iterator<U> &u)
-            : _current(u._current) {}
+        reverse_iterator(const reverse_iterator<U> &u) : _current(u.base()) {}
 
         Iterator base() const { return _current; }
 

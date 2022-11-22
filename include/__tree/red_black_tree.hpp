@@ -272,15 +272,7 @@ struct rbtree_iterator {
                 }
                 return *this;
         }
-
-        inline bool operator==(const rbtree_iterator &other) const {
-                return _current == other._current;
-        }
-
-        inline bool operator!=(const rbtree_iterator &other) const {
-                return !(*this == other);
-        }
-
+        
         reference operator*() const { return _current->value; }
         pointer operator->() const { return &(this->operator*()); }
 
@@ -309,6 +301,21 @@ struct rbtree_iterator {
         }
 };
 
+// See lwg defect 179
+template <typename T, typename PointerA, typename ReferenceA,
+          typename PointerB, typename ReferenceB>
+inline bool operator==(const rbtree_iterator<T, PointerA, ReferenceA> &lhs,
+                       const rbtree_iterator<T, PointerB, ReferenceB> &rhs) {
+        return lhs._current == rhs._current;
+}
+
+template <typename T, typename PointerA, typename ReferenceA,
+          typename PointerB, typename ReferenceB>
+inline bool operator!=(const rbtree_iterator<T, PointerA, ReferenceA> &lhs,
+                       const rbtree_iterator<T, PointerB, ReferenceB> &rhs) {
+        return !(lhs == rhs);
+}
+
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
 struct rbtree_base_types {
@@ -328,8 +335,7 @@ struct rbtree_base_types {
                                 const value_type &>
             const_iterator;
         typedef ft::reverse_iterator<iterator> reverse_iterator;
-        // TODO check why this doesn't work
-        // typedef reverse_iterator<const_iterator> const_reverse_iterator;
+        typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef KeyExtract key_extract_type;
 };
 
@@ -351,6 +357,7 @@ struct rbtree_base
         using typename base::iterator;
         using typename base::const_iterator;
         using typename base::reverse_iterator;
+        using typename base::const_reverse_iterator;
         using typename base::key_extract_type;
 };
 
@@ -371,6 +378,7 @@ struct rbtree_base<KeyType, KeyType, Compare, Allocator>
         using typename base::iterator;
         using typename base::const_iterator;
         using typename base::reverse_iterator;
+        using typename base::const_reverse_iterator;
         using typename base::key_extract_type;
 };
 
@@ -389,6 +397,7 @@ struct rbtree_base_alloc
         using typename base::iterator;
         using typename base::const_iterator;
         using typename base::reverse_iterator;
+        using typename base::const_reverse_iterator;
         using typename base::key_extract_type;
         // TODO add value_compare type
         
@@ -451,6 +460,7 @@ struct rbtree
         using typename base::iterator;
         using typename base::const_iterator;
         using typename base::reverse_iterator;
+        using typename base::const_reverse_iterator;
         using typename base::key_extract_type;
         //typedef typename base::value_type value_type;
          // TODO add value_compare type
@@ -491,6 +501,12 @@ struct rbtree
         }
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         reverse_iterator rend() { return reverse_iterator(begin()); }
+        const_reverse_iterator rbegin() const {
+                return const_reverse_iterator(end());
+        }
+        const_reverse_iterator rend() const {
+                return const_reverse_iterator(begin());
+        }
         //TODO add const_reverse_iterator
 
         bool comp(const value_type &a, const value_type &b) const {
