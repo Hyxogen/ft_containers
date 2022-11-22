@@ -39,7 +39,11 @@ class map : detail::rbtree<Key, ft::pair<const Key, Value>, Compare,
         typedef typename _base::value_type value_type;
         typedef typename _base::iterator iterator;
 
-        map() {}
+        map() : _base() {}
+
+        explicit map(const Compare &comp, const Allocator &alloc = Allocator())
+            : _base(comp, alloc) {}
+        
 
         // TODO write benchmark for this function
         ft::pair<iterator, bool> insert(const value_type &value) {

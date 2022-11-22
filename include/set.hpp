@@ -40,7 +40,10 @@ class set
         typedef typename _base::value_type value_type;
         typedef typename _base::iterator iterator;
 
-        set() {}
+        set() : _base() {}
+
+        explicit set(const Compare &comp, const Allocator &alloc = Allocator())
+            : _base(comp, alloc) {}
 
         // TODO write benchmark for this function
         ft::pair<iterator, bool> insert(const value_type &value) {
