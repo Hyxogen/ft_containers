@@ -45,12 +45,11 @@ struct rb_violation : public std::logic_error {
         inline const void *where() const { return _where; }
 };
 
-template <typename T>
-struct use_self : public std::unary_function<T, T> {
+template <typename T> struct use_self : public std::unary_function<T, T> {
         typedef std::unary_function<T, T> base;
         typedef typename base::argument_type argument_type;
         typedef typename base::result_type result_type;
-        
+
         const result_type &operator()(const argument_type &x) const {
                 return x;
         }
@@ -62,7 +61,7 @@ struct use_first
         typedef std::unary_function<Pair, typename Pair::second_type> base;
         typedef typename base::argument_type argument_type;
         typedef typename base::result_type result_type;
-        
+
         const result_type &operator()(const argument_type &x) const {
                 return x.first;
         }
@@ -128,7 +127,7 @@ template <typename T> class rbnode {
                         return left_dir();
                 return right_dir();
         }
-        
+
         static this_type *bound(const rbdir &dir, this_type *node,
                                 const this_type *const sentinel) {
                 while (node->get(dir) != sentinel)
@@ -329,8 +328,8 @@ struct rbtree_base_types {
                                 const value_type &>
             const_iterator;
         typedef reverse_iterator<iterator> reverse_iterator;
-        //TODO check why this doesn't work
-        //typedef reverse_iterator<const_iterator> const_reverse_iterator;
+        // TODO check why this doesn't work
+        // typedef reverse_iterator<const_iterator> const_reverse_iterator;
         typedef KeyExtract key_extract_type;
 };
 
@@ -346,7 +345,7 @@ struct rbtree_base
         typedef typename base::key_type key_type;
         typedef typename base::value_type value_type;
         typedef typename base::key_compare key_compare;
-        //TODO add value_compare type
+        // TODO add value_compare type
         typedef typename base::allocator_type allocator_type;
         typedef typename base::size_type size_type;
         typedef typename base::iterator iterator;
@@ -359,14 +358,14 @@ template <typename KeyType, typename Compare, typename Allocator>
 struct rbtree_base<KeyType, KeyType, Compare, Allocator>
     : public rbtree_base_types<KeyType, KeyType, use_self<KeyType>, Compare,
                                Allocator> {
-        typedef rbtree_base_types<KeyType, KeyType, use_self<KeyType>,
-                                         Compare, Allocator>
+        typedef rbtree_base_types<KeyType, KeyType, use_self<KeyType>, Compare,
+                                  Allocator>
             base;
         typedef typename base::node_type node_type;
         typedef typename base::key_type key_type;
         typedef typename base::value_type value_type;
         typedef typename base::key_compare key_compare;
-        //TODO add value_compare type
+        // TODO add value_compare type
         typedef typename base::allocator_type allocator_type;
         typedef typename base::size_type size_type;
         typedef typename base::iterator iterator;
@@ -383,7 +382,7 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
         typedef typename base::key_type key_type;
         typedef typename base::value_type value_type;
         typedef typename base::key_compare key_compare;
-        //TODO add value_compare type
+        // TODO add value_compare type
         typedef typename base::allocator_type allocator_type;
         typedef typename base::size_type size_type;
         typedef typename base::iterator iterator;
@@ -453,7 +452,7 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
         ft::pair<iterator, bool> insert(const value_type &value) {
                 node_type *insert_node = _root;
                 node_type *parent_node = sentinel();
-                
+
                 while (insert_node != sentinel()) {
                         parent_node = insert_node;
                         if (comp(value, parent_node->value)) {
@@ -480,7 +479,7 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
                 insert_fix(node);
                 return ft::make_pair(iterator(node, sentinel()), true);
         }
-        
+
         void transplant(node_type *to, node_type *from) {
                 if (to->parent == sentinel())
                         _root = from;
