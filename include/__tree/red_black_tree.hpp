@@ -90,32 +90,25 @@ template <bool Direction> struct base_dir : public rbdir {
 typedef base_dir<true> right_dir;
 typedef base_dir<false> left_dir;
 
-template <typename T> class rbnode {
-        typedef rbnode this_type;
+struct rbnode_base {
+        typedef rbnode_base this_type;
 
-      public:
-        T value;
         rbcolor color;
-
-        this_type *parent;
         this_type *right;
         this_type *left;
+        this_type *parent;
 
-        rbnode(rbcolor color = RB_BLACK, this_type *parent = NULL,
-               this_type *right = NULL, this_type *left = NULL,
-               const T &value = T())
-            : value(value), color(color), parent(parent), right(right),
-              left(left) {}
-
-        ~rbnode() {}
-
-        this_type *get(const rbdir &dir) {
+        rbnode_base(rbcolor color = RB_BLACK, this_type *parent = NULL,
+                    this_type *right = NULL, this_type *left = NULL)
+                : color(color), right(right), left(left), parent(parent) {}
+        
+        inline this_type *get(const rbdir &dir) {
                 if (dir == right_dir())
                         return right;
                 return left;
         }
 
-        void set(const rbdir &dir, this_type *ptr) {
+        inline void set(const rbdir &dir, this_type *ptr) {
                 if (dir == right_dir())
                         right = ptr;
                 else
@@ -170,6 +163,18 @@ template <typename T> class rbnode {
                                     const this_type *sentinel) {
                 return next(node, sentinel, right_dir());
         }
+};
+
+template <typename T> struct rbnode : public rbnode_base {
+        typedef rbnode this_type;
+        T value;
+
+        rbnode(rbcolor color = RB_BLACK, this_type *parent = NULL,
+               this_type *right = NULL, this_type *left = NULL,
+               const T &value = T())
+            : rbnode_base(color, parent, right, left), value(value) {}
+
+        ~rbnode() {}
 
         static bool
         mismatch(const this_type *lhs, const this_type *rhs,
@@ -190,40 +195,15 @@ template <typename T> class rbnode {
                                                const this_type *>(lhs, rhs);
                         return true;
                 }
-                if (mismatch(lhs->left, rhs->left, lhs_sentinel, rhs_sentinel,
-                             mpair))
+                if (mismatch(static_cast<const this_type *>(lhs->left),
+                             static_cast<const this_type *>(rhs->left),
+                             lhs_sentinel, rhs_sentinel, mpair))
                         return true;
-                if (mismatch(lhs->right, rhs->right, lhs_sentinel,
-                             rhs_sentinel, mpair))
+                if (mismatch(static_cast<const this_type *>(lhs->right),
+                             static_cast<const this_type *>(rhs->right),
+                             lhs_sentinel, rhs_sentinel, mpair))
                         return true;
                 return false;
-        }
-
-        static std::size_t black_height(const this_type *node,
-                                        const this_type *sentinel) {
-                if (node == sentinel)
-                        return 1;
-
-                if (node_color(node) == RB_RED
-                    && (node_color(node->left) == RB_RED
-                        || node_color(node->right) == RB_RED))
-                        return 0;
-
-                const std::size_t left_height
-                    = black_height(node->left, sentinel);
-                const std::size_t right_height
-                    = black_height(node->right, sentinel);
-
-                if (left_height == 0 || right_height == 0
-                    || left_height != right_height)
-                        return 0;
-                return left_height + (node_color(node) == RB_BLACK ? 1 : 0);
-        }
-
-        static bool is_valid(const this_type *node,
-                             const this_type *sentinel) {
-                return is_bst(node, sentinel)
-                       && black_height(node, sentinel) != 0;
         }
 
         static void debug_print(const rbnode *node,
@@ -239,9 +219,10 @@ template <typename T> class rbnode {
                                   << node->value << ","
                                   << (node->color == RB_BLACK ? 'B' : 'R')
                                   << std::endl;
-                        debug_print(node->left, sentinel, special, indent + 4);
-                        debug_print(node->right, sentinel, special,
-                                    indent + 4);
+                        debug_print(static_cast<const rbnode *>(node->left),
+                                    sentinel, special, indent + 4);
+                        debug_print(static_cast<const rbnode *>(node->right),
+                                    sentinel, special, indent + 4);
                 }
         }
 };
@@ -280,7 +261,8 @@ struct rbtree_iterator {
         // hardcoding operator++ and operator-- separately
         rbtree_iterator &advance(const rbdir &dir) {
                 // TODO use node_type::next here
-                _current = node_type::next(_current, _sentinel, dir);
+                _current = static_cast<node_type *>(
+                    node_type::next(_current, _sentinel, dir));
                 return *this;
         }
 
@@ -403,22 +385,29 @@ struct rbtree_base_alloc
         
       protected:
         node_type *_root;
-        node_type _sentinel;
+        rbnode_base _sentinel;
         allocator_type _allocator;
 
         rbtree_base_alloc(const allocator_type &alloc = allocator_type())
-            : _root(&_sentinel),
-              _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel),
+            : _root(static_cast<node_type *>(&_sentinel)),
+              _sentinel(RB_BLACK, &_sentinel, &_sentinel, &_sentinel),
               _allocator(alloc) {}
 
         // This copy constructor only copies the allocator
         // It will not copy any nodes
+        // TODO remove as it is confusing
         rbtree_base_alloc(const rbtree_base_alloc &other)
-            : _root(&_sentinel),
-              _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel),
+            : _root(static_cast<node_type *>(&_sentinel)),
+              _sentinel(RB_BLACK, &_sentinel, &_sentinel, &_sentinel),
               _allocator(other._allocator) {}
 
         ~rbtree_base_alloc() { destroy_tree(_root); }
+
+        void swap(rbtree_base_alloc &other) {
+                std::swap(_root, other._root);
+                swap(_sentinel, other._sentinel);
+                std::swap(_allocator, other._allocator);
+        }
 
         void destroy_node(node_type *node) {
                 _allocator.destroy(node);
@@ -428,8 +417,8 @@ struct rbtree_base_alloc
         void destroy_tree(node_type *node) {
                 if (node == sentinel())
                         return;
-                destroy_tree(node->left);
-                destroy_tree(node->right);
+                destroy_tree(static_cast<node_type *>(node->left));
+                destroy_tree(static_cast<node_type *>(node->right));
                 destroy_node(node);
         }
 
@@ -449,8 +438,10 @@ struct rbtree_base_alloc
       public:
         node_type *root() { return _root; }
         const node_type *root() const { return _root; }
-        node_type *sentinel() { return &_sentinel; }
-        const node_type *sentinel() const { return &_sentinel; }
+        node_type *sentinel() { return static_cast<node_type *>(&_sentinel); }
+        const node_type *sentinel() const {
+                return static_cast<const node_type *>(&_sentinel);
+        }
 };
 
 template <typename KeyType, typename ValueType, typename Compare,
@@ -476,7 +467,7 @@ struct rbtree
         using base::_root;
         size_type _size;
         const key_extract_type _key_extract;
-        const key_compare _key_compare;
+        key_compare _key_compare;
 
       public:
         rbtree() : base(), _size(0), _key_extract(), _key_compare() {}
@@ -502,10 +493,15 @@ struct rbtree
         using base::sentinel;
         using base::root;
 
-        iterator begin() { return iterator(sentinel()->right, sentinel()); }
+        iterator begin() {
+                return iterator(static_cast<node_type *>(sentinel()->right),
+                                sentinel());
+        }
         iterator end() { return iterator(sentinel(), sentinel()); }
         const_iterator begin() const {
-                return const_iterator(sentinel()->right, sentinel());
+                return const_iterator(
+                    static_cast<const node_type *>(sentinel()->right),
+                    sentinel());
         }
         const_iterator end() const {
                 return const_iterator(sentinel(), sentinel());
@@ -524,7 +520,7 @@ struct rbtree
                 return _key_compare(_key_extract(a), _key_extract(b));
         }
 
-        void insert_fix_iterators(node_type *inserted_node) {
+        void insert_fix_iterators(rbnode_base *inserted_node) {
                 if (sentinel()->left == sentinel()) {
                         sentinel()->left = inserted_node;
                         sentinel()->right = inserted_node;
@@ -542,9 +538,11 @@ struct rbtree
                 while (insert_node != sentinel()) {
                         parent_node = insert_node;
                         if (comp(value, parent_node->value)) {
-                                insert_node = parent_node->left;
+                                insert_node = static_cast<node_type *>(
+                                    parent_node->left);
                         } else if (comp(parent_node->value, value)) {
-                                insert_node = parent_node->right;
+                                insert_node = static_cast<node_type *>(
+                                    parent_node->right);
                         } else {
                                 return ft::make_pair(
                                     iterator(parent_node, sentinel()), false);
@@ -573,9 +571,9 @@ struct rbtree
                 }
         }
 
-        void transplant(node_type *to, node_type *from) {
+        void transplant(rbnode_base *to, rbnode_base *from) {
                 if (to->parent == sentinel())
-                        _root = from;
+                        _root = static_cast<node_type *>(from);
                 else if (to->parent->left == to)
                         to->parent->left = from;
                 else
@@ -583,19 +581,19 @@ struct rbtree
                 from->parent = to->parent;
         }
 
-        node_type *minimum(node_type *node) {
+        rbnode_base *minimum(rbnode_base *node) {
                 assert(node != sentinel()
                        && "cannot take minumum of sentinel");
                 return node_type::minimum(node, sentinel());
         }
 
-        node_type *minimum() { return minimum(root()); }
+        rbnode_base *minimum() { return minimum(root()); }
 
-        node_type *successor(node_type *node) {
+        rbnode_base *successor(rbnode_base *node) {
                 return node_type::next(node, sentinel(), right_dir());
         }
 
-        node_type *predecessor(node_type *node) {
+        rbnode_base *predecessor(rbnode_base *node) {
                 return node_type::next(node, sentinel(), left_dir());
         }
 
@@ -604,12 +602,15 @@ struct rbtree
         node_type *search(node_type *start, const value_type &key) {
                 node_type *current = start;
                 while (current != sentinel()) {
-                        if (comp(key, current->value))
-                                current = current->left;
-                        else if (comp(current->value, key))
-                                current = current->right;
-                        else
+                        if (comp(key, current->value)) {
+                                current
+                                    = static_cast<node_type *>(current->left);
+                        } else if (comp(current->value, key)) {
+                                current
+                                    = static_cast<node_type *>(current->right);
+                        } else {       
                                 break;
+                        }
                 }
                 return current;
         }
@@ -618,12 +619,15 @@ struct rbtree
                                 const value_type &key) const {
                 const node_type *current = start;
                 while (current != sentinel()) {
-                        if (comp(key, current->value))
-                                current = current->left;
-                        else if (comp(current->value, key))
-                                current = current->right;
-                        else
+                        if (comp(key, current->value)) {
+                                current = static_cast<const node_type *>(
+                                    current->left);
+                        } else if (comp(current->value, key)) {
+                                current = static_cast<const node_type *>(
+                                    current->right);
+                        } else {
                                 break;
+                        }
                 }
                 return current;
         }
@@ -639,7 +643,7 @@ struct rbtree
 
         void delete_node(node_type *const node) {
                 rbcolor old_color = node->color;
-                node_type *moved_node = sentinel();
+                rbnode_base *moved_node = sentinel();
 
                 if (node->left == sentinel()) {
                         moved_node = node->right;
@@ -648,7 +652,7 @@ struct rbtree
                         moved_node = node->left;
                         transplant(node, node->left);
                 } else {
-                        node_type *min = minimum(node->right);
+                        rbnode_base *min = minimum(node->right);
                         old_color = min->color;
                         moved_node = min->right;
                         if (min != node->right) {
@@ -684,6 +688,12 @@ struct rbtree
                         delete_node(node);
         }
 
+        void swap(rbtree &other) {
+                std::swap(_size, other._size);
+                std::swap(_key_compare, other._key_compare);
+                base::swap(other);
+        }
+
         static void assert_equal(const rbtree &lhs, const rbtree &rhs) {
                 std::pair<const node_type *, const node_type *> *mismatch;
                 if (node_type::mismatch(lhs._root, rhs._root, lhs.sentinel(),
@@ -710,8 +720,10 @@ struct rbtree
         bool is_bst(const node_type *node) const {
                 if (node == sentinel())
                         return true;
-                const node_type *const left = node->left;
-                const node_type *const right = node->right;
+                const node_type *const left
+                    = static_cast<const node_type *>(node->left);
+                const node_type *const right
+                    = static_cast<const node_type *>(node->right);
 
                 if (left != sentinel() && !comp(left->value, node->value))
                         return false;
@@ -729,8 +741,10 @@ struct rbtree
                         return 0;
                 }
 
-                const node_type *const left = node->left;
-                const node_type *const right = node->right;
+                const node_type *const left
+                    = static_cast<const node_type *>(node->left);
+                const node_type *const right
+                    = static_cast<const node_type *>(node->right);
 
                 if (node->color == RB_RED
                     && (left->color == RB_RED || right->color == RB_RED))
@@ -764,10 +778,11 @@ struct rbtree
                 }
         }
 
-        node_type *rotate(node_type *node, const rbdir &dir) {
-                tree_assert(node->get(dir.opposite()) != sentinel(), node,
+        node_type *rotate(rbnode_base *node, const rbdir &dir) {
+                tree_assert(node->get(dir.opposite()) != sentinel(), static_cast<node_type*>(node),
                             "cannot rotate further");
-                node_type *new_root = node->get(dir.opposite());
+                node_type *new_root
+                    = static_cast<node_type *>(node->get(dir.opposite()));
 
                 node->set(dir.opposite(), new_root->get(dir));
                 if (new_root->get(dir) != sentinel())
@@ -794,10 +809,10 @@ struct rbtree
         }
 
       private:
-        void insert_fix(node_type *node) {
+        void insert_fix(rbnode_base *node) {
                 while (node->parent->color == RB_RED) {
                         const rbdir parent_dir = node->parent->get_dir();
-                        node_type *uncle
+                        rbnode_base *uncle
                             = node->parent->parent->get(parent_dir.opposite());
                         if (uncle->color == RB_RED) {
                                 node->parent->color = RB_BLACK;
@@ -820,10 +835,11 @@ struct rbtree
                 _root->color = RB_BLACK;
         }
 
-        void delete_fix(node_type *node) {
+        void delete_fix(rbnode_base *node) {
                 while (node != root() && node->color == RB_BLACK) {
                         const rbdir dir = node->get_dir();
-                        node_type *sibling = node->parent->get(dir.opposite());
+                        rbnode_base *sibling
+                            = node->parent->get(dir.opposite());
                         if (sibling->color == RB_RED) {
                                 sibling->color = RB_BLACK;
                                 node->parent->color = RB_RED;

@@ -9,7 +9,7 @@
 #include <functional>
 
 template <typename T, typename U> void delete_and_validate(T &t, const U &u) {
-        t.delete_node(u);
+        t.delete_node(static_cast<typename T::node_type *>(u));
         t.self_check();
 }
 
