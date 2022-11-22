@@ -725,7 +725,6 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
                                 node->parent->parent->color = RB_RED;
                                 node = node->parent->parent;
                         } else {
-                                const rbdir node_dir = node->get_dir();
                                 if (node
                                     == node->parent->get(
                                         parent_dir.opposite())) {
