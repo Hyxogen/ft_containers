@@ -3,48 +3,63 @@
 #include <assert.hpp>
 #include <cassert>
 #include <classes.hpp>
-#include <memory>
 #include <functional>
+#include <memory>
 
-template <typename T, typename U> void insert_and_validate(T &t, const U &u) {
-        t.insert(u);
+template <typename T, typename U>
+void insert_unique_and_validate(T &t, const U &u) {
+        const ft::pair<typename T::iterator, bool> res(t.insert(u));
+        assert(*res.first == u);
+        assert(res.second == true);
+        t.self_check();
+}
+
+template <typename T, typename U>
+void insert_dup_and_validate(T &t, const U &u) {
+        const ft::pair<typename T::iterator, bool> res(t.insert(u));
+        assert(res.second == false);
         t.self_check();
 }
 
 int main() {
         typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> >, std::less<int> >
+                                   std::allocator<ft::detail::rbnode<int> >,
+                                   std::less<int> >
             irbtree;
         { irbtree tree; }
         {
                 irbtree tree;
 
-                insert_and_validate(tree, 1);
-                insert_and_validate(tree, 0);
-                insert_and_validate(tree, 2);
+                insert_unique_and_validate(tree, 1);
+                insert_unique_and_validate(tree, 0);
+                insert_unique_and_validate(tree, 2);
+                insert_dup_and_validate(tree, 2);
         }
         {
                 irbtree tree;
 
                 for (int i = 0; i < 100; ++i) {
-                        insert_and_validate(tree, i);
+                        insert_unique_and_validate(tree, i);
+                        insert_dup_and_validate(tree, i);
                 }
         }
         {
                 irbtree tree;
 
-                insert_and_validate(tree, 5);
-                insert_and_validate(tree, 1);
-                insert_and_validate(tree, 9);
-                insert_and_validate(tree, 3);
-                insert_and_validate(tree, 4);
-                insert_and_validate(tree, 10);
-                insert_and_validate(tree, 8);
+                insert_unique_and_validate(tree, 5);
+                insert_unique_and_validate(tree, 1);
+                insert_unique_and_validate(tree, 9);
+                insert_unique_and_validate(tree, 3);
+                insert_unique_and_validate(tree, 4);
+                insert_unique_and_validate(tree, 10);
+                insert_unique_and_validate(tree, 8);
+                insert_dup_and_validate(tree, 3);
         }
         {
                 typedef test::tracking_class clazz;
                 typedef ft::detail::rbtree<
-                        clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >, std::less<clazz> >
+                    clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >,
+                    std::less<clazz> >
                     rbtree;
 
                 const std::size_t count = clazz::instances();
@@ -53,7 +68,7 @@ int main() {
                         rbtree tree;
 
                         for (int i = 0; i < 500; i++) {
-                                insert_and_validate(tree, clazz(i));
+                                insert_unique_and_validate(tree, clazz(i));
                         }
                 }
                 assert(count == clazz::instances());
@@ -61,28 +76,31 @@ int main() {
         {
                 typedef test::throwing_class<test::tracking_class> clazz;
                 typedef ft::detail::rbtree<
-                        clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >, std::less<clazz> >
+                    clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >,
+                    std::less<clazz> >
                     rbtree;
 
                 rbtree tree;
 
                 for (int i = 0; i < 250; ++i) {
-                        insert_and_validate(tree,
-                                            clazz(test::tracking_class(i)));
+                        insert_unique_and_validate(
+                            tree, clazz(test::tracking_class(i)));
                 }
                 clazz::throw_after(2);
                 const std::size_t count = test::tracking_class::instances();
-                ASSERT_THROW(
-                    insert_and_validate(tree, clazz(test::tracking_class(-1))),
-                    test::too_many_instantiations);
+                ASSERT_THROW(insert_unique_and_validate(
+                                 tree, clazz(test::tracking_class(-1))),
+                             test::too_many_instantiations);
                 assert(count == test::tracking_class::instances());
                 clazz::reset();
-                insert_and_validate(tree, clazz(-1));
+                insert_unique_and_validate(tree, clazz(-1));
         }
         {
                 typedef test::allocator_tracker<ft::detail::rbnode<int> >
                     allocator;
-                typedef ft::detail::rbtree<int, int, allocator, std::less<int> > rbtree;
+                typedef ft::detail::rbtree<int, int, allocator,
+                                           std::less<int> >
+                    rbtree;
 
                 const std::size_t active = allocator::active();
 
@@ -90,7 +108,7 @@ int main() {
                         rbtree tree;
 
                         for (int i = 0; i < 500; ++i) {
-                                insert_and_validate(tree, i);
+                                insert_unique_and_validate(tree, i);
                         }
                 }
                 assert(active == allocator::active());

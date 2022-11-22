@@ -21,6 +21,7 @@
 #include <iterator.hpp>
 #include <iterator>
 #include <stdexcept>
+#include <utility.hpp>
 // todo for debug purposes, remove
 #include <cassert>
 #include <iostream>
@@ -351,18 +352,33 @@ struct rbtree {
                 return key_compare()(a, b);
         }
 
-        void insert(const value_type &value) {
+        void insert_fix_iterators(node_type *inserted_node) {
+                if (sentinel()->left == sentinel()) {
+                        sentinel()->left = inserted_node;
+                        sentinel()->right = inserted_node;
+                } else if (sentinel()->left->right != sentinel()) {
+                        sentinel()->left = sentinel()->left->right;
+                } else if (sentinel()->right->left != sentinel()) {
+                        sentinel()->right = sentinel()->right->left;
+                }
+        }
+
+        ft::pair<iterator, bool> insert(const value_type &value) {
                 node_type *insert_node = _root;
                 node_type *parent_node = sentinel();
 
+                // TODO check if insert_node is still needed
                 while (insert_node != sentinel()) {
                         parent_node = insert_node;
-                        if (comp(value, parent_node->value))
+                        if (comp(value, parent_node->value)) {
                                 insert_node = parent_node->left;
-                        else
+                        } else if (comp(parent_node->value, value)) {
                                 insert_node = parent_node->right;
+                        } else {
+                                return ft::make_pair(
+                                    iterator(parent_node, sentinel()), false);
+                        }
                 }
-
                 node_type *node = create_node(value);
 
                 node->parent = parent_node;
@@ -376,20 +392,11 @@ struct rbtree {
                 node->right = sentinel();
                 node->color = RB_RED;
 
-                // update iterator positions
-                // TODO move this to a separate function
-                if (sentinel()->left == sentinel()) {
-                        sentinel()->left = node;
-                        sentinel()->right = node;
-                } else if (sentinel()->left->right != sentinel()) {
-                        sentinel()->left = sentinel()->left->right;
-                } else if (sentinel()->right->left != sentinel()) {
-                        sentinel()->right = sentinel()->right->left;
-                }
-
+                insert_fix_iterators(node);
                 insert_fix(node);
+                return ft::make_pair(iterator(node, sentinel()), true);
         }
-
+        
         void transplant(node_type *to, node_type *from) {
                 if (to->parent == sentinel())
                         _root = from;
