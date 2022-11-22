@@ -37,18 +37,22 @@ class set
             _base;
 
       public:
-        typedef typename _base::value_type value_type;
-        typedef typename _base::iterator iterator;
-
+        using typename _base::value_type;
+        using typename _base::iterator;
+        
         set() : _base() {}
 
         explicit set(const Compare &comp, const Allocator &alloc = Allocator())
             : _base(comp, alloc) {}
 
-        // TODO write benchmark for this function
-        ft::pair<iterator, bool> insert(const value_type &value) {
-                return _base::insert(value);
-        }
+        template <class InputIt>
+        set(InputIt first, InputIt last, const Compare &comp = Compare(),
+            const Allocator &alloc = Allocator())
+            : _base(first, last, comp, alloc) {}
+        
+        using _base::insert;
+        using _base::begin;
+        using _base::end;
 };
 }
 
