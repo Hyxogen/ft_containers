@@ -17,6 +17,8 @@
 #ifndef UTILITY_HPP
 #define UTILITY_HPP
 
+#include <ostream> //TODO remove
+
 namespace ft {
 
 template <class T1, class T2> struct pair {
@@ -50,6 +52,13 @@ template <class T1, class T2>
 pair<T1, T2> make_pair(const T1 &x, const T2 &y) {
         return pair<T1, T2>(x, y);
 }
+
+// TODO debug code, remove
+template <class T1, class T2>
+std::ostream &operator<<(std::ostream &stream, const pair<T1, T2> &x) {
+        return stream << "(" << x.first << ", " << x.second << ")";
+}
+
 }
 
 #endif
