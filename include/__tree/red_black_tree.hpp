@@ -366,8 +366,7 @@ struct rbtree {
         ft::pair<iterator, bool> insert(const value_type &value) {
                 node_type *insert_node = _root;
                 node_type *parent_node = sentinel();
-
-                // TODO check if insert_node is still needed
+                
                 while (insert_node != sentinel()) {
                         parent_node = insert_node;
                         if (comp(value, parent_node->value)) {
