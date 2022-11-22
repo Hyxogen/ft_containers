@@ -327,7 +327,7 @@ struct rbtree_base_types {
         typedef rbtree_iterator<value_type, const value_type *,
                                 const value_type &>
             const_iterator;
-        typedef reverse_iterator<iterator> reverse_iterator;
+        typedef ft::reverse_iterator<iterator> reverse_iterator;
         // TODO check why this doesn't work
         // typedef reverse_iterator<const_iterator> const_reverse_iterator;
         typedef KeyExtract key_extract_type;
