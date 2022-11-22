@@ -402,7 +402,7 @@ struct rbtree : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
         rbtree()
             : _root(&_sentinel),
               _sentinel(RB_BLACK, NULL, &_sentinel, &_sentinel), _size(0),
-              _key_extract() {}
+              _key_extract(), _key_compare() {}
 
         ~rbtree() { destroy_tree(_root); }
 
