@@ -334,9 +334,6 @@ struct rbtree {
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         reverse_iterator rend() { return reverse_iterator(begin()); }
 
-        // TODO implement a node next abstraction etc. here so that you don't
-        // have to pass the sentinel every time
-
         node_type *create_node(const value_type &value) {
                 node_type *node = _allocator.allocate(1);
                 try {
@@ -423,11 +420,13 @@ struct rbtree {
         // TODO solve collision with other search with integral types
         node_type *search(node_type *start, const value_type &key) {
                 node_type *current = start;
-                while (current != sentinel() && current->value != key) {
+                while (current != sentinel()) {
                         if (comp(key, current->value))
                                 current = current->left;
-                        else
+                        else if (comp(current->value, key))
                                 current = current->right;
+                        else
+                                break;
                 }
                 return current;
         }
