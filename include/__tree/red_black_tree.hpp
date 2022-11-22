@@ -387,8 +387,6 @@ struct rbtree {
                         parent_node->left = node;
                 else
                         parent_node->right = node;
-                node->left = sentinel();
-                node->right = sentinel();
                 node->color = RB_RED;
 
                 insert_fix_iterators(node);
