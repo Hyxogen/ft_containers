@@ -44,7 +44,14 @@ class map : detail::rbtree<Key, ft::pair<const Key, Value>, Compare,
         explicit map(const Compare &comp, const Allocator &alloc = Allocator())
             : _base(comp, alloc) {}
 
+        template <class InputIt>
+        map(InputIt first, InputIt last, const Compare &comp = Compare(),
+            const Allocator &alloc = Allocator())
+            : _base(first, last, comp, alloc) {}
+
         using _base::insert;
+        using _base::begin;
+        using _base::end;
 };
 }
 
