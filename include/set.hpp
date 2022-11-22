@@ -28,14 +28,12 @@ template <class Key, class Compare = std::less<Key>,
           class Allocator = std::allocator<Key> >
 class set
     : detail::rbtree<
-          Key, Key,
-          typename Allocator::template rebind<detail::rbnode<Key> >::other,
-          Compare> {
+          Key, Key, Compare,
+          typename Allocator::template rebind<detail::rbnode<Key> >::other> {
 
         typedef detail::rbtree<
-            Key, Key,
-            typename Allocator::template rebind<detail::rbnode<Key> >::other,
-            Compare>
+            Key, Key, Compare,
+            typename Allocator::template rebind<detail::rbnode<Key> >::other>
             _base;
 
       public:

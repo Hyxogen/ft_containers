@@ -4,9 +4,8 @@
 #include <memory>
 
 int main() {
-        typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> >,
-                                   std::greater<int> >
+        typedef ft::detail::rbtree<int, int, std::greater<int>,
+                                   std::allocator<ft::detail::rbnode<int> > >
             rbtree;
         {
                 rbtree tree;

@@ -22,9 +22,8 @@ void insert_dup_and_validate(T &t, const U &u) {
 }
 
 int main() {
-        typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> >,
-                                   std::less<int> >
+        typedef ft::detail::rbtree<int, int, std::less<int>,
+                                   std::allocator<ft::detail::rbnode<int> > >
             irbtree;
         { irbtree tree; }
         {
@@ -58,8 +57,8 @@ int main() {
         {
                 typedef test::tracking_class clazz;
                 typedef ft::detail::rbtree<
-                    clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >,
-                    std::less<clazz> >
+                    clazz, clazz, std::less<clazz>,
+                    std::allocator<ft::detail::rbnode<clazz> > >
                     rbtree;
 
                 const std::size_t count = clazz::instances();
@@ -76,8 +75,8 @@ int main() {
         {
                 typedef test::throwing_class<test::tracking_class> clazz;
                 typedef ft::detail::rbtree<
-                    clazz, clazz, std::allocator<ft::detail::rbnode<clazz> >,
-                    std::less<clazz> >
+                    clazz, clazz, std::less<clazz>,
+                    std::allocator<ft::detail::rbnode<clazz> > >
                     rbtree;
 
                 rbtree tree;
@@ -98,8 +97,7 @@ int main() {
         {
                 typedef test::allocator_tracker<ft::detail::rbnode<int> >
                     allocator;
-                typedef ft::detail::rbtree<int, int, allocator,
-                                           std::less<int> >
+                typedef ft::detail::rbtree<int, int, std::less<int>, allocator>
                     rbtree;
 
                 const std::size_t active = allocator::active();

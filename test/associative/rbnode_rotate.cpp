@@ -8,8 +8,8 @@
 int main() {
         {
                 typedef ft::detail::rbtree<
-                    int, int, std::allocator<ft::detail::rbnode<int> >,
-                    std::less<int> >
+                    int, int, std::less<int>,
+                    std::allocator<ft::detail::rbnode<int> > >
                     rbtree;
 
                 rbtree tree;

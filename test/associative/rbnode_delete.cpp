@@ -20,8 +20,8 @@ void delete_key_and_validate(T &t, const U &u) {
 }
 
 int main() {
-        typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> >, std::less<int> >
+        typedef ft::detail::rbtree<int, int, std::less<int>,
+                                   std::allocator<ft::detail::rbnode<int> > >
             rbtree;
         {
                 rbtree tree;
@@ -97,7 +97,9 @@ int main() {
         }
         {
                 typedef test::tracking_class clazz;
-                ft::detail::rbtree<clazz, clazz, std::allocator<ft::detail::rbnode<clazz > >, std::less<clazz> > tree;
+                ft::detail::rbtree<clazz, clazz, std::less<clazz>,
+                                   std::allocator<ft::detail::rbnode<clazz> > >
+                    tree;
 
                 for (int i = 0; i < 500; ++i) {
                         tree.insert(clazz(i));
@@ -113,7 +115,7 @@ int main() {
                 typedef test::allocator_tracker<ft::detail::rbnode<int> >
                     allocator;
 
-                ft::detail::rbtree<int, int, allocator, std::less<int> > tree;
+                ft::detail::rbtree<int, int, std::less<int>, allocator> tree;
                 
                 for (int i = 0; i < 500; ++i) {
                         tree.insert(i);
@@ -128,9 +130,8 @@ int main() {
         {
                 typedef test::throwing_class<int> clazz;
 
-                ft::detail::rbtree<clazz, clazz,
-                                   std::allocator<ft::detail::rbnode<clazz> >,
-                                   std::less<clazz> >
+                ft::detail::rbtree<clazz, clazz, std::less<clazz>,
+                                   std::allocator<ft::detail::rbnode<clazz> > >
                     tree;
 
                 for (int i = 0; i < 500; ++i) {

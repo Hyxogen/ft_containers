@@ -24,9 +24,8 @@ void assert_no_find(const T &t, const U &u) {
 }
 
 int main() {
-        typedef ft::detail::rbtree<int, int,
-                                   std::allocator<ft::detail::rbnode<int> >,
-                                   std::less<int> >
+        typedef ft::detail::rbtree<int, int, std::less<int>,
+                                   std::allocator<ft::detail::rbnode<int> > >
             rbtree;
         {
                 rbtree tree;
@@ -53,9 +52,8 @@ int main() {
         }
         {
                 typedef test::compare_class<int> clazz;
-                ft::detail::rbtree<clazz, clazz,
-                                   std::allocator<ft::detail::rbnode<clazz> >,
-                                   std::less<clazz> >
+                ft::detail::rbtree<clazz, clazz, std::less<clazz>,
+                                   std::allocator<ft::detail::rbnode<clazz> > >
                     tree;
 
                 tree.insert(0);
