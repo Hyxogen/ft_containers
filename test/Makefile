@@ -69,7 +69,7 @@ WARNINGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic -Wuninitialized \
 ANALYZER	:=
 SANITIZERS	:= -fsanitize=address,undefined,integer
 CXXFLAGS	:= -std=c++98 $(WARNINGS) $(ANALYZER) $(SANITIZERS) -I../include \
-			-Isupport -MMD -MP -DFT_TEST -O0 -g3
+			-Isupport -MMD -MP -DFT_TEST -O0 -g3 -DFT_DEBUG
 
 CXXFILES	:= $(shell find . -type f -name '*.cpp')
 HEADER_DEPS	:= $(CXXFILES:.cpp=.d)
