@@ -69,8 +69,9 @@ struct use_first
 
 enum rbcolor { RB_RED, RB_BLACK };
 
+//TODO rename to rbside
 struct rbdir {
-        const bool dir;
+        bool dir;
 
       protected:
         rbdir(bool dir) : dir(dir) {}
@@ -101,6 +102,13 @@ struct rbnode_base {
         rbnode_base(rbcolor color = RB_BLACK, this_type *parent = NULL,
                     this_type *right = NULL, this_type *left = NULL)
                 : color(color), right(right), left(left), parent(parent) {}
+
+        void swap(this_type &other) {
+                std::swap(color, other.color);
+                std::swap(right, other.right);
+                std::swap(left, other.left);
+                std::swap(parent, other.parent);
+        }
         
         inline this_type *get(const rbdir &dir) {
                 if (dir == right_dir())
@@ -120,6 +128,13 @@ struct rbnode_base {
                         return left_dir();
                 return right_dir();
         }
+
+	static rbcolor get_color(const this_type *const node) {
+		if (node == NULL) {
+			return RB_BLACK;
+		}
+		return node->color;
+	}
 
         static this_type *bound(const rbdir &dir, this_type *node,
                                 const this_type *const sentinel) {
@@ -215,10 +230,12 @@ template <typename T> struct rbnode : public rbnode_base {
 
                         std::cout << '-' << std::endl;
                 } else {
-                        std::cout << (special == node ? "*" : "")
-                                  << node->value << ","
-                                  << (node->color == RB_BLACK ? 'B' : 'R')
-                                  << std::endl;
+                        std::cout
+                            << (special == node ? "*" : "") << node->value
+                            << ","
+                            << (rbnode_base::get_color(node) == RB_BLACK ? 'B'
+                                                                         : 'R')
+                            << std::endl;
                         debug_print(static_cast<const rbnode *>(node->left),
                                     sentinel, special, indent + 4);
                         debug_print(static_cast<const rbnode *>(node->right),
@@ -385,27 +402,23 @@ struct rbtree_base_alloc
         
       protected:
         node_type *_root;
-        rbnode_base _sentinel;
         allocator_type _allocator;
 
         rbtree_base_alloc(const allocator_type &alloc = allocator_type())
-            : _root(static_cast<node_type *>(&_sentinel)),
-              _sentinel(RB_BLACK, &_sentinel, &_sentinel, &_sentinel),
+            : _root(NULL),
               _allocator(alloc) {}
 
         // This copy constructor only copies the allocator
         // It will not copy any nodes
         // TODO remove as it is confusing
         rbtree_base_alloc(const rbtree_base_alloc &other)
-            : _root(static_cast<node_type *>(&_sentinel)),
-              _sentinel(RB_BLACK, &_sentinel, &_sentinel, &_sentinel),
+            : _root(NULL),
               _allocator(other._allocator) {}
 
         ~rbtree_base_alloc() { destroy_tree(_root); }
 
         void swap(rbtree_base_alloc &other) {
                 std::swap(_root, other._root);
-                swap(_sentinel, other._sentinel);
                 std::swap(_allocator, other._allocator);
         }
 
@@ -438,10 +451,8 @@ struct rbtree_base_alloc
       public:
         node_type *root() { return _root; }
         const node_type *root() const { return _root; }
-        node_type *sentinel() { return static_cast<node_type *>(&_sentinel); }
-        const node_type *sentinel() const {
-                return static_cast<const node_type *>(&_sentinel);
-        }
+        node_type *sentinel() { return NULL; }
+        const node_type *sentinel() const { return NULL; }
 };
 
 template <typename KeyType, typename ValueType, typename Compare,
@@ -468,24 +479,30 @@ struct rbtree
         size_type _size;
         const key_extract_type _key_extract;
         key_compare _key_compare;
+	rbnode_base _anchor;
 
       public:
-        rbtree() : base(), _size(0), _key_extract(), _key_compare() {}
+        rbtree()
+            : base(), _size(0), _key_extract(), _key_compare(),
+              _anchor(RB_BLACK, NULL, NULL, NULL) {}
 
         rbtree(const key_compare &comp, const allocator_type &alloc)
-            : base(alloc), _size(0), _key_extract(), _key_compare(comp) {}
+            : base(alloc), _size(0), _key_extract(), _key_compare(comp),
+              _anchor(RB_BLACK, NULL, NULL, NULL) {}
 
         template <typename InputIt>
         rbtree(InputIt first, InputIt last,
                const key_compare &comp = key_compare(),
                const allocator_type &alloc = allocator_type())
-            : base(alloc), _size(0), _key_extract(), _key_compare(comp) {
+            : base(alloc), _size(0), _key_extract(), _key_compare(comp),
+              _anchor(RB_BLACK, NULL, NULL, NULL) {
                 insert(first, last);
         }
 
         rbtree(const rbtree &other)
             : base(other), _size(0), _key_extract(),
-              _key_compare(other._key_compare) {
+              _key_compare(other._key_compare),
+              _anchor(RB_BLACK, NULL, NULL, NULL) {
                 insert(other.begin(), other.end());
         }
 
@@ -494,17 +511,21 @@ struct rbtree
         using base::root;
 
         iterator begin() {
-                return iterator(static_cast<node_type *>(sentinel()->right),
+                return iterator(static_cast<node_type *>(anchor()->right),
                                 sentinel());
         }
-        iterator end() { return iterator(sentinel(), sentinel()); }
+        iterator end() {
+                return iterator(static_cast<node_type *>(anchor()),
+                                sentinel());
+        }
         const_iterator begin() const {
                 return const_iterator(
-                    static_cast<const node_type *>(sentinel()->right),
+                    static_cast<const node_type *>(anchor()->right),
                     sentinel());
         }
         const_iterator end() const {
-                return const_iterator(sentinel(), sentinel());
+                return const_iterator(static_cast<const node_type *>(anchor()),
+                                      sentinel());
         }
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         reverse_iterator rend() { return reverse_iterator(begin()); }
@@ -514,6 +535,8 @@ struct rbtree
         const_reverse_iterator rend() const {
                 return const_reverse_iterator(begin());
         }
+        rbnode_base *anchor() { return &_anchor; }
+        const rbnode_base *anchor() const { return &_anchor; }
         //TODO add const_reverse_iterator
 
         bool comp(const value_type &a, const value_type &b) const {
@@ -521,13 +544,13 @@ struct rbtree
         }
 
         void insert_fix_iterators(rbnode_base *inserted_node) {
-                if (sentinel()->left == sentinel()) {
-                        sentinel()->left = inserted_node;
-                        sentinel()->right = inserted_node;
-                } else if (sentinel()->left->right != sentinel()) {
-                        sentinel()->left = sentinel()->left->right;
-                } else if (sentinel()->right->left != sentinel()) {
-                        sentinel()->right = sentinel()->right->left;
+                if (anchor()->left == sentinel()) {
+                        anchor()->left = inserted_node;
+                        anchor()->right = inserted_node;
+                } else if (anchor()->left->right != sentinel()) {
+                        anchor()->left = anchor()->left->right;
+                } else if (anchor()->right->left != sentinel()) {
+                        anchor()->right = anchor()->right->left;
                 }
         }
 
@@ -571,14 +594,16 @@ struct rbtree
                 }
         }
 
-        void transplant(rbnode_base *to, rbnode_base *from) {
+        rbnode_base *transplant(rbnode_base *to, rbnode_base *from) {
                 if (to->parent == sentinel())
                         _root = static_cast<node_type *>(from);
                 else if (to->parent->left == to)
                         to->parent->left = from;
                 else
                         to->parent->right = from;
-                from->parent = to->parent;
+		if (from != NULL)
+                	from->parent = to->parent;
+		return to->parent;
         }
 
         rbnode_base *minimum(rbnode_base *node) {
@@ -644,23 +669,24 @@ struct rbtree
         void delete_node(node_type *const node) {
                 rbcolor old_color = node->color;
                 rbnode_base *moved_node = sentinel();
+		rbnode_base *parent = sentinel();
 
                 if (node->left == sentinel()) {
                         moved_node = node->right;
-                        transplant(node, node->right);
+                        parent = transplant(node, node->right);
                 } else if (node->right == sentinel()) {
                         moved_node = node->left;
-                        transplant(node, node->left);
+                        parent = transplant(node, node->left);
                 } else {
                         rbnode_base *min = minimum(node->right);
                         old_color = min->color;
                         moved_node = min->right;
                         if (min != node->right) {
-                                transplant(min, min->right);
+                                parent = transplant(min, min->right);
                                 min->right = node->right;
                                 min->right->parent = min;
                         } else {
-                                moved_node->parent = min;
+                                parent = min;
                         }
                         transplant(node, min);
                         min->left = node->left;
@@ -670,16 +696,16 @@ struct rbtree
 
                 // update iterator positions
                 // TODO move this to a separate function
-                if (node == sentinel()->left) {
-                        sentinel()->left = predecessor(node);
+                if (node == anchor()->left) {
+                        anchor()->left = predecessor(node);
                 }
-                if (node == sentinel()->right) {
-                        sentinel()->right = successor(node);
+                if (node == anchor()->right) {
+                        anchor()->right = successor(node);
                 }
 
                 base::destroy_node(node);
                 if (old_color == RB_BLACK)
-                        delete_fix(moved_node);
+                        delete_fix(moved_node, parent);
         }
 
         void delete_key(const value_type &value) {
@@ -736,7 +762,7 @@ struct rbtree
 
         std::size_t self_check(const node_type *node) const {
                 if (node == sentinel()) {
-                        assert(node->color == RB_BLACK
+                        assert(rbnode_base::get_color(node) == RB_BLACK
                                && "sentinel() is not black");
                         return 0;
                 }
@@ -746,8 +772,9 @@ struct rbtree
                 const node_type *const right
                     = static_cast<const node_type *>(node->right);
 
-                if (node->color == RB_RED
-                    && (left->color == RB_RED || right->color == RB_RED))
+                if (rbnode_base::get_color(node) == RB_RED
+                    && (rbnode_base::get_color(left) == RB_RED
+                        || rbnode_base::get_color(right) == RB_RED))
                         throw rb_violation("red violation", node);
 
                 const std::size_t left_height = self_check(left);
@@ -761,7 +788,8 @@ struct rbtree
                 if (right != sentinel() && comp(right->value, node->value))
                         throw rb_violation("bst violation right side", node);
 
-                return left_height + (node->color == RB_BLACK ? 1 : 0);
+                return left_height
+                       + (rbnode_base::get_color(node) == RB_BLACK ? 1 : 0);
         }
 
         void self_check() const { self_check(root()); }
@@ -810,11 +838,11 @@ struct rbtree
 
       private:
         void insert_fix(rbnode_base *node) {
-                while (node->parent->color == RB_RED) {
+                while (rbnode_base::get_color(node->parent) == RB_RED) {
                         const rbdir parent_dir = node->parent->get_dir();
                         rbnode_base *uncle
                             = node->parent->parent->get(parent_dir.opposite());
-                        if (uncle->color == RB_RED) {
+                        if (rbnode_base::get_color(uncle) == RB_RED) {
                                 node->parent->color = RB_BLACK;
                                 uncle->color = RB_BLACK;
                                 node->parent->parent->color = RB_RED;
@@ -834,40 +862,49 @@ struct rbtree
                 }
                 _root->color = RB_BLACK;
         }
-
-        void delete_fix(rbnode_base *node) {
-                while (node != root() && node->color == RB_BLACK) {
-                        const rbdir dir = node->get_dir();
-                        rbnode_base *sibling
-                            = node->parent->get(dir.opposite());
-                        if (sibling->color == RB_RED) {
+        void delete_fix(rbnode_base *node, rbnode_base *parent) {
+                while (node != root()
+                       && rbnode_base::get_color(node) == RB_BLACK) {
+                        const rbdir dir
+                            = node != sentinel()
+                                  ? node->get_dir()
+                                  : (parent->left == sentinel()
+                                         ? static_cast<rbdir>(left_dir())
+                                         : static_cast<rbdir>(right_dir()));
+                        rbnode_base *sibling = parent->get(dir.opposite());
+                        if (rbnode_base::get_color(sibling) == RB_RED) {
                                 sibling->color = RB_BLACK;
-                                node->parent->color = RB_RED;
-                                rotate(node->parent, dir);
-                                sibling = node->parent->get(dir.opposite());
+                                parent->color = RB_RED;
+                                rotate(parent, dir);
+                                sibling = parent->get(dir.opposite());
                         }
-                        if (sibling->get(dir)->color == RB_BLACK
-                            && sibling->get(dir.opposite())->color
+                        if (rbnode_base::get_color(sibling->get(dir))
+                                == RB_BLACK
+                            && rbnode_base::get_color(
+                                   sibling->get(dir.opposite()))
                                    == RB_BLACK) {
                                 sibling->color = RB_RED;
-                                node = node->parent;
+                                node = parent;
+                                parent = parent->parent;
                         } else {
-                                if (sibling->get(dir.opposite())->color
+                                if (rbnode_base::get_color(
+                                        sibling->get(dir.opposite()))
                                     == RB_BLACK) {
                                         sibling->get(dir)->color = RB_BLACK;
                                         sibling->color = RB_RED;
                                         rotate(sibling, dir.opposite());
-                                        sibling = node->parent->get(
-                                            dir.opposite());
+                                        sibling = parent->get(dir.opposite());
                                 }
-                                sibling->color = node->parent->color;
-                                node->parent->color = RB_BLACK;
+                                sibling->color = parent->color;
+                                parent->color = RB_BLACK;
                                 sibling->get(dir.opposite())->color = RB_BLACK;
-                                rotate(node->parent, dir);
+                                rotate(parent, dir);
                                 node = root();
                         }
                 }
-                node->color = RB_BLACK;
+                if (node != sentinel()) {
+                        node->color = RB_BLACK;
+                }
         }
 };
 
