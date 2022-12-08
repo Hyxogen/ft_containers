@@ -416,7 +416,7 @@ struct rbtree
                         new_root->get_side(side)->parent = node;
                 }
                 new_root->parent = node->parent;
-                if (node->parent == NULL) {
+                if (node->parent == anchor()) {
                         root() = new_root;
                 } else if (node == node->parent->get_side(side)) {
                         node->parent->set_side(side, new_root);
