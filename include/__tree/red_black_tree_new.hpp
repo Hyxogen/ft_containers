@@ -303,6 +303,7 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
         using alloc_base::get_allocator;
 
         rbnode_base *&root() { return _anchor.parent; }
+        const rbnode_base *root() const { return _anchor.parent; }
 	rbnode_base *anchor() { return &_anchor; }
 
         void destroy_node(node_type *node) {
@@ -358,7 +359,7 @@ struct rbtree
 	using base::anchor;
 
         bool insert(const value_type &value) {
-                node_type *insert_node = root();
+                node_type *insert_node = static_cast<node_type *>(root());
                 node_type *parent_node = NULL;
 
                 while (insert_node != NULL) {
@@ -394,7 +395,9 @@ struct rbtree
                 return true;
         }
 
-        void assert_correct() const { assert_correct(root()); }
+        void assert_correct() const {
+                assert_correct(static_cast<const node_type *>(root()));
+        }
 
       protected:
 	using base::get_compare;
@@ -468,8 +471,8 @@ struct rbtree
                         assert(0 && "red violation");
                 }
 
-                const std::size_t left_height = assert_corrent(left);
-                const std::size_t right_height = assert_corrent(right);
+                const std::size_t left_height = assert_correct(left);
+                const std::size_t right_height = assert_correct(right);
                 assert(left_height == right_height && "black violation");
 
                 assert((left == NULL || Compare()(left->value, node->value))
