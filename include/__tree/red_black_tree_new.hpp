@@ -7,6 +7,8 @@
 #endif
 #include <algorithm>
 #include <functional>
+#include <iterator>
+#include <iterator.hpp>
 
 //TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
@@ -286,10 +288,8 @@ struct rbtree_iterator {
 	typedef rbnode<T> node_type;
 	typedef rbtree_iterator<T, T*, T&> iterator;
 
-      private:
         node_type *_current;
 
-      public:
 	rbtree_iterator(const iterator &other) : _current(other._current) {}
 	rbtree_iterator(const node_type *current) : _current(const_cast<node_type*>(current)) {}
 
@@ -299,22 +299,6 @@ struct rbtree_iterator {
 		}
 		return *this;
 	}
-
-        template <typename Type, typename PointerA, typename ReferenceA,
-                  typename PointerB, typename ReferenceB>
-        inline friend bool
-        operator==(const rbtree_iterator<Type, PointerA, ReferenceA> &lhs,
-                   const rbtree_iterator<Type, PointerB, ReferenceB> &rhs) {
-                return lhs._current == rhs._current;
-        }
-
-        template <typename Type, typename PointerA, typename ReferenceA,
-                  typename PointerB, typename ReferenceB>
-        inline friend bool
-        operator!=(const rbtree_iterator<Type, PointerA, ReferenceA> &lhs,
-                   const rbtree_iterator<Type, PointerB, ReferenceB> &rhs) {
-		return !(lhs == rhs);
-        }
 
         reference operator*() const { return _current->value; }
 	pointer operator->() const { return &(this->operator*()); }
@@ -343,6 +327,22 @@ struct rbtree_iterator {
 
 };
 
+template <typename Type, typename PointerA, typename ReferenceA,
+          typename PointerB, typename ReferenceB>
+inline bool
+operator==(const rbtree_iterator<Type, PointerA, ReferenceA> &lhs,
+           const rbtree_iterator<Type, PointerB, ReferenceB> &rhs) {
+        return lhs._current == rhs._current;
+}
+
+template <typename Type, typename PointerA, typename ReferenceA,
+          typename PointerB, typename ReferenceB>
+inline bool
+operator!=(const rbtree_iterator<Type, PointerA, ReferenceA> &lhs,
+           const rbtree_iterator<Type, PointerB, ReferenceB> &rhs) {
+        return !(lhs == rhs);
+}
+
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
 struct rbtree_base : public rbtree_base_extract<KeyExtract>,
@@ -357,6 +357,9 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
 	typedef Compare compare_type;
 	typedef Allocator allocator_type;
 	typedef rbtree_iterator<value_type, value_type *, value_type &> iterator;
+	typedef rbtree_iterator<value_type, const value_type *, const value_type &> const_iterator;
+	typedef ft::reverse_iterator<iterator> reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
       protected:
         rbnode_base _anchor;
@@ -373,8 +376,15 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
         rbnode_base *&root() { return _anchor.parent; }
         const rbnode_base *root() const { return _anchor.parent; }
 	rbnode_base *anchor() { return &_anchor; }
+	const rbnode_base *anchor() const { return &_anchor; }
 	iterator begin() { return iterator(static_cast<node_type *>(anchor()->right)); }
 	iterator end() { return iterator(static_cast<node_type *>(anchor())); }
+	const_iterator begin() const { return iterator(static_cast<const node_type *>(anchor()->right)); }
+	const_iterator end() const { return iterator(static_cast<const node_type *>(anchor())); }
+	reverse_iterator rbegin() { return reverse_iterator(end()); }
+	reverse_iterator rend() { return reverse_iterator(begin()); }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
         void destroy_node(node_type *node) {
                 get_allocator().destroy(node);
@@ -429,6 +439,8 @@ struct rbtree
 	using base::anchor;
 	using base::begin;
 	using base::end;
+	using base::rbegin;
+	using base::rend;
 	
         bool insert(const value_type &value) {
                 node_type *insert_node = static_cast<node_type *>(root());
