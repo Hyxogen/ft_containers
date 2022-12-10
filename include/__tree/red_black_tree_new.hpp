@@ -115,12 +115,14 @@ struct rbnode_base {
                         node = node->get_side(side)->bound(!side);
                 } else {
                         rbnode_base *node_parent = node->parent;
-                        while (node_parent != NULL
-                               && node == node_parent->get_side(side)) {
+			//TODO try to remove the NULL check
+                        while (node_parent != NULL && node == node_parent->get_side(side)) {
                                 node = node_parent;
                                 node_parent = node_parent->parent;
                         }
-                        node = node_parent;
+			if (node->get_side(side) != node_parent) {
+				node = node_parent;
+			}
                 }
                 return node;
         }
