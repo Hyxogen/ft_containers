@@ -1,17 +1,18 @@
 #include <__tree/red_black_tree_new.hpp>
-#include <cassert>
-#include <memory>
-#include <classes.hpp>
 #include <allocators.hpp>
+#include <assert.hpp>
+#include <cassert>
+#include <classes.hpp>
+#include <memory>
 
 template <typename Container, typename T>
-void assert_unique_insert(Container &container, const T &t) {
+void insert_unique_and_validate(Container &container, const T &t) {
         assert(container.insert(t));
         container.assert_correct();
 }
 
 template <typename Container, typename T>
-void assert_dup_insert(Container &container, const T &t) {
+void insert_duplicate_and_validate(Container &container, const T &t) {
         assert(!container.insert(t));
         container.assert_correct();
 }
@@ -23,14 +24,14 @@ int main() {
                        std::allocator<rbnode<int> > >
                     tree;
 
-                assert_unique_insert(tree, 1);
-                assert_unique_insert(tree, 2);
-                assert_unique_insert(tree, -2);
-                assert_unique_insert(tree, 3);
-                assert_unique_insert(tree, 4);
-                assert_unique_insert(tree, 5);
-                assert_unique_insert(tree, 0);
-                assert_unique_insert(tree, -1);
+                insert_unique_and_validate(tree, 1);
+                insert_unique_and_validate(tree, 2);
+                insert_unique_and_validate(tree, -2);
+                insert_unique_and_validate(tree, 3);
+                insert_unique_and_validate(tree, 4);
+                insert_unique_and_validate(tree, 5);
+                insert_unique_and_validate(tree, 0);
+                insert_unique_and_validate(tree, -1);
         }
         {
                 using namespace ft::detail;
@@ -38,41 +39,97 @@ int main() {
                        std::allocator<rbnode<int> > >
                     tree;
 
-                assert_unique_insert(tree, 0);
-                assert_dup_insert(tree, 0);
-                assert_dup_insert(tree, 0);
-                assert_unique_insert(tree, 1);
-                assert_dup_insert(tree, 1);
+                insert_unique_and_validate(tree, 0);
+                insert_duplicate_and_validate(tree, 0);
+                insert_duplicate_and_validate(tree, 0);
+                insert_unique_and_validate(tree, 1);
+                insert_duplicate_and_validate(tree, 1);
         }
-	{
+        {
 
                 using namespace ft::detail;
                 rbtree<int, int, use_self<int>, std::less<int>,
                        std::allocator<rbnode<int> > >
                     tree;
 
-		for (int i = 0; i < 500; ++i) {
-			assert_unique_insert(tree, i);
-			assert_dup_insert(tree, i);
-		}
-		for (int i = 0; i < 500; ++i) {
-			assert_dup_insert(tree, i);
-		}
-	}
-	{
-		typedef test::tracking_class clazz;
-		const std::size_t count = clazz::instances();
-		{
-			using namespace ft::detail;
+                for (int i = 0; i < 500; ++i) {
+                        insert_unique_and_validate(tree, i);
+                        insert_duplicate_and_validate(tree, i);
+                }
+                for (int i = 0; i < 500; ++i) {
+                        insert_duplicate_and_validate(tree, i);
+                }
+        }
+        {
+                typedef test::tracking_class clazz;
+                const std::size_t count = clazz::instances();
+                {
+                        using namespace ft::detail;
                         rbtree<clazz, clazz, use_self<clazz>, std::less<clazz>,
                                std::allocator<rbnode<clazz> > >
                             tree;
 
-			for (int i = 0; i < 500; i++) {
-				assert_unique_insert(tree, clazz(i));
-			}
-		}
-		assert(clazz::instances() == count);
-	}
-                        // TODO test exception safety
+                        for (int i = 0; i < 500; i++) {
+                                insert_unique_and_validate(tree, clazz(i));
+                        }
+                }
+                assert(clazz::instances() == count);
+        }
+        {
+                typedef test::throwing_class<test::tracking_class> clazz;
+                using namespace ft::detail;
+
+                rbtree<clazz, clazz, use_self<clazz>, std::less<clazz>,
+                       std::allocator<rbnode<clazz> > >
+                    tree;
+
+                for (int i = 0; i < 250; ++i) {
+                        insert_unique_and_validate(
+                            tree, clazz(test::tracking_class(i)));
+                }
+                clazz::throw_after(2);
+                const std::size_t count = test::tracking_class::instances();
+                ASSERT_THROW(insert_unique_and_validate(
+                                 tree, clazz(test::tracking_class(-1))),
+                             test::too_many_instantiations);
+                assert(test::tracking_class::instances() == count);
+                clazz::reset();
+                insert_unique_and_validate(tree,
+                                           clazz(test::tracking_class(-1)));
+        }
+        {
+                using namespace ft::detail;
+                typedef test::allocator_tracker<rbnode<int> > allocator;
+
+                const std::size_t active = allocator::active();
+                {
+                        rbtree<int, int, use_self<int>, std::less<int>,
+                               allocator>
+                            tree;
+
+                        for (int i = 0; i < 500; i++) {
+                                insert_unique_and_validate(tree, i);
+                        }
+                }
+                assert(allocator::active() == active);
+        }
+        {
+                using namespace ft::detail;
+                typedef test::limited_allocator<rbnode<int> > allocator;
+
+                rbtree<int, int, use_self<int>, std::less<int>, allocator>
+                    tree;
+                for (int i = 0; i < 250; i++) {
+                        insert_unique_and_validate(tree, i);
+                }
+
+                const std::size_t active = allocator::active();
+                allocator::set_limit(active);
+                ASSERT_THROW(insert_unique_and_validate(tree, -1),
+                             std::bad_alloc);
+                assert(allocator::active() == active);
+                allocator::reset_limit();
+                insert_unique_and_validate(tree, -1);
+        }
+        // TODO test exception safety
 }
