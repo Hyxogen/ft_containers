@@ -100,17 +100,23 @@ struct rbnode_base {
 		}
 	}
 
-        inline rbnode_base *bound(const rbside side) {
-		rbnode_base *node = this;
+
+        inline const rbnode_base *bound(const rbside side) const {
+		const rbnode_base *node = this;
                 while (node->get_side(side) != NULL) {
                         node = node->get_side(side);
                 }
                 return node;
         }
 
+        inline rbnode_base *bound(const rbside side) {
+                return const_cast<rbnode_base *>(
+                    static_cast<const rbnode_base *>(this)->bound(side));
+        }
+
 	//TODO move to cpp file
-        rbnode_base *next(const rbside side) {
-                rbnode_base *node = this;
+        const rbnode_base *next(const rbside side) const {
+                const rbnode_base *node = this;
                 if (node->get_side(side) != NULL) {
                         node = node->get_side(side)->bound(!side);
                 } else {
@@ -127,8 +133,17 @@ struct rbnode_base {
                 return node;
         }
 
+	rbnode_base *next(const rbside side) {
+                return const_cast<rbnode_base *>(
+                    static_cast<const rbnode_base *>(this)->next(side));
+        }
+
         inline rbnode_base *predecessor() { return next(RB_LEFT); }
         inline rbnode_base *successor() { return next(RB_RIGHT); }
+        inline const rbnode_base *predecessor() const { return next(RB_LEFT); }
+        inline const rbnode_base *successor() const { return next(RB_RIGHT); }
+	inline rbnode_base *minimum() { return bound(RB_LEFT); }
+	inline rbnode_base *maximum() { return bound(RB_LEFT); }
 
         inline static rbcolor get_color(const rbnode_base *const node) {
                 if (node == NULL) {
@@ -430,6 +445,10 @@ struct rbtree
         using typename base::key_type;
         using typename base::node_type;
         using typename base::value_type;
+	using typename base::iterator;
+	using typename base::const_iterator;
+	using typename base::reverse_iterator;
+	using typename base::const_reverse_iterator;
 
       protected:
         using base::_anchor;
@@ -479,6 +498,42 @@ struct rbtree
                 return true;
         }
 
+        const_iterator find(const key_type &key) const {
+                const node_type *current = static_cast<const node_type *>(root());
+
+                if (current != anchor()) {
+                        while (current != NULL) {
+                                if (comp(key, current->value)) {
+                                        current = static_cast<const node_type *>(
+                                            current->left);
+                                } else if (comp(current->value, key)) {
+                                        current = static_cast<const node_type *>(
+                                            current->right);
+                                } else {
+                                        return const_iterator(current);
+                                }
+                        }
+                }
+                return end();
+        }
+
+        iterator find(const key_type &key) {
+		return iterator(const_cast<const rbtree *>(this)->find(key)._current);
+        }
+	
+	void erase(iterator pos) {
+		delete_node(pos._current);
+	}
+
+	bool erase(const key_type &key) {
+		iterator pos = find(key);
+		if (pos == end()) {
+			return false;
+		}
+		erase(pos);
+		return true;
+	}
+
         void assert_correct() const {
                 assert_correct(static_cast<const node_type *>(root()));
         }
@@ -515,13 +570,122 @@ struct rbtree
                 return new_root;
         }
 
+        rbnode_base *transplant(rbnode_base *const to,
+                                rbnode_base *const from) {
+#ifdef FT_DEBUG
+                assert(to != NULL && "cannot transplant to a NULL node");
+#endif
+                if (to->parent == anchor()) {
+                        root() = static_cast<node_type *>(from);
+                } else if (to->parent->left == to) {
+                        to->parent->left = from;
+                } else {
+                        to->parent->right = from;
+                }
+                if (from != NULL) {
+                        from->parent = to->parent;
+                }
+                return to->parent;
+        }
+
+	void delete_node(node_type *const node) {
+                rbcolor old_color = node->color;
+                rbnode_base *moved_node = NULL;
+		rbnode_base *parent = NULL; 
+
+                if (node->left == NULL) {
+                        moved_node = node->right;
+                        parent = transplant(node, node->right);
+                } else if (node->right == NULL) {
+                        moved_node = node->left;
+                        parent = transplant(node, node->left);
+                } else {
+                        rbnode_base *min = node->right->minimum();
+                        old_color = min->color;
+                        moved_node = min->right;
+                        if (min != node->right) {
+                                parent = transplant(min, min->right);
+                                min->right = node->right;
+                                min->right->parent = min;
+                        } else {
+                                parent = min;
+                        }
+                        transplant(node, min);
+                        min->left = node->left;
+                        min->left->parent = min;
+                        min->color = node->color;
+                }
+
+		delete_fix_iterators(node);
+
+                base::destroy_node(node);
+                if (old_color == RB_BLACK)
+                        delete_fix_balance(moved_node, parent);
+	}
+
+	void delete_fix_iterators(node_type *const node) {
+                if (node == anchor()->left) {
+                        anchor()->left = node->predecessor();
+                }
+                if (node == anchor()->right) {
+                        anchor()->right = node->successor();
+                }
+	}
+
+        void delete_fix_balance(rbnode_base *node, rbnode_base *parent) {
+                while (node != root()
+                       && rbnode_base::get_color(node) == RB_BLACK) {
+                        const rbside side
+                            = node != NULL ? node->side()
+                                           : (parent->left == NULL ? RB_LEFT
+                                                                   : RB_RIGHT);
+                        rbnode_base *sibling = parent->get_side(!side);
+                        if (rbnode_base::get_color(sibling) == RB_RED) {
+                                sibling->color = RB_BLACK;
+                                parent->color = RB_RED;
+                                rotate(parent, side);
+                                sibling = parent->get_side(!side);
+                        }
+                        if (rbnode_base::get_color(sibling->get_side(side))
+                                == RB_BLACK
+                            && rbnode_base::get_color(sibling->get_side(!side))
+                                   == RB_BLACK) {
+                                sibling->color = RB_RED;
+                                node = parent;
+                                parent = parent->parent;
+                        } else {
+                                if (rbnode_base::get_color(
+                                        sibling->get_side(!side))
+                                    == RB_BLACK) {
+                                        sibling->get_side(side)->color
+                                            = RB_BLACK;
+                                        sibling->color = RB_RED;
+                                        rotate(sibling, !side);
+                                        sibling = parent->get_side(!side);
+                                }
+                                sibling->color = parent->color;
+                                parent->color = RB_BLACK;
+                                sibling->get_side(!side)->color = RB_BLACK;
+                                rotate(parent, side);
+                                node = root();
+                        }
+                }
+                if (node != NULL) {
+                        node->color = RB_BLACK;
+                }
+        }
+
         void insert_fix_iterators() {
                 if (anchor()->left == NULL) {
                         anchor()->left = root();
+                }
+                if (anchor()->right == NULL) {
                         anchor()->right = root();
-                } else if (anchor()->left->right != NULL) {
+                }
+		if (anchor()->left->right != NULL) {
                         anchor()->left = anchor()->left->right;
-                } else if (anchor()->right->left != NULL) {
+                }
+		if (anchor()->right->left != NULL) {
                         anchor()->right = anchor()->right->left;
                 }
         }

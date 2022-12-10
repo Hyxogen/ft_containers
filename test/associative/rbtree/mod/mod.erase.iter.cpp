@@ -1,0 +1,50 @@
+#include <__tree/red_black_tree_new.hpp>
+#include <algorithm>
+#include <cassert>
+#include <functional>
+#include <memory>
+
+template <typename T>
+void erase_and_validate(T &t, const typename T::iterator &it) {
+	t.erase(it);
+        t.assert_correct();
+}
+
+int main() {
+        typedef ft::detail::rbtree<int, int, ft::detail::use_self<int>,
+                                   std::less<int>,
+                                   std::allocator<ft::detail::rbnode<int> > >
+            rbtree;
+        {
+                rbtree tree;
+		
+		for (int i = 0; i < 500; ++i) {
+			tree.insert(i);
+		}
+
+		rbtree::iterator it = tree.begin();
+		for (int i = 0; it != tree.end(); ++i) {
+			rbtree::iterator tmp = it++;
+			erase_and_validate(tree, tmp);
+			assert(tree.find(i) == tree.end());
+		}
+	}
+	{
+		//TODO add similair test to above in reverse direction
+                rbtree tree;
+		
+		for (int i = 0; i < 1; ++i) {
+			tree.insert(i);
+		}
+
+		rbtree::iterator it = tree.end();
+		rbtree::iterator tmp = it;
+		int i = 0;
+		do {
+			tmp = it--;
+			erase_and_validate(tree, tmp);
+			assert(tree.find(i) == tree.end());
+		} while (tmp != tree.begin());
+
+	}
+}
