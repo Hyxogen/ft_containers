@@ -497,6 +497,13 @@ struct rbtree
                 return insert_aux(hint.node(), value);
         }
 
+	template <class InputIt>
+	void insert(InputIt first, InputIt last) {
+		for (; first != last; ++first) {
+			insert(*first);
+		}
+	}
+
         const_iterator find(const key_type &key) const {
                 const node_type *current = static_cast<const node_type *>(root());
 
