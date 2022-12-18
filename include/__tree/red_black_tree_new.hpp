@@ -7,17 +7,16 @@
 #endif
 #include <algorithm>
 #include <functional>
-#include <iterator>
 #include <iterator.hpp>
-#include <utility.hpp>
+#include <iterator>
 #include <limits>
+#include <utility.hpp>
 
-//TODO add option to disable attributes
+// TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
 
 // TODO make own implementation of std::is_empty with __is_empty to be able to
 // turn it off
-
 
 // TODO add insertion tests
 
@@ -57,7 +56,7 @@ struct rbnode_base {
         rbnode_base *left;
         rbnode_base *parent;
 
-	//TODO move implementation to cpp file
+        // TODO move implementation to cpp file
         rbnode_base(rbcolor color, rbnode_base *right, rbnode_base *left,
                     rbnode_base *parent)
             : color(color), right(right), left(left), parent(parent) {}
@@ -73,12 +72,12 @@ struct rbnode_base {
                 return RB_RIGHT;
         }
 
-	inline void swap(rbnode_base &other) {
-		std::swap(color, other.color);
-		std::swap(right, other.right);
-		std::swap(left, other.left);
-		std::swap(parent, other.parent);
-	}
+        inline void swap(rbnode_base &other) {
+                std::swap(color, other.color);
+                std::swap(right, other.right);
+                std::swap(left, other.left);
+                std::swap(parent, other.parent);
+        }
 
         inline rbnode_base *get_side(const rbside side) {
                 if (side == RB_LEFT) {
@@ -94,17 +93,16 @@ struct rbnode_base {
                 return right;
         }
 
-	inline void set_side(const rbside side, rbnode_base *node) {
-		if (side == RB_LEFT) {
-			left = node;
-		} else {
-			right = node;
-		}
-	}
-
+        inline void set_side(const rbside side, rbnode_base *node) {
+                if (side == RB_LEFT) {
+                        left = node;
+                } else {
+                        right = node;
+                }
+        }
 
         inline const rbnode_base *bound(const rbside side) const {
-		const rbnode_base *node = this;
+                const rbnode_base *node = this;
                 while (node->get_side(side) != NULL) {
                         node = node->get_side(side);
                 }
@@ -116,26 +114,27 @@ struct rbnode_base {
                     static_cast<const rbnode_base *>(this)->bound(side));
         }
 
-	//TODO move to cpp file
+        // TODO move to cpp file
         const rbnode_base *next(const rbside side) const {
                 const rbnode_base *node = this;
                 if (node->get_side(side) != NULL) {
                         node = node->get_side(side)->bound(!side);
                 } else {
                         rbnode_base *node_parent = node->parent;
-			//TODO try to remove the NULL check
-                        while (node_parent != NULL && node == node_parent->get_side(side)) {
+                        // TODO try to remove the NULL check
+                        while (node_parent != NULL
+                               && node == node_parent->get_side(side)) {
                                 node = node_parent;
                                 node_parent = node_parent->parent;
                         }
-			if (node->get_side(side) != node_parent) {
-				node = node_parent;
-			}
+                        if (node->get_side(side) != node_parent) {
+                                node = node_parent;
+                        }
                 }
                 return node;
         }
 
-	rbnode_base *next(const rbside side) {
+        rbnode_base *next(const rbside side) {
                 return const_cast<rbnode_base *>(
                     static_cast<const rbnode_base *>(this)->next(side));
         }
@@ -144,8 +143,8 @@ struct rbnode_base {
         inline rbnode_base *successor() { return next(RB_RIGHT); }
         inline const rbnode_base *predecessor() const { return next(RB_LEFT); }
         inline const rbnode_base *successor() const { return next(RB_RIGHT); }
-	inline rbnode_base *minimum() { return bound(RB_LEFT); }
-	inline rbnode_base *maximum() { return bound(RB_LEFT); }
+        inline rbnode_base *minimum() { return bound(RB_LEFT); }
+        inline rbnode_base *maximum() { return bound(RB_LEFT); }
 
         inline static rbcolor get_color(const rbnode_base *const node) {
                 if (node == NULL) {
@@ -169,7 +168,7 @@ struct rbtree_base_compare : public Compare {
         rbtree_base_compare() : Compare() {}
         rbtree_base_compare(const Compare &other) : Compare(other) {}
 
-	inline Compare &get_compare() { return *this; }
+        inline Compare &get_compare() { return *this; }
         inline const Compare &get_compare() const { return *this; }
 
         template <typename T> bool compare(const T &lhs, const T &rhs) {
@@ -190,7 +189,7 @@ template <typename Compare> struct rbtree_base_compare<Compare, false> {
         rbtree_base_compare() : _compare() {}
         rbtree_base_compare(const Compare &other) : _compare(other) {}
 
-	inline Compare &get_compare() { return _compare; }
+        inline Compare &get_compare() { return _compare; }
         inline const Compare &get_compare() const { return _compare; }
 
         template <typename T> bool compare(const T &lhs, const T &rhs) {
@@ -282,13 +281,12 @@ struct rbtree_base_extract : public KeyExtract {
         FORCE_INLINE void swap(rbtree_base_extract &) {}
 };
 
-template <typename KeyExtract>
-struct rbtree_base_extract<KeyExtract, false> {
+template <typename KeyExtract> struct rbtree_base_extract<KeyExtract, false> {
       protected:
         typedef typename KeyExtract::argument_type argument_type;
         typedef typename KeyExtract::result_type result_type;
 
-	KeyExtract _key_extract;
+        KeyExtract _key_extract;
 
         rbtree_base_extract() : _key_extract() {}
         rbtree_base_extract(const KeyExtract &other) : _key_extract(other) {}
@@ -299,54 +297,54 @@ struct rbtree_base_extract<KeyExtract, false> {
 
 template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
-	typedef std::bidirectional_iterator_tag iterator_category;
-	typedef T value_type;
-	typedef std::ptrdiff_t difference_type;
-	typedef Pointer pointer;
-	typedef Reference reference;
-	typedef rbnode<T> node_type;
-	typedef rbtree_iterator<T, T*, T&> iterator;
+        typedef std::bidirectional_iterator_tag iterator_category;
+        typedef T value_type;
+        typedef std::ptrdiff_t difference_type;
+        typedef Pointer pointer;
+        typedef Reference reference;
+        typedef rbnode<T> node_type;
+        typedef rbtree_iterator<T, T *, T &> iterator;
 
         node_type *_current;
 
-	rbtree_iterator(const iterator &other) : _current(other._current) {}
-	rbtree_iterator(const node_type *current) : _current(const_cast<node_type*>(current)) {}
+        rbtree_iterator(const iterator &other) : _current(other._current) {}
+        rbtree_iterator(const node_type *current)
+            : _current(const_cast<node_type *>(current)) {}
 
-	rbtree_iterator &operator=(const iterator &other) {
-		if (this != &other) {
-			_current = other._current;
-		}
-		return *this;
-	}
+        rbtree_iterator &operator=(const iterator &other) {
+                if (this != &other) {
+                        _current = other._current;
+                }
+                return *this;
+        }
 
-	inline node_type *node() { return _current; }
-	inline const node_type *node() const { return _current; }
+        inline node_type *node() { return _current; }
+        inline const node_type *node() const { return _current; }
 
         reference operator*() const { return _current->value; }
-	pointer operator->() const { return &(this->operator*()); }
+        pointer operator->() const { return &(this->operator*()); }
 
-	rbtree_iterator &operator++() {
-		_current = static_cast<node_type *>(_current->next(RB_RIGHT));
-		return *this;
-	}
-	
-	rbtree_iterator operator++(int) {
-		const rbtree_iterator tmp(*this);
-		_current = static_cast<node_type *>(_current->next(RB_RIGHT));
-		return tmp;
-	}
+        rbtree_iterator &operator++() {
+                _current = static_cast<node_type *>(_current->next(RB_RIGHT));
+                return *this;
+        }
 
-	rbtree_iterator &operator--() {
-		_current = static_cast<node_type *>(_current->next(RB_LEFT));
-		return *this;
-	}
-	
-	rbtree_iterator operator--(int) {
-		const rbtree_iterator tmp(*this);
-		_current = static_cast<node_type *>(_current->next(RB_LEFT));
-		return tmp;
-	}
+        rbtree_iterator operator++(int) {
+                const rbtree_iterator tmp(*this);
+                _current = static_cast<node_type *>(_current->next(RB_RIGHT));
+                return tmp;
+        }
 
+        rbtree_iterator &operator--() {
+                _current = static_cast<node_type *>(_current->next(RB_LEFT));
+                return *this;
+        }
+
+        rbtree_iterator operator--(int) {
+                const rbtree_iterator tmp(*this);
+                _current = static_cast<node_type *>(_current->next(RB_LEFT));
+                return tmp;
+        }
 };
 
 template <typename Type, typename PointerA, typename ReferenceA,
@@ -370,18 +368,21 @@ template <typename KeyType, typename ValueType, typename KeyExtract,
 struct rbtree_base : public rbtree_base_extract<KeyExtract>,
                      public rbtree_base_compare<Compare>,
                      public rbtree_base_alloc<Allocator> {
-	typedef rbtree_base_extract<KeyExtract> extract_base;
+        typedef rbtree_base_extract<KeyExtract> extract_base;
         typedef rbtree_base_compare<Compare> compare_base;
         typedef rbtree_base_alloc<Allocator> alloc_base;
-	typedef KeyType key_type;
-	typedef ValueType value_type;
-	typedef rbnode<value_type> node_type;
-	typedef Compare compare_type;
-	typedef Allocator allocator_type;
-	typedef rbtree_iterator<value_type, value_type *, value_type &> iterator;
-	typedef rbtree_iterator<value_type, const value_type *, const value_type &> const_iterator;
-	typedef ft::reverse_iterator<iterator> reverse_iterator;
-	typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+        typedef KeyType key_type;
+        typedef ValueType value_type;
+        typedef rbnode<value_type> node_type;
+        typedef Compare compare_type;
+        typedef Allocator allocator_type;
+        typedef rbtree_iterator<value_type, value_type *, value_type &>
+            iterator;
+        typedef rbtree_iterator<value_type, const value_type *,
+                                const value_type &>
+            const_iterator;
+        typedef ft::reverse_iterator<iterator> reverse_iterator;
+        typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
       protected:
         rbnode_base _anchor;
@@ -397,16 +398,27 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
 
         rbnode_base *&root() { return _anchor.parent; }
         const rbnode_base *root() const { return _anchor.parent; }
-	rbnode_base *anchor() { return &_anchor; }
-	const rbnode_base *anchor() const { return &_anchor; }
-	iterator begin() { return iterator(static_cast<node_type *>(anchor()->right)); }
-	iterator end() { return iterator(static_cast<node_type *>(anchor())); }
-	const_iterator begin() const { return iterator(static_cast<const node_type *>(anchor()->right)); }
-	const_iterator end() const { return iterator(static_cast<const node_type *>(anchor())); }
-	reverse_iterator rbegin() { return reverse_iterator(end()); }
-	reverse_iterator rend() { return reverse_iterator(begin()); }
-	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
-	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+        rbnode_base *anchor() { return &_anchor; }
+        const rbnode_base *anchor() const { return &_anchor; }
+        iterator begin() {
+                return iterator(static_cast<node_type *>(anchor()->right));
+        }
+        iterator end() { return iterator(static_cast<node_type *>(anchor())); }
+        const_iterator begin() const {
+                return iterator(
+                    static_cast<const node_type *>(anchor()->right));
+        }
+        const_iterator end() const {
+                return iterator(static_cast<const node_type *>(anchor()));
+        }
+        reverse_iterator rbegin() { return reverse_iterator(end()); }
+        reverse_iterator rend() { return reverse_iterator(begin()); }
+        const_reverse_iterator rbegin() const {
+                return const_reverse_iterator(end());
+        }
+        const_reverse_iterator rend() const {
+                return const_reverse_iterator(begin());
+        }
 
         void destroy_node(node_type *node) {
                 get_allocator().destroy(node);
@@ -447,32 +459,32 @@ struct rbtree
     : public rbtree_base<KeyType, ValueType, KeyExtract, Compare, Allocator> {
         typedef rbtree_base<KeyType, ValueType, KeyExtract, Compare, Allocator>
             base;
+        using typename base::const_iterator;
+        using typename base::const_reverse_iterator;
+        using typename base::iterator;
         using typename base::key_type;
         using typename base::node_type;
+        using typename base::reverse_iterator;
         using typename base::value_type;
-	using typename base::iterator;
-	using typename base::const_iterator;
-	using typename base::reverse_iterator;
-	using typename base::const_reverse_iterator;
-	typedef std::size_t size_type;
+        typedef std::size_t size_type;
 
       protected:
         using base::_anchor;
-	size_type _size;
+        size_type _size;
 
       public:
         rbtree() : base(), _size(0) {}
 
-	using base::root;
-	using base::anchor;
-	using base::begin;
-	using base::end;
-	using base::rbegin;
-	using base::rend;
-	using base::get_allocator;
-	
-	inline bool empty() const { return size() == 0; }
-	inline size_type size() const { return _size; }
+        using base::anchor;
+        using base::begin;
+        using base::end;
+        using base::get_allocator;
+        using base::rbegin;
+        using base::rend;
+        using base::root;
+
+        inline bool empty() const { return size() == 0; }
+        inline size_type size() const { return _size; }
         inline size_type max_size() const {
                 return std::numeric_limits<size_type>::max()
                        / sizeof(node_type);
@@ -490,31 +502,34 @@ struct rbtree
                 return insert_aux(static_cast<node_type *>(root()), value);
         }
 
-        ft::pair<iterator, bool> insert(iterator hint, const value_type &value) {
-		if (hint != begin()) {
-			--hint;
-		}
+        ft::pair<iterator, bool> insert(iterator hint,
+                                        const value_type &value) {
+                if (hint != begin()) {
+                        --hint;
+                }
                 return insert_aux(hint.node(), value);
         }
 
-	template <class InputIt>
-	void insert(InputIt first, InputIt last) {
-		for (; first != last; ++first) {
-			insert(*first);
-		}
-	}
+        template <class InputIt> void insert(InputIt first, InputIt last) {
+                for (; first != last; ++first) {
+                        insert(*first);
+                }
+        }
 
         const_iterator find(const key_type &key) const {
-                const node_type *current = static_cast<const node_type *>(root());
+                const node_type *current
+                    = static_cast<const node_type *>(root());
 
                 if (current != anchor()) {
                         while (current != NULL) {
                                 if (comp(key, current->value)) {
-                                        current = static_cast<const node_type *>(
-                                            current->left);
+                                        current
+                                            = static_cast<const node_type *>(
+                                                current->left);
                                 } else if (comp(current->value, key)) {
-                                        current = static_cast<const node_type *>(
-                                            current->right);
+                                        current
+                                            = static_cast<const node_type *>(
+                                                current->right);
                                 } else {
                                         return const_iterator(current);
                                 }
@@ -524,39 +539,41 @@ struct rbtree
         }
 
         iterator find(const key_type &key) {
-		return iterator(const_cast<const rbtree *>(this)->find(key)._current);
+                return iterator(
+                    const_cast<const rbtree *>(this)->find(key)._current);
         }
-	
-	iterator erase(iterator pos) {
-		_size -= 1;
-		return delete_node(pos._current);
-	}
 
-	void erase(iterator first, iterator last) {
-		while (first != last) {
-			first = erase(first);
-		}
-	}
+        iterator erase(iterator pos) {
+                _size -= 1;
+                return delete_node(pos._current);
+        }
 
-	bool erase(const key_type &key) {
-		iterator pos = find(key);
-		if (pos == end()) {
-			return false;
-		}
-		erase(pos);
-		return true;
-	}
+        void erase(iterator first, iterator last) {
+                while (first != last) {
+                        first = erase(first);
+                }
+        }
+
+        bool erase(const key_type &key) {
+                iterator pos = find(key);
+                if (pos == end()) {
+                        return false;
+                }
+                erase(pos);
+                return true;
+        }
 
         void assert_correct() const {
                 assert_correct(static_cast<const node_type *>(root()));
         }
 
       protected:
-	using base::get_compare;
-	using base::get_key_extract;
-	inline bool comp(const value_type &a, const value_type &b) const {
-		return get_compare()(get_key_extract()(a), get_key_extract()(b));
-	}
+        using base::get_compare;
+        using base::get_key_extract;
+        inline bool comp(const value_type &a, const value_type &b) const {
+                return get_compare()(get_key_extract()(a),
+                                     get_key_extract()(b));
+        }
 
         rbnode_base *rotate(rbnode_base *const node, const rbside side) {
 #ifdef FT_DEBUG
@@ -601,10 +618,10 @@ struct rbtree
                 return to->parent;
         }
 
-	iterator delete_node(node_type *const node) {
+        iterator delete_node(node_type *const node) {
                 rbcolor old_color = node->color;
                 rbnode_base *moved_node = NULL;
-		rbnode_base *parent = NULL; 
+                rbnode_base *parent = NULL;
 
                 // todo do the cast to node_type* in the iterator class to
                 // reduce code duplication
@@ -638,17 +655,17 @@ struct rbtree
                 base::destroy_node(node);
                 if (old_color == RB_BLACK)
                         delete_fix_balance(moved_node, parent);
-		return next;
-	}
+                return next;
+        }
 
-	void delete_fix_iterators(node_type *const node) {
+        void delete_fix_iterators(node_type *const node) {
                 if (node == anchor()->left) {
                         anchor()->left = node->predecessor();
                 }
                 if (node == anchor()->right) {
                         anchor()->right = node->successor();
                 }
-	}
+        }
 
         void delete_fix_balance(rbnode_base *node, rbnode_base *parent) {
                 while (node != root()
@@ -700,10 +717,10 @@ struct rbtree
                 if (anchor()->right == NULL) {
                         anchor()->right = root();
                 }
-		if (anchor()->left->right != NULL) {
+                if (anchor()->left->right != NULL) {
                         anchor()->left = anchor()->left->right;
                 }
-		if (anchor()->right->left != NULL) {
+                if (anchor()->right->left != NULL) {
                         anchor()->right = anchor()->right->left;
                 }
         }
@@ -719,7 +736,8 @@ struct rbtree
                                 node->parent->parent->color = RB_RED;
                                 node = node->parent->parent;
                         } else {
-                                if (node == node->parent->get_side(!parent_side)) {
+                                if (node
+                                    == node->parent->get_side(!parent_side)) {
                                         node = node->parent;
                                         rotate(node, parent_side);
                                 }
@@ -745,7 +763,8 @@ struct rbtree
                                 insert_node = static_cast<node_type *>(
                                     parent_node->right);
                         } else {
-				return ft::make_pair(iterator(parent_node), false);
+                                return ft::make_pair(iterator(parent_node),
+                                                     false);
                         }
                 }
 
@@ -762,12 +781,11 @@ struct rbtree
                 }
 
                 node->color = RB_RED;
-		insert_fix_iterators();
+                insert_fix_iterators();
                 insert_fix_balance(node);
-		_size += 1;
-		return ft::make_pair(iterator(node), true);
+                _size += 1;
+                return ft::make_pair(iterator(node), true);
         }
-
 
 #ifdef FT_DEBUG
         static std::size_t assert_correct(const node_type *const node) {
