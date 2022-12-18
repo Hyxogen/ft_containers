@@ -10,6 +10,7 @@
 #include <iterator>
 #include <iterator.hpp>
 #include <utility.hpp>
+#include <limits>
 
 //TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
@@ -469,8 +470,12 @@ struct rbtree
 	
 	inline bool empty() const { return size() == 0; }
 	inline size_type size() const { return _size; }
+        inline size_type max_size() const {
+                return std::numeric_limits<size_type>::max()
+                       / sizeof(node_type);
+        }
 
-	ft::pair<iterator, bool> insert(const value_type &value) {
+        ft::pair<iterator, bool> insert(const value_type &value) {
                 node_type *insert_node = static_cast<node_type *>(root());
                 node_type *parent_node = NULL;
 
