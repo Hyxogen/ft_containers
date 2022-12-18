@@ -563,6 +563,7 @@ struct rbtree
                 const node_type *current
                     = static_cast<const node_type *>(root());
 
+		//TODO this if statement can be removed
                 if (current != anchor()) {
                         while (current != NULL) {
                                 if (comp(key, current->value)) {
@@ -607,6 +608,36 @@ struct rbtree
 	iterator lower_bound(const key_type &key) {
                 return iterator(
                     const_cast<const rbtree *>(this)->lower_bound(key).node());
+        }
+
+        const_iterator upper_bound(const key_type &key) const {
+                const node_type *current
+                    = static_cast<const node_type *>(root());
+                const node_type *bound_end = end().node();
+
+                while (current != NULL) {
+                        if (comp(current->value, key)) {
+                                current = static_cast<const node_type *>(
+                                    current->right);
+                        } else if (comp(key, current->value)) {
+                                bound_end = current;
+                                current = static_cast<const node_type *>(
+                                    current->left);
+                        } else {
+                                if (current->right != NULL) {
+                                        bound_end
+                                            = static_cast<const node_type *>(
+                                                current->right->minimum());
+                                }
+                                break;
+                        }
+                }
+                return const_iterator(bound_end);
+        }
+
+        iterator upper_bound(const key_type &key) {
+                return iterator(
+                    const_cast<const rbtree *>(this)->upper_bound(key).node());
         }
 
         void assert_correct() const {
