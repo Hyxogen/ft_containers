@@ -467,6 +467,7 @@ struct rbtree
 	using base::rend;
 	using base::get_allocator;
 	
+	inline bool empty() const { return size() == 0; }
 	inline size_type size() const { return _size; }
 
 	ft::pair<iterator, bool> insert(const value_type &value) {
