@@ -465,6 +465,7 @@ struct rbtree
 	using base::end;
 	using base::rbegin;
 	using base::rend;
+	using base::get_allocator;
 	
 	inline size_type size() const { return _size; }
 
