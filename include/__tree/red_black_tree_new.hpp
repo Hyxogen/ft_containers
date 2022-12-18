@@ -439,11 +439,10 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
 
         void swap(rbtree_base &other) {
                 _anchor.swap(other._anchor);
-		//todo can this be refactored to something a bit more pretty?
-		if (root()) {
+		if (root() != NULL) {
 			root()->parent = anchor();
 		}
-		if (other.root()) {
+		if (other.root() != NULL) {
 			other.root()->parent = other.anchor();
 		}
                 compare_base::swap(other);
@@ -528,6 +527,38 @@ struct rbtree
                 }
         }
 
+        iterator erase(iterator pos) {
+                _size -= 1;
+                return delete_node(pos._current);
+        }
+
+        void erase(iterator first, iterator last) {
+                while (first != last) {
+                        first = erase(first);
+                }
+        }
+
+        bool erase(const key_type &key) {
+                iterator pos = find(key);
+                if (pos == end()) {
+                        return false;
+                }
+                erase(pos);
+                return true;
+        }
+
+	void swap(rbtree &other) {
+		base::swap(other);
+		std::swap(_size, other._size);
+	}
+	
+	size_type count(const key_type &key) const {
+		if (find(key) == end()) {
+			return 0;
+		}
+		return 1;
+	}
+
         const_iterator find(const key_type &key) const {
                 const node_type *current
                     = static_cast<const node_type *>(root());
@@ -554,31 +585,6 @@ struct rbtree
                 return iterator(
                     const_cast<const rbtree *>(this)->find(key)._current);
         }
-
-        iterator erase(iterator pos) {
-                _size -= 1;
-                return delete_node(pos._current);
-        }
-
-        void erase(iterator first, iterator last) {
-                while (first != last) {
-                        first = erase(first);
-                }
-        }
-
-        bool erase(const key_type &key) {
-                iterator pos = find(key);
-                if (pos == end()) {
-                        return false;
-                }
-                erase(pos);
-                return true;
-        }
-
-	void swap(rbtree &other) {
-		base::swap(other);
-		std::swap(_size, other._size);
-	}
 
         void assert_correct() const {
                 assert_correct(static_cast<const node_type *>(root()));
