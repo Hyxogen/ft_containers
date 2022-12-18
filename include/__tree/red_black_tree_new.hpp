@@ -586,29 +586,27 @@ struct rbtree
                     const_cast<const rbtree *>(this)->find(key)._current);
         }
 
-
 	const_iterator lower_bound(const key_type &key) const {
                 const node_type *current
                     = static_cast<const node_type *>(root());
-		const node_type *sides[2] = { NULL, NULL };
+		const node_type *last_left = NULL;
 
                 while (current != NULL) {
                         if (comp(key, current->value)) {
-				sides[RB_LEFT] = current;
+				last_left = current;
                                 current = static_cast<const node_type *>(
                                     current->left);
                         } else if (comp(current->value, key)) {
-				sides[RB_RIGHT] = current;
                                 current = static_cast<const node_type *>(
                                     current->right);
                         } else {
                                 return const_iterator(current);
                         }
                 }
-		if (sides[RB_LEFT] == NULL) {
+		if (last_left == NULL) {
 			return end();
 		}
-		return const_iterator(sides[RB_LEFT]);
+		return const_iterator(last_left);
 	}
 
 	iterator lower_bound(const key_type &key) {
