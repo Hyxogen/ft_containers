@@ -179,7 +179,7 @@ struct rbtree_base_compare : public Compare {
                 return Compare::operator()(lhs, rhs);
         }
 
-        FORCE_INLINE bool swap(rbtree_base_compare &) {}
+        FORCE_INLINE void swap(rbtree_base_compare &) {}
 };
 
 template <typename Compare> struct rbtree_base_compare<Compare, false> {
@@ -293,6 +293,10 @@ template <typename KeyExtract> struct rbtree_base_extract<KeyExtract, false> {
 
         KeyExtract &get_key_extract() { return &_key_extract; }
         const KeyExtract &get_key_extract() const { return &_key_extract; }
+
+        void swap(rbtree_base_extract &other) {
+                std::swap(_key_extract, other._key_extract);
+        }
 };
 
 template <typename T, typename Pointer, typename Reference>
@@ -435,8 +439,16 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
 
         void swap(rbtree_base &other) {
                 _anchor.swap(other._anchor);
+		//todo can this be refactored to something a bit more pretty?
+		if (root()) {
+			root()->parent = anchor();
+		}
+		if (other.root()) {
+			other.root()->parent = other.anchor();
+		}
                 compare_base::swap(other);
                 alloc_base::swap(other);
+		extract_base::swap(other);
         }
 
         node_type *create_node(const value_type &value) {
@@ -563,6 +575,11 @@ struct rbtree
                 return true;
         }
 
+	void swap(rbtree &other) {
+		base::swap(other);
+		std::swap(_size, other._size);
+	}
+
         void assert_correct() const {
                 assert_correct(static_cast<const node_type *>(root()));
         }
@@ -624,7 +641,7 @@ struct rbtree
                 rbnode_base *parent = NULL;
 
                 // todo do the cast to node_type* in the iterator class to
-                // reduce code duplication
+                // reduce code duplication?
                 const iterator next
                     = iterator(static_cast<node_type *>(node->next(RB_RIGHT)));
                 if (node->left == NULL) {
