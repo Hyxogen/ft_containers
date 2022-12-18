@@ -4,8 +4,10 @@
 #include <cassert>
 #include <classes.hpp>
 #include <cstdlib>
+#include <ctime>
 #include <functional>
 #include <memory>
+#include <set>
 #include <vector>
 
 template <typename T, typename U>
@@ -57,30 +59,34 @@ int main() {
         }
         {
                 rbtree tree;
+                std::set<int> set;
                 std::vector<int> numbers;
+                std::srand(static_cast<unsigned int>(std::time(NULL)));
 
                 for (int i = 0; i < 800; ++i) {
-                        int val = rand();
-                        while (std::find(numbers.begin(), numbers.end(), val)
-                               != numbers.end()) {
-                                val = rand();
+                        int val = std::rand();
+                        const std::pair<std::set<int>::iterator, bool> res
+                            = set.insert(val);
+                        const bool uniq = tree.insert(val);
+                        assert(uniq == res.second);
+                        if (!res.second) {
+                                numbers.push_back(val);
                         }
-                        numbers.push_back(val);
-                        tree.insert(val);
                 }
 
+                assert(std::equal(set.begin(), set.end(), tree.begin()));
                 for (int i = 0; i < 8000; ++i) {
-                        int del_or_ins = rand();
-                        int val = rand();
+                        const int ins = std::rand() & 1;
+                        int val = std::rand();
 
-                        if (del_or_ins & 1 || numbers.empty()) {
-                                while (std::find(numbers.begin(),
-                                                 numbers.end(), val)
-                                       != numbers.end()) {
-                                        val = rand();
+                        if (ins || numbers.empty()) {
+                                const std::pair<std::set<int>::iterator, bool>
+                                    res = set.insert(val);
+                                const bool uniq = tree.insert(val);
+                                assert(uniq == res.second);
+                                if (!res.second) {
+                                        numbers.push_back(val);
                                 }
-                                numbers.push_back(val);
-                                tree.insert(val);
                         } else {
                                 unsigned int offset
                                     = static_cast<unsigned int>(std::abs(val))
@@ -88,8 +94,11 @@ int main() {
                                 val = numbers[offset];
 
                                 numbers.erase(numbers.begin() + offset);
+                                set.erase(val);
                                 erase_and_validate(tree, val, true);
                         }
+                        assert(
+                            std::equal(set.begin(), set.end(), tree.begin()));
                 }
         }
         {
