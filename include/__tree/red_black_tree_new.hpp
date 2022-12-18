@@ -450,12 +450,14 @@ struct rbtree
 	using typename base::const_iterator;
 	using typename base::reverse_iterator;
 	using typename base::const_reverse_iterator;
+	typedef std::size_t size_type;
 
       protected:
         using base::_anchor;
+	size_type _size;
 
       public:
-        rbtree() : base() {}
+        rbtree() : base(), _size(0) {}
 
 	using base::root;
 	using base::anchor;
@@ -464,6 +466,8 @@ struct rbtree
 	using base::rbegin;
 	using base::rend;
 	
+	inline size_type size() const { return _size; }
+
 	ft::pair<iterator, bool> insert(const value_type &value) {
                 node_type *insert_node = static_cast<node_type *>(root());
                 node_type *parent_node = NULL;
@@ -496,6 +500,7 @@ struct rbtree
                 node->color = RB_RED;
 		insert_fix_iterators();
                 insert_fix_balance(node);
+		_size += 1;
 		return ft::make_pair(iterator(node), true);
         }
 
@@ -524,6 +529,7 @@ struct rbtree
 	
 	void erase(iterator pos) {
 		delete_node(pos._current);
+		_size -= 1;
 	}
 
 	bool erase(const key_type &key) {
