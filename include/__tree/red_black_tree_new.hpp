@@ -475,6 +475,14 @@ struct rbtree
                        / sizeof(node_type);
         }
 
+        void clear() {
+                base::destroy_tree(static_cast<node_type *>(root()));
+                _size = 0;
+                anchor()->parent = NULL;
+                anchor()->right = NULL;
+                anchor()->left = NULL;
+        }
+
         ft::pair<iterator, bool> insert(const value_type &value) {
                 node_type *insert_node = static_cast<node_type *>(root());
                 node_type *parent_node = NULL;
