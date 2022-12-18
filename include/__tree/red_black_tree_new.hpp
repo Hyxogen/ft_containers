@@ -616,21 +616,14 @@ struct rbtree
                 const node_type *bound_end = end().node();
 
                 while (current != NULL) {
-                        if (comp(current->value, key)) {
-                                current = static_cast<const node_type *>(
-                                    current->right);
-                        } else if (comp(key, current->value)) {
+			if (comp(key, current->value)) {
                                 bound_end = current;
                                 current = static_cast<const node_type *>(
                                     current->left);
-                        } else {
-                                if (current->right != NULL) {
-                                        bound_end
-                                            = static_cast<const node_type *>(
-                                                current->right->minimum());
-                                }
-                                break;
-                        }
+			} else {
+                                current = static_cast<const node_type *>(
+                                    current->right);
+			}
                 }
                 return const_iterator(bound_end);
         }
