@@ -527,9 +527,15 @@ struct rbtree
 		return iterator(const_cast<const rbtree *>(this)->find(key)._current);
         }
 	
-	void erase(iterator pos) {
-		delete_node(pos._current);
+	iterator erase(iterator pos) {
 		_size -= 1;
+		return delete_node(pos._current);
+	}
+
+	void erase(iterator first, iterator last) {
+		while (first != last) {
+			first = erase(first);
+		}
 	}
 
 	bool erase(const key_type &key) {
@@ -595,11 +601,15 @@ struct rbtree
                 return to->parent;
         }
 
-	void delete_node(node_type *const node) {
+	iterator delete_node(node_type *const node) {
                 rbcolor old_color = node->color;
                 rbnode_base *moved_node = NULL;
 		rbnode_base *parent = NULL; 
 
+                // todo do the cast to node_type* in the iterator class to
+                // reduce code duplication
+                const iterator next
+                    = iterator(static_cast<node_type *>(node->next(RB_RIGHT)));
                 if (node->left == NULL) {
                         moved_node = node->right;
                         parent = transplant(node, node->right);
@@ -623,11 +633,12 @@ struct rbtree
                         min->color = node->color;
                 }
 
-		delete_fix_iterators(node);
+                delete_fix_iterators(node);
 
                 base::destroy_node(node);
                 if (old_color == RB_BLACK)
                         delete_fix_balance(moved_node, parent);
+		return next;
 	}
 
 	void delete_fix_iterators(node_type *const node) {
