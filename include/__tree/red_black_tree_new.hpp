@@ -9,6 +9,7 @@
 #include <functional>
 #include <iterator>
 #include <iterator.hpp>
+#include <utility.hpp>
 
 //TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
@@ -463,7 +464,7 @@ struct rbtree
 	using base::rbegin;
 	using base::rend;
 	
-        bool insert(const value_type &value) {
+	ft::pair<iterator, bool> insert(const value_type &value) {
                 node_type *insert_node = static_cast<node_type *>(root());
                 node_type *parent_node = NULL;
 
@@ -476,7 +477,7 @@ struct rbtree
                                 insert_node = static_cast<node_type *>(
                                     parent_node->right);
                         } else {
-                                return false;
+				return ft::make_pair(iterator(parent_node), false);
                         }
                 }
 
@@ -495,7 +496,7 @@ struct rbtree
                 node->color = RB_RED;
 		insert_fix_iterators();
                 insert_fix_balance(node);
-                return true;
+		return ft::make_pair(iterator(node), true);
         }
 
         const_iterator find(const key_type &key) const {

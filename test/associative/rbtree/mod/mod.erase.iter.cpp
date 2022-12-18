@@ -29,22 +29,4 @@ int main() {
 			assert(tree.find(i) == tree.end());
 		}
 	}
-	{
-		//TODO add similair test to above in reverse direction
-                rbtree tree;
-		
-		for (int i = 0; i < 1; ++i) {
-			tree.insert(i);
-		}
-
-		rbtree::iterator it = tree.end();
-		rbtree::iterator tmp = it;
-		int i = 0;
-		do {
-			tmp = it--;
-			erase_and_validate(tree, tmp);
-			assert(tree.find(i) == tree.end());
-		} while (tmp != tree.begin());
-
-	}
 }

@@ -7,13 +7,16 @@
 
 template <typename Container, typename T>
 void insert_unique_and_validate(Container &container, const T &t) {
-        assert(container.insert(t));
+	const ft::pair<typename Container::iterator, bool> res = container.insert(t);
+	assert(res.second);
+	assert(*res.first == t);
         container.assert_correct();
 }
 
 template <typename Container, typename T>
 void insert_duplicate_and_validate(Container &container, const T &t) {
-        assert(!container.insert(t));
+	const ft::pair<typename Container::iterator, bool> res = container.insert(t);
+	assert(!res.second);
         container.assert_correct();
 }
 

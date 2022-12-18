@@ -65,11 +65,11 @@ int main() {
 
                 for (int i = 0; i < 800; ++i) {
                         int val = std::rand();
-                        const std::pair<std::set<int>::iterator, bool> res
+                        const std::pair<std::set<int>::iterator, bool> set_res
                             = set.insert(val);
-                        const bool uniq = tree.insert(val);
-                        assert(uniq == res.second);
-                        if (!res.second) {
+			const ft::pair<rbtree::iterator, bool> tree_res = tree.insert(val);
+                        assert(tree_res.second == set_res.second);
+                        if (!tree_res.second) {
                                 numbers.push_back(val);
                         }
                 }
@@ -80,13 +80,13 @@ int main() {
                         int val = std::rand();
 
                         if (ins || numbers.empty()) {
-                                const std::pair<std::set<int>::iterator, bool>
-                                    res = set.insert(val);
-                                const bool uniq = tree.insert(val);
-                                assert(uniq == res.second);
-                                if (!res.second) {
-                                        numbers.push_back(val);
-                                }
+				const std::pair<std::set<int>::iterator, bool> set_res
+				    = set.insert(val);
+				const ft::pair<rbtree::iterator, bool> tree_res = tree.insert(val);
+				assert(tree_res.second == set_res.second);
+				if (!tree_res.second) {
+					numbers.push_back(val);
+				}
                         } else {
                                 unsigned int offset
                                     = static_cast<unsigned int>(std::abs(val))
