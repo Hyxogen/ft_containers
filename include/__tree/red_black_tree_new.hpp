@@ -319,6 +319,9 @@ struct rbtree_iterator {
 		return *this;
 	}
 
+	inline node_type *node() { return _current; }
+	inline const node_type *node() const { return _current; }
+
         reference operator*() const { return _current->value; }
 	pointer operator->() const { return &(this->operator*()); }
 
@@ -484,39 +487,14 @@ struct rbtree
         }
 
         ft::pair<iterator, bool> insert(const value_type &value) {
-                node_type *insert_node = static_cast<node_type *>(root());
-                node_type *parent_node = NULL;
+                return insert_aux(static_cast<node_type *>(root()), value);
+        }
 
-                while (insert_node != NULL) {
-                        parent_node = insert_node;
-                        if (comp(value, parent_node->value)) {
-                                insert_node = static_cast<node_type *>(
-                                    parent_node->left);
-                        } else if (comp(parent_node->value, value)) {
-                                insert_node = static_cast<node_type *>(
-                                    parent_node->right);
-                        } else {
-				return ft::make_pair(iterator(parent_node), false);
-                        }
-                }
-
-                node_type *const node = base::create_node(value);
-
-                node->parent = parent_node;
-                if (parent_node == NULL) {
-                        node->parent = anchor();
-                        anchor()->parent = node;
-                } else if (comp(node->value, parent_node->value)) {
-                        parent_node->left = node;
-                } else {
-                        parent_node->right = node;
-                }
-
-                node->color = RB_RED;
-		insert_fix_iterators();
-                insert_fix_balance(node);
-		_size += 1;
-		return ft::make_pair(iterator(node), true);
+        ft::pair<iterator, bool> insert(iterator hint, const value_type &value) {
+		if (hint != begin()) {
+			--hint;
+		}
+                return insert_aux(hint.node(), value);
         }
 
         const_iterator find(const key_type &key) const {
@@ -734,6 +712,44 @@ struct rbtree
                 }
                 root()->color = RB_BLACK;
         }
+
+        ft::pair<iterator, bool> insert_aux(node_type *const search_start,
+                                            const value_type &value) {
+                node_type *insert_node = search_start;
+                node_type *parent_node = NULL;
+
+                while (insert_node != NULL) {
+                        parent_node = insert_node;
+                        if (comp(value, parent_node->value)) {
+                                insert_node = static_cast<node_type *>(
+                                    parent_node->left);
+                        } else if (comp(parent_node->value, value)) {
+                                insert_node = static_cast<node_type *>(
+                                    parent_node->right);
+                        } else {
+				return ft::make_pair(iterator(parent_node), false);
+                        }
+                }
+
+                node_type *const node = base::create_node(value);
+
+                node->parent = parent_node;
+                if (parent_node == NULL) {
+                        node->parent = anchor();
+                        anchor()->parent = node;
+                } else if (comp(node->value, parent_node->value)) {
+                        parent_node->left = node;
+                } else {
+                        parent_node->right = node;
+                }
+
+                node->color = RB_RED;
+		insert_fix_iterators();
+                insert_fix_balance(node);
+		_size += 1;
+		return ft::make_pair(iterator(node), true);
+        }
+
 
 #ifdef FT_DEBUG
         static std::size_t assert_correct(const node_type *const node) {
