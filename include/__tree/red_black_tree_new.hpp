@@ -13,6 +13,7 @@
 #include <iterator>
 #include <limits>
 #include <utility.hpp>
+#include <type_traits.hpp>
 
 // TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
@@ -164,7 +165,7 @@ template <typename T> struct rbnode : public rbnode_base {
             : rbnode_base(color, right, left, parent), value(value) {}
 };
 
-template <typename Compare, bool Empty = __is_empty(Compare)>
+template <typename Compare, bool Empty = is_empty<Compare>::value>
 struct rbtree_base_compare : public Compare {
       protected:
         rbtree_base_compare() : Compare() {}
@@ -207,7 +208,7 @@ template <typename Compare> struct rbtree_base_compare<Compare, false> {
         }
 };
 
-template <typename Allocator, bool Empty = __is_empty(Allocator)>
+template <typename Allocator, bool Empty = is_empty<Allocator>::value>
 struct rbtree_base_alloc : public Allocator {
       protected:
         typedef typename Allocator::const_reference const_reference;
@@ -268,7 +269,7 @@ template <typename Allocator> struct rbtree_base_alloc<Allocator, false> {
         }
 };
 
-template <typename KeyExtract, bool Empty = __is_empty(KeyExtract)>
+template <typename KeyExtract, bool Empty = is_empty<KeyExtract>::value>
 struct rbtree_base_extract : public KeyExtract {
       protected:
         typedef typename KeyExtract::argument_type argument_type;
