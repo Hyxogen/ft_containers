@@ -477,6 +477,8 @@ struct rbtree
         using typename base::node_type;
         using typename base::reverse_iterator;
         using typename base::value_type;
+	using typename base::compare_type;
+	using typename base::allocator_type;
         typedef std::size_t size_type;
 
       protected:
@@ -485,6 +487,9 @@ struct rbtree
 
       public:
         rbtree() : base(), _size(0) {}
+        explicit rbtree(const compare_type &cmp,
+                        const allocator_type &alloc = allocator_type())
+            : base(cmp, alloc), _size(0) {}
 
         using base::anchor;
         using base::begin;
