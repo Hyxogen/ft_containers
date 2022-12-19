@@ -5,12 +5,14 @@
 #include <cassert>
 #include <cstddef>
 #endif
+//TODO can this include be removed?
 #include <algorithm>
 #include <functional>
 #include <iterator.hpp>
 #include <iterator>
 #include <limits>
 #include <utility.hpp>
+#include <algorithm.hpp>
 
 // TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
@@ -394,10 +396,10 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
         rbtree_base(const compare_type &comp = compare_type(),
                     const allocator_type &alloc = allocator_type())
             : extract_base(), compare_base(comp), alloc_base(alloc),
-              _anchor(RB_BLACK, NULL, NULL, NULL) {}
+              _anchor(RB_BLACK, &_anchor, &_anchor, NULL) {}
         rbtree_base(const rbtree_base &other)
             : extract_base(), compare_base(other), alloc_base(other),
-              _anchor(RB_BLACK, NULL, NULL, NULL) {}
+              _anchor(RB_BLACK, &_anchor, &_anchor, NULL) {}
 
         ~rbtree_base() { destroy_tree(static_cast<node_type *>(root())); }
 
@@ -523,8 +525,8 @@ struct rbtree
                 base::destroy_tree(static_cast<node_type *>(root()));
                 _size = 0;
                 anchor()->parent = NULL;
-                anchor()->right = NULL;
-                anchor()->left = NULL;
+                anchor()->right = anchor();
+                anchor()->left = anchor();
         }
 
         ft::pair<iterator, bool> insert(const value_type &value) {
@@ -752,9 +754,15 @@ struct rbtree
         void delete_fix_iterators(node_type *const node) {
                 if (node == anchor()->left) {
                         anchor()->left = node->predecessor();
+			if (anchor()->left == NULL) {
+				anchor()->left = anchor();
+			}
                 }
                 if (node == anchor()->right) {
                         anchor()->right = node->successor();
+			if (anchor()->right == NULL) {
+				anchor()->right = anchor();
+			}
                 }
         }
 
@@ -802,10 +810,10 @@ struct rbtree
         }
 
         void insert_fix_iterators() {
-                if (anchor()->left == NULL) {
+                if (anchor()->left == anchor()) {
                         anchor()->left = root();
                 }
-                if (anchor()->right == NULL) {
+                if (anchor()->right == anchor()) {
                         anchor()->right = root();
                 }
                 if (anchor()->left->right != NULL) {
@@ -845,17 +853,19 @@ struct rbtree
                 node_type *insert_node = search_start;
                 node_type *parent_node = NULL;
 
-                while (insert_node != NULL) {
-                        parent_node = insert_node;
-                        if (comp(value, parent_node->value)) {
-                                insert_node = static_cast<node_type *>(
-                                    parent_node->left);
-                        } else if (comp(parent_node->value, value)) {
-                                insert_node = static_cast<node_type *>(
-                                    parent_node->right);
-                        } else {
-                                return ft::make_pair(iterator(parent_node),
-                                                     false);
+                if (insert_node != anchor()) {
+                        while (insert_node != NULL) {
+                                parent_node = insert_node;
+                                if (comp(value, parent_node->value)) {
+                                        insert_node = static_cast<node_type *>(
+                                            parent_node->left);
+                                } else if (comp(parent_node->value, value)) {
+                                        insert_node = static_cast<node_type *>(
+                                            parent_node->right);
+                                } else {
+                                        return ft::make_pair(
+                                            iterator(parent_node), false);
+                                }
                         }
                 }
 
@@ -911,6 +921,21 @@ struct rbtree
         static void assert_correct(const node_type *const) {}
 #endif
 };
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator==(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+	return lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator!=(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+	return !(lhs == rhs);
+}
+
 }
 }
 
