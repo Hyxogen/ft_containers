@@ -450,6 +450,18 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
 		if (other.root() != NULL) {
 			other.root()->parent = other.anchor();
 		}
+		if (anchor()->left == other.anchor()) {
+			anchor()->left = anchor();
+		}
+		if (anchor()->right == other.anchor()) {
+			anchor()->right = anchor();
+		}
+		if (other.anchor()->left == anchor()) {
+			other.anchor()->left = other.anchor();
+		}
+		if (other.anchor()->right == anchor()) {
+			other.anchor()->right = other.anchor();
+		}
                 compare_base::swap(other);
                 alloc_base::swap(other);
 		extract_base::swap(other);

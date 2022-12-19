@@ -11,9 +11,11 @@ int main() {
 	{
 		rbtree tree1, tree2;
 
+		assert(tree1 == tree2);
 		tree1.swap(tree2);
 		assert(tree1.empty());
 		assert(tree2.empty());
+		assert(tree1 == tree2);
 	}
 	{
 		rbtree tree1, tree2;
