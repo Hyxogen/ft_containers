@@ -395,6 +395,9 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
                     const allocator_type &alloc = allocator_type())
             : extract_base(), compare_base(comp), alloc_base(alloc),
               _anchor(RB_BLACK, NULL, NULL, NULL) {}
+        rbtree_base(const rbtree_base &other)
+            : extract_base(), compare_base(other), alloc_base(other),
+              _anchor(RB_BLACK, NULL, NULL, NULL) {}
 
         ~rbtree_base() { destroy_tree(static_cast<node_type *>(root())); }
 
@@ -496,6 +499,9 @@ struct rbtree
                const allocator_type &alloc = allocator_type())
             : base(comp, alloc), _size(0) {
                 insert(first, last);
+        }
+        rbtree(const rbtree &other) : base(other), _size(0) {
+                insert(other.begin(), other.end());
         }
 
         using base::anchor;
