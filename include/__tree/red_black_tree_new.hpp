@@ -563,20 +563,15 @@ struct rbtree
                 const node_type *current
                     = static_cast<const node_type *>(root());
 
-		//TODO this if statement can be removed
-                if (current != anchor()) {
-                        while (current != NULL) {
-                                if (comp(key, current->value)) {
-                                        current
-                                            = static_cast<const node_type *>(
-                                                current->left);
-                                } else if (comp(current->value, key)) {
-                                        current
-                                            = static_cast<const node_type *>(
-                                                current->right);
-                                } else {
-                                        return const_iterator(current);
-                                }
+                while (current != NULL) {
+                        if (comp(key, current->value)) {
+                                current = static_cast<const node_type *>(
+                                    current->left);
+                        } else if (comp(current->value, key)) {
+                                current = static_cast<const node_type *>(
+                                    current->right);
+                        } else {
+                                return const_iterator(current);
                         }
                 }
                 return end();
