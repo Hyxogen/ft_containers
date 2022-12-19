@@ -18,9 +18,6 @@
 // TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
 
-// TODO make own implementation of std::is_empty with __is_empty to be able to
-// turn it off
-
 // TODO add insertion tests
 
 namespace ft {
