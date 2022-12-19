@@ -89,7 +89,7 @@ analyze:
 run: $(TSTFILES)
 	-@rc=0; count=0; res=0; \
 	for file in $(TSTFILES); do \
-		./$$file; \
+		timeout 5s ./$$file; \
 		res="$$?"; \
 		if [ "$$res" -eq 0 ]; \
 		then printf PASSED; \
