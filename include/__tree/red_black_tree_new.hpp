@@ -293,8 +293,8 @@ template <typename KeyExtract> struct rbtree_base_extract<KeyExtract, false> {
         rbtree_base_extract() : _key_extract() {}
         rbtree_base_extract(const KeyExtract &other) : _key_extract(other) {}
 
-        KeyExtract &get_key_extract() { return &_key_extract; }
-        const KeyExtract &get_key_extract() const { return &_key_extract; }
+        KeyExtract &get_key_extract() { return _key_extract; }
+        const KeyExtract &get_key_extract() const { return _key_extract; }
 
         void swap(rbtree_base_extract &other) {
                 std::swap(_key_extract, other._key_extract);
