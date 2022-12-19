@@ -5,9 +5,7 @@
 #include <cassert>
 #include <cstddef>
 #endif
-// TODO can this include be removed?
 #include <algorithm.hpp>
-#include <algorithm>
 #include <functional>
 #include <iterator.hpp>
 #include <iterator>
