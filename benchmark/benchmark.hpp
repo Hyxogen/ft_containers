@@ -15,18 +15,15 @@
 
 #ifdef BENCHMARK_STD
 #include <vector>
-#define vector std::vector
 #include <map>
-#define map std::map
 #include <set>
-#define set std::set
+#include <set.hpp>
+using namespace std;
 #else
 #include <vector.hpp>
-#define vector ft::vector
 #include <map.hpp>
-#define map ft::map
 #include <set.hpp>
-#define set ft::set
+using namespace ft;
 #endif
 
 #define DO_NOT_OPTIMIZE(statement)                                            \
@@ -39,6 +36,8 @@
         };                                                                    \
         std::clock_t end = std::clock();                                      \
         std::printf("%e\n", ((double)(end - start) / BENCHMARK_ITER));
+
+#define TIME(statement) BENCHMARK_N(statement, 1)
 
 #define BENCHMARK(statement) BENCHMARK_N(statement, BENCHMARK_ITER)
 #endif
