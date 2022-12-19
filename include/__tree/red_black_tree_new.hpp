@@ -936,6 +936,34 @@ bool operator!=(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator>
 	return !(lhs == rhs);
 }
 
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator<(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+	return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator>(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+	return rhs < lhs;
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator<=(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+	return !(lhs > rhs);
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator>=(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+	return !(lhs < rhs);
+}
+
 }
 }
 
