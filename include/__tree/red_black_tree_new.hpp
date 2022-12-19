@@ -518,6 +518,14 @@ struct rbtree
                 insert(other.begin(), other.end());
         }
 
+	rbtree &operator=(const rbtree &other) {
+		if (this != &other) {
+			rbtree tmp(other);
+			swap(tmp);
+		}
+		return *this;
+	}
+
         using base::anchor;
         using base::begin;
         using base::end;
