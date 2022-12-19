@@ -487,9 +487,16 @@ struct rbtree
 
       public:
         rbtree() : base(), _size(0) {}
-        explicit rbtree(const compare_type &cmp,
+        explicit rbtree(const compare_type &comp,
                         const allocator_type &alloc = allocator_type())
-            : base(cmp, alloc), _size(0) {}
+            : base(comp, alloc), _size(0) {}
+        template <class InputIt>
+        rbtree(InputIt first, InputIt last,
+               const compare_type &comp = compare_type(),
+               const allocator_type &alloc = allocator_type())
+            : base(comp, alloc), _size(0) {
+                insert(first, last);
+        }
 
         using base::anchor;
         using base::begin;
