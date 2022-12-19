@@ -380,7 +380,7 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
         typedef KeyType key_type;
         typedef ValueType value_type;
         typedef rbnode<value_type> node_type;
-        typedef Compare compare_type;
+        typedef Compare key_compare;
         typedef Allocator allocator_type;
         typedef rbtree_iterator<value_type, value_type *, value_type &>
             iterator;
@@ -393,7 +393,7 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
       protected:
         rbnode_base _anchor;
 
-        rbtree_base(const compare_type &comp = compare_type(),
+        rbtree_base(const key_compare &comp = key_compare(),
                     const allocator_type &alloc = allocator_type())
             : extract_base(), compare_base(comp), alloc_base(alloc),
               _anchor(RB_BLACK, &_anchor, &_anchor, NULL) {}
@@ -494,7 +494,7 @@ struct rbtree
         using typename base::node_type;
         using typename base::reverse_iterator;
         using typename base::value_type;
-	using typename base::compare_type;
+	using typename base::key_compare;
 	using typename base::allocator_type;
         typedef std::size_t size_type;
 
@@ -504,12 +504,12 @@ struct rbtree
 
       public:
         rbtree() : base(), _size(0) {}
-        explicit rbtree(const compare_type &comp,
+        explicit rbtree(const key_compare &comp,
                         const allocator_type &alloc = allocator_type())
             : base(comp, alloc), _size(0) {}
         template <class InputIt>
         rbtree(InputIt first, InputIt last,
-               const compare_type &comp = compare_type(),
+               const key_compare &comp = key_compare(),
                const allocator_type &alloc = allocator_type())
             : base(comp, alloc), _size(0) {
                 insert(first, last);
@@ -667,6 +667,10 @@ struct rbtree
                 return iterator(
                     const_cast<const rbtree *>(this)->upper_bound(key).node());
         }
+
+	key_compare key_comp() const {
+		return get_compare();
+	}
 
         void assert_correct() const {
                 assert_correct(static_cast<const node_type *>(root()));
