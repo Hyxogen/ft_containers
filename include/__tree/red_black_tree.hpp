@@ -1,49 +1,30 @@
-// red black tree implementation
-
-// Copyright (C) 2022 Daan Meijer
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef RED_BLACK_TREE_HPP
 #define RED_BLACK_TREE_HPP
 
+#ifdef FT_DEBUG
+#include <cassert>
 #include <cstddef>
+#endif
+#include <algorithm.hpp>
+#include <functional>
 #include <iterator.hpp>
 #include <iterator>
-#include <stdexcept>
+#include <limits>
 #include <utility.hpp>
-// todo for debug purposes, remove
-#include <cassert>
-#include <iostream>
-#include <string>
+#include <type_traits.hpp>
 
-// TODO
-// Check how to handle insert of a value that already exists
+// TODO add option to disable attributes
+#define FORCE_INLINE __attribute__((always_inline))
+
+// TODO add insertion tests
 
 namespace ft {
 namespace detail {
 
-struct rb_violation : public std::logic_error {
-
-      private:
-        const void *const _where;
-
-      public:
-        rb_violation(const std::string &what, const void *where)
-            : std::logic_error(what), _where(where) {}
-
-        inline const void *where() const { return _where; }
-};
+enum rbcolor { RB_RED, RB_BLACK };
+typedef bool rbside;
+const rbside RB_LEFT = false;
+const rbside RB_RIGHT = true;
 
 template <typename T> struct use_self : public std::unary_function<T, T> {
         typedef std::unary_function<T, T> base;
@@ -67,180 +48,252 @@ struct use_first
         }
 };
 
-enum rbcolor { RB_RED, RB_BLACK };
-
-//TODO rename to rbside
-struct rbdir {
-        bool dir;
-
-      protected:
-        rbdir(bool dir) : dir(dir) {}
-
-      public:
-        inline bool operator==(const rbdir &other) const {
-                return dir == other.dir;
-        }
-        inline rbdir operator!() const { return rbdir(!dir); }
-        inline rbdir opposite() const { return this->operator!(); }
-};
-
-template <bool Direction> struct base_dir : public rbdir {
-        base_dir() : rbdir(Direction) {}
-};
-
-typedef base_dir<true> right_dir;
-typedef base_dir<false> left_dir;
-
 struct rbnode_base {
-        typedef rbnode_base this_type;
-
         rbcolor color;
-        this_type *right;
-        this_type *left;
-        this_type *parent;
+        rbnode_base *right;
+        rbnode_base *left;
+        rbnode_base *parent;
 
-        rbnode_base(rbcolor color = RB_BLACK, this_type *parent = NULL,
-                    this_type *right = NULL, this_type *left = NULL)
-                : color(color), right(right), left(left), parent(parent) {}
+        // TODO move implementation to cpp file
+        rbnode_base(rbcolor color, rbnode_base *right, rbnode_base *left,
+                    rbnode_base *parent)
+            : color(color), right(right), left(left), parent(parent) {}
 
-        void swap(this_type &other) {
+        /* TODO check if inlining makes a difference */
+        inline rbside side() const {
+#ifdef FT_DEBUG
+                assert(parent != NULL && "cannot get side of a root node");
+#endif
+                if (parent->left == this) {
+                        return RB_LEFT;
+                }
+                return RB_RIGHT;
+        }
+
+        inline void swap(rbnode_base &other) {
                 std::swap(color, other.color);
                 std::swap(right, other.right);
                 std::swap(left, other.left);
                 std::swap(parent, other.parent);
         }
-        
-        inline this_type *get(const rbdir &dir) {
-                if (dir == right_dir())
-                        return right;
-                return left;
+
+        inline rbnode_base *get_side(const rbside side) {
+                if (side == RB_LEFT) {
+                        return left;
+                }
+                return right;
         }
 
-        inline void set(const rbdir &dir, this_type *ptr) {
-                if (dir == right_dir())
-                        right = ptr;
-                else
-                        left = ptr;
+        inline const rbnode_base *get_side(const rbside side) const {
+                if (side == RB_LEFT) {
+                        return left;
+                }
+                return right;
         }
 
-        inline rbdir get_dir() const {
-                if (parent->left == this)
-                        return left_dir();
-                return right_dir();
-        }
-
-	static rbcolor get_color(const this_type *const node) {
-		if (node == NULL) {
-			return RB_BLACK;
-		}
-		return node->color;
-	}
-
-        static this_type *bound(const rbdir &dir, this_type *node,
-                                const this_type *const sentinel) {
-                while (node->get(dir) != sentinel)
-                        node = node->get(dir);
-                return node;
-        }
-
-        static this_type *minimum(this_type *node,
-                                  const this_type *const sentinel) {
-                return bound(left_dir(), node, sentinel);
-        }
-
-        static this_type *maximum(this_type *node,
-                                  const this_type *const sentinel) {
-                return bound(right_dir(), node, sentinel);
-        }
-
-        static this_type *next(this_type *node, const this_type *sentinel,
-                               const rbdir &dir) {
-                if (node->get(dir) != sentinel) {
-                        node = bound(dir.opposite(), node->get(dir), sentinel);
+        inline void set_side(const rbside side, rbnode_base *node) {
+                if (side == RB_LEFT) {
+                        left = node;
                 } else {
-                        this_type *parent = node->parent;
-                        while (parent != sentinel
-                               && node == parent->get(dir)) {
-                                node = parent;
-                                parent = parent->parent;
-                        }
-                        node = parent;
+                        right = node;
+                }
+        }
+
+        inline const rbnode_base *bound(const rbside side) const {
+                const rbnode_base *node = this;
+                while (node->get_side(side) != NULL) {
+                        node = node->get_side(side);
                 }
                 return node;
         }
 
-        static this_type *predecessor(this_type *node,
-                                      const this_type *sentinel) {
-                return next(node, sentinel, left_dir());
+        inline rbnode_base *bound(const rbside side) {
+                return const_cast<rbnode_base *>(
+                    static_cast<const rbnode_base *>(this)->bound(side));
         }
 
-        static this_type *successor(this_type *node,
-                                    const this_type *sentinel) {
-                return next(node, sentinel, right_dir());
+        // TODO move to cpp file
+        const rbnode_base *next(const rbside side) const {
+                const rbnode_base *node = this;
+                if (node->get_side(side) != NULL) {
+                        node = node->get_side(side)->bound(!side);
+                } else {
+                        rbnode_base *node_parent = node->parent;
+                        // TODO try to remove the NULL check
+                        while (node_parent != NULL
+                               && node == node_parent->get_side(side)) {
+                                node = node_parent;
+                                node_parent = node_parent->parent;
+                        }
+                        if (node->get_side(side) != node_parent) {
+                                node = node_parent;
+                        }
+                }
+                return node;
+        }
+
+        rbnode_base *next(const rbside side) {
+                return const_cast<rbnode_base *>(
+                    static_cast<const rbnode_base *>(this)->next(side));
+        }
+
+        inline rbnode_base *predecessor() { return next(RB_LEFT); }
+        inline rbnode_base *successor() { return next(RB_RIGHT); }
+        inline const rbnode_base *predecessor() const { return next(RB_LEFT); }
+        inline const rbnode_base *successor() const { return next(RB_RIGHT); }
+        inline rbnode_base *minimum() { return bound(RB_LEFT); }
+        inline rbnode_base *maximum() { return bound(RB_LEFT); }
+
+        inline static rbcolor get_color(const rbnode_base *const node) {
+                if (node == NULL) {
+                        return RB_BLACK;
+                }
+                return node->color;
         }
 };
 
 template <typename T> struct rbnode : public rbnode_base {
-        typedef rbnode this_type;
         T value;
 
-        rbnode(rbcolor color = RB_BLACK, this_type *parent = NULL,
-               this_type *right = NULL, this_type *left = NULL,
-               const T &value = T())
-            : rbnode_base(color, parent, right, left), value(value) {}
+        rbnode(rbcolor color, rbnode_base *right, rbnode_base *left,
+               rbnode_base *parent, const T &value)
+            : rbnode_base(color, right, left, parent), value(value) {}
+};
 
-        ~rbnode() {}
+template <typename Compare, bool Empty = is_empty<Compare>::value>
+struct rbtree_base_compare : public Compare {
+      protected:
+        rbtree_base_compare() : Compare() {}
+        rbtree_base_compare(const Compare &other) : Compare(other) {}
 
-        static bool
-        mismatch(const this_type *lhs, const this_type *rhs,
-                 const this_type *lhs_sentinel, const this_type *rhs_sentinel,
-                 std::pair<const this_type *, const this_type *> **mpair) {
-                if (lhs == lhs_sentinel || rhs == rhs_sentinel) {
-                        if (lhs != lhs_sentinel || rhs != rhs_sentinel) {
-                                *mpair = new std::pair<const this_type *,
-                                                       const this_type *>(lhs,
-                                                                          rhs);
-                                return true;
-                        } else {
-                                return false;
-                        }
-                }
-                if (lhs->value != rhs->value) {
-                        *mpair = new std::pair<const this_type *,
-                                               const this_type *>(lhs, rhs);
-                        return true;
-                }
-                if (mismatch(static_cast<const this_type *>(lhs->left),
-                             static_cast<const this_type *>(rhs->left),
-                             lhs_sentinel, rhs_sentinel, mpair))
-                        return true;
-                if (mismatch(static_cast<const this_type *>(lhs->right),
-                             static_cast<const this_type *>(rhs->right),
-                             lhs_sentinel, rhs_sentinel, mpair))
-                        return true;
-                return false;
+        inline Compare &get_compare() { return *this; }
+        inline const Compare &get_compare() const { return *this; }
+
+        template <typename T> bool compare(const T &lhs, const T &rhs) {
+                return Compare::operator()(lhs, rhs);
         }
 
-        static void debug_print(const rbnode *node,
-                                const rbnode *const sentinel,
-                                const rbnode *const special = NULL,
-                                std::size_t indent = 0) {
-                std::cout << std::string(indent, ' ');
-                if (node == sentinel) {
+        template <typename T> bool compare(const T &lhs, const T &rhs) const {
+                return Compare::operator()(lhs, rhs);
+        }
 
-                        std::cout << '-' << std::endl;
-                } else {
-                        std::cout
-                            << (special == node ? "*" : "") << node->value
-                            << ","
-                            << (rbnode_base::get_color(node) == RB_BLACK ? 'B'
-                                                                         : 'R')
-                            << std::endl;
-                        debug_print(static_cast<const rbnode *>(node->left),
-                                    sentinel, special, indent + 4);
-                        debug_print(static_cast<const rbnode *>(node->right),
-                                    sentinel, special, indent + 4);
-                }
+        FORCE_INLINE void swap(rbtree_base_compare &) {}
+};
+
+template <typename Compare> struct rbtree_base_compare<Compare, false> {
+      protected:
+        Compare _compare;
+
+        rbtree_base_compare() : _compare() {}
+        rbtree_base_compare(const Compare &other) : _compare(other) {}
+
+        inline Compare &get_compare() { return _compare; }
+        inline const Compare &get_compare() const { return _compare; }
+
+        template <typename T> bool compare(const T &lhs, const T &rhs) {
+                return _compare(lhs, rhs);
+        }
+
+        template <typename T> bool compare(const T &lhs, const T &rhs) const {
+                return _compare(lhs, rhs);
+        }
+
+        void swap(rbtree_base_compare &other) {
+                std::swap(_compare, other._compare);
+        }
+};
+
+template <typename Allocator, bool Empty = is_empty<Allocator>::value>
+struct rbtree_base_alloc : public Allocator {
+      protected:
+        typedef typename Allocator::const_reference const_reference;
+        typedef typename Allocator::pointer pointer;
+        typedef typename Allocator::size_type size_type;
+
+        rbtree_base_alloc() : Allocator() {}
+        rbtree_base_alloc(const Allocator &other) : Allocator(other) {}
+
+        Allocator &get_allocator() { return *this; }
+
+        pointer allocate(size_type n, const void *hint = 0) {
+                return Allocator::allocate(n, hint);
+        }
+
+        void deallocate(pointer p, size_type n) {
+                Allocator::deallocate(p, n);
+        }
+
+        void construct(pointer p, const_reference val) {
+                Allocator::construct(p, val);
+        }
+
+        void destroy(pointer p) { Allocator::destroy(p); }
+
+        FORCE_INLINE void swap(rbtree_base_alloc &) {}
+};
+
+template <typename Allocator> struct rbtree_base_alloc<Allocator, false> {
+      protected:
+        typedef typename Allocator::const_reference const_reference;
+        typedef typename Allocator::pointer pointer;
+        typedef typename Allocator::size_type size_type;
+
+        Allocator _allocator;
+
+        rbtree_base_alloc() : _allocator() {}
+        rbtree_base_alloc(const Allocator &other) : _allocator(other) {}
+
+        Allocator &get_allocator() { return _allocator; }
+
+        pointer allocate(size_type n, const void *hint = 0) {
+                return _allocator.allocate(n, hint);
+        }
+
+        void deallocate(pointer p, size_type n) {
+                _allocator.deallocate(p, n);
+        }
+
+        void construct(pointer p, const_reference val) {
+                _allocator.construct(p, val);
+        }
+
+        void destroy(pointer p) { _allocator.destroy(p); }
+
+        void swap(rbtree_base_alloc &other) {
+                std::swap(_allocator, other._allocator);
+        }
+};
+
+template <typename KeyExtract, bool Empty = is_empty<KeyExtract>::value>
+struct rbtree_base_extract : public KeyExtract {
+      protected:
+        typedef typename KeyExtract::argument_type argument_type;
+        typedef typename KeyExtract::result_type result_type;
+
+        rbtree_base_extract() : KeyExtract() {}
+        rbtree_base_extract(const KeyExtract &other) : KeyExtract(other) {}
+
+        KeyExtract &get_key_extract() { return *this; }
+        const KeyExtract &get_key_extract() const { return *this; }
+
+        FORCE_INLINE void swap(rbtree_base_extract &) {}
+};
+
+template <typename KeyExtract> struct rbtree_base_extract<KeyExtract, false> {
+      protected:
+        typedef typename KeyExtract::argument_type argument_type;
+        typedef typename KeyExtract::result_type result_type;
+
+        KeyExtract _key_extract;
+
+        rbtree_base_extract() : _key_extract() {}
+        rbtree_base_extract(const KeyExtract &other) : _key_extract(other) {}
+
+        KeyExtract &get_key_extract() { return _key_extract; }
+        const KeyExtract &get_key_extract() const { return _key_extract; }
+
+        void swap(rbtree_base_extract &other) {
+                std::swap(_key_extract, other._key_extract);
         }
 };
 
@@ -255,79 +308,76 @@ struct rbtree_iterator {
         typedef rbtree_iterator<T, T *, T &> iterator;
 
         node_type *_current;
-        const node_type *_sentinel;
 
-        rbtree_iterator(const iterator &other)
-            : _current(other._current), _sentinel(other._sentinel) {}
-        rbtree_iterator(const node_type *current, const node_type *sentinel)
-            : _current(const_cast<node_type *>(current)), _sentinel(sentinel) {
-        }
+        rbtree_iterator(const iterator &other) : _current(other._current) {}
+        rbtree_iterator(const node_type *current)
+            : _current(const_cast<node_type *>(current)) {}
 
         rbtree_iterator &operator=(const iterator &other) {
                 if (this != &other) {
                         _current = other._current;
-                        _sentinel = other._sentinel;
                 }
                 return *this;
         }
-        
+
+        inline node_type *node() { return _current; }
+        inline const node_type *node() const { return _current; }
+
         reference operator*() const { return _current->value; }
         pointer operator->() const { return &(this->operator*()); }
 
-        // TODO check for performance loss by using this abstraction instead of
-        // hardcoding operator++ and operator-- separately
-        rbtree_iterator &advance(const rbdir &dir) {
-                // TODO use node_type::next here
-                _current = static_cast<node_type *>(
-                    node_type::next(_current, _sentinel, dir));
+        rbtree_iterator &operator++() {
+                _current = static_cast<node_type *>(_current->next(RB_RIGHT));
                 return *this;
         }
 
-        rbtree_iterator &operator++() { return advance(right_dir()); }
-
         rbtree_iterator operator++(int) {
                 const rbtree_iterator tmp(*this);
-                advance(right_dir());
+                _current = static_cast<node_type *>(_current->next(RB_RIGHT));
                 return tmp;
         }
 
-        rbtree_iterator &operator--() { return advance(left_dir()); }
+        rbtree_iterator &operator--() {
+                _current = static_cast<node_type *>(_current->next(RB_LEFT));
+                return *this;
+        }
 
         rbtree_iterator operator--(int) {
                 const rbtree_iterator tmp(*this);
-                advance(left_dir());
+                _current = static_cast<node_type *>(_current->next(RB_LEFT));
                 return tmp;
         }
 };
 
-// See lwg defect 179
-template <typename T, typename PointerA, typename ReferenceA,
+template <typename Type, typename PointerA, typename ReferenceA,
           typename PointerB, typename ReferenceB>
-inline bool operator==(const rbtree_iterator<T, PointerA, ReferenceA> &lhs,
-                       const rbtree_iterator<T, PointerB, ReferenceB> &rhs) {
+inline bool
+operator==(const rbtree_iterator<Type, PointerA, ReferenceA> &lhs,
+           const rbtree_iterator<Type, PointerB, ReferenceB> &rhs) {
         return lhs._current == rhs._current;
 }
 
-template <typename T, typename PointerA, typename ReferenceA,
+template <typename Type, typename PointerA, typename ReferenceA,
           typename PointerB, typename ReferenceB>
-inline bool operator!=(const rbtree_iterator<T, PointerA, ReferenceA> &lhs,
-                       const rbtree_iterator<T, PointerB, ReferenceB> &rhs) {
+inline bool
+operator!=(const rbtree_iterator<Type, PointerA, ReferenceA> &lhs,
+           const rbtree_iterator<Type, PointerB, ReferenceB> &rhs) {
         return !(lhs == rhs);
 }
 
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
-struct rbtree_base_types {
+struct rbtree_base : public rbtree_base_extract<KeyExtract>,
+                     public rbtree_base_compare<Compare>,
+                     public rbtree_base_alloc<Allocator> {
+        typedef rbtree_base_extract<KeyExtract> extract_base;
+        typedef rbtree_base_compare<Compare> compare_base;
+        typedef rbtree_base_alloc<Allocator> alloc_base;
         typedef KeyType key_type;
         typedef ValueType value_type;
         typedef rbnode<value_type> node_type;
         typedef Compare key_compare;
         typedef Allocator allocator_type;
-        typedef std::size_t size_type;
-        typedef typename Allocator::pointer pointer;
-        typedef typename Allocator::reference reference;
-        typedef typename Allocator::const_pointer const_pointer;
-        typedef typename Allocator::const_reference const_reference;
         typedef rbtree_iterator<value_type, value_type *, value_type &>
             iterator;
         typedef rbtree_iterator<value_type, const value_type *,
@@ -335,197 +385,36 @@ struct rbtree_base_types {
             const_iterator;
         typedef ft::reverse_iterator<iterator> reverse_iterator;
         typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
-        typedef KeyExtract key_extract_type;
-};
 
-template <typename KeyType, typename PairType, typename Compare,
-          typename Allocator>
-struct rbtree_base
-    : public rbtree_base_types<KeyType, PairType, use_first<PairType>, Compare,
-                               Allocator> {
-        typedef rbtree_base_types<KeyType, PairType, use_first<PairType>,
-                                  Compare, Allocator>
-            base;
-        // TODO add value_compare type
-        using typename base::node_type;
-        using typename base::key_type;
-        using typename base::value_type;
-        using typename base::key_compare;
-        using typename base::allocator_type;
-        using typename base::size_type;
-        using typename base::iterator;
-        using typename base::const_iterator;
-        using typename base::reverse_iterator;
-        using typename base::const_reverse_iterator;
-        using typename base::key_extract_type;
-};
-
-template <typename KeyType, typename Compare, typename Allocator>
-struct rbtree_base<KeyType, KeyType, Compare, Allocator>
-    : public rbtree_base_types<KeyType, KeyType, use_self<KeyType>, Compare,
-                               Allocator> {
-        typedef rbtree_base_types<KeyType, KeyType, use_self<KeyType>, Compare,
-                                  Allocator>
-            base;
-        // TODO add value_compare type
-        using typename base::node_type;
-        using typename base::key_type;
-        using typename base::value_type;
-        using typename base::key_compare;
-        using typename base::allocator_type;
-        using typename base::size_type;
-        using typename base::iterator;
-        using typename base::const_iterator;
-        using typename base::reverse_iterator;
-        using typename base::const_reverse_iterator;
-        using typename base::key_extract_type;
-};
-
-template <typename KeyType, typename ValueType, typename Compare,
-          typename Allocator>
-struct rbtree_base_alloc
-    : public rbtree_base<KeyType, ValueType, Compare, Allocator> {
-        typedef rbtree_base<KeyType, ValueType, Compare, Allocator> base;
-
-        using typename base::node_type;
-        using typename base::key_type;
-        using typename base::value_type;
-        using typename base::key_compare;
-        using typename base::allocator_type;
-        using typename base::size_type;
-        using typename base::iterator;
-        using typename base::const_iterator;
-        using typename base::reverse_iterator;
-        using typename base::const_reverse_iterator;
-        using typename base::key_extract_type;
-        // TODO add value_compare type
-        
       protected:
-        node_type *_root;
-        allocator_type _allocator;
+        rbnode_base _anchor;
 
-        rbtree_base_alloc(const allocator_type &alloc = allocator_type())
-            : _root(NULL),
-              _allocator(alloc) {}
+        rbtree_base(const key_compare &comp = key_compare(),
+                    const allocator_type &alloc = allocator_type())
+            : extract_base(), compare_base(comp), alloc_base(alloc),
+              _anchor(RB_BLACK, &_anchor, &_anchor, NULL) {}
+        rbtree_base(const rbtree_base &other)
+            : extract_base(), compare_base(other), alloc_base(other),
+              _anchor(RB_BLACK, &_anchor, &_anchor, NULL) {}
 
-        // This copy constructor only copies the allocator
-        // It will not copy any nodes
-        // TODO remove as it is confusing
-        rbtree_base_alloc(const rbtree_base_alloc &other)
-            : _root(NULL),
-              _allocator(other._allocator) {}
+        ~rbtree_base() { destroy_tree(static_cast<node_type *>(root())); }
 
-        ~rbtree_base_alloc() { destroy_tree(_root); }
+        using alloc_base::get_allocator;
 
-        void swap(rbtree_base_alloc &other) {
-                std::swap(_root, other._root);
-                std::swap(_allocator, other._allocator);
-        }
-
-        void destroy_node(node_type *node) {
-                _allocator.destroy(node);
-                _allocator.deallocate(node, 1);
-        }
-
-        void destroy_tree(node_type *node) {
-                if (node == sentinel())
-                        return;
-                destroy_tree(static_cast<node_type *>(node->left));
-                destroy_tree(static_cast<node_type *>(node->right));
-                destroy_node(node);
-        }
-
-        node_type *create_node(const value_type &value) {
-                node_type *node = _allocator.allocate(1);
-                try {
-                        _allocator.construct(
-                            node, node_type(RB_BLACK, NULL, sentinel(),
-                                            sentinel(), value));
-                } catch (...) {
-                        _allocator.deallocate(node, 1);
-                        throw;
-                }
-                return node;
-        }
-
-      public:
-        node_type *root() { return _root; }
-        const node_type *root() const { return _root; }
-        node_type *sentinel() { return NULL; }
-        const node_type *sentinel() const { return NULL; }
-};
-
-template <typename KeyType, typename ValueType, typename Compare,
-          typename Allocator>
-struct rbtree
-    : public rbtree_base_alloc<KeyType, ValueType, Compare, Allocator> {
-        typedef rbtree_base_alloc<KeyType, ValueType, Compare, Allocator> base;
-        using typename base::node_type;
-        using typename base::key_type;
-        using typename base::value_type;
-        using typename base::key_compare;
-        using typename base::allocator_type;
-        using typename base::size_type;
-        using typename base::iterator;
-        using typename base::const_iterator;
-        using typename base::reverse_iterator;
-        using typename base::const_reverse_iterator;
-        using typename base::key_extract_type;
-        //typedef typename base::value_type value_type;
-         // TODO add value_compare type
- 
-      private:
-        using base::_root;
-        size_type _size;
-        const key_extract_type _key_extract;
-        key_compare _key_compare;
-	rbnode_base _anchor;
-
-      public:
-        rbtree()
-            : base(), _size(0), _key_extract(), _key_compare(),
-              _anchor(RB_BLACK, NULL, NULL, NULL) {}
-
-        rbtree(const key_compare &comp, const allocator_type &alloc)
-            : base(alloc), _size(0), _key_extract(), _key_compare(comp),
-              _anchor(RB_BLACK, NULL, NULL, NULL) {}
-
-        template <typename InputIt>
-        rbtree(InputIt first, InputIt last,
-               const key_compare &comp = key_compare(),
-               const allocator_type &alloc = allocator_type())
-            : base(alloc), _size(0), _key_extract(), _key_compare(comp),
-              _anchor(RB_BLACK, NULL, NULL, NULL) {
-                insert(first, last);
-        }
-
-        rbtree(const rbtree &other)
-            : base(other), _size(0), _key_extract(),
-              _key_compare(other._key_compare),
-              _anchor(RB_BLACK, NULL, NULL, NULL) {
-                insert(other.begin(), other.end());
-        }
-
-        // TODO remove these two and make everything that use it refer to base
-        using base::sentinel;
-        using base::root;
-
+        rbnode_base *&root() { return _anchor.parent; }
+        const rbnode_base *root() const { return _anchor.parent; }
+        rbnode_base *anchor() { return &_anchor; }
+        const rbnode_base *anchor() const { return &_anchor; }
         iterator begin() {
-                return iterator(static_cast<node_type *>(anchor()->right),
-                                sentinel());
+                return iterator(static_cast<node_type *>(anchor()->right));
         }
-        iterator end() {
-                return iterator(static_cast<node_type *>(anchor()),
-                                sentinel());
-        }
+        iterator end() { return iterator(static_cast<node_type *>(anchor())); }
         const_iterator begin() const {
-                return const_iterator(
-                    static_cast<const node_type *>(anchor()->right),
-                    sentinel());
+                return iterator(
+                    static_cast<const node_type *>(anchor()->right));
         }
         const_iterator end() const {
-                return const_iterator(static_cast<const node_type *>(anchor()),
-                                      sentinel());
+                return iterator(static_cast<const node_type *>(anchor()));
         }
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         reverse_iterator rend() { return reverse_iterator(begin()); }
@@ -535,115 +424,182 @@ struct rbtree
         const_reverse_iterator rend() const {
                 return const_reverse_iterator(begin());
         }
-        rbnode_base *anchor() { return &_anchor; }
-        const rbnode_base *anchor() const { return &_anchor; }
-        //TODO add const_reverse_iterator
 
-        bool comp(const value_type &a, const value_type &b) const {
-                return _key_compare(_key_extract(a), _key_extract(b));
+        void destroy_node(node_type *node) {
+                get_allocator().destroy(node);
+                get_allocator().deallocate(node, 1);
         }
 
-        void insert_fix_iterators(rbnode_base *inserted_node) {
-                if (anchor()->left == sentinel()) {
-                        anchor()->left = inserted_node;
-                        anchor()->right = inserted_node;
-                } else if (anchor()->left->right != sentinel()) {
-                        anchor()->left = anchor()->left->right;
-                } else if (anchor()->right->left != sentinel()) {
-                        anchor()->right = anchor()->right->left;
+        void destroy_tree(node_type *node) {
+                if (node != NULL) {
+                        destroy_tree(static_cast<node_type *>(node->left));
+                        destroy_tree(static_cast<node_type *>(node->right));
+                        destroy_node(node);
                 }
+        }
+
+        void swap(rbtree_base &other) {
+                _anchor.swap(other._anchor);
+                if (root() != NULL) {
+                        root()->parent = anchor();
+                }
+                if (other.root() != NULL) {
+                        other.root()->parent = other.anchor();
+                }
+                if (anchor()->left == other.anchor()) {
+                        anchor()->left = anchor();
+                }
+                if (anchor()->right == other.anchor()) {
+                        anchor()->right = anchor();
+                }
+                if (other.anchor()->left == anchor()) {
+                        other.anchor()->left = other.anchor();
+                }
+                if (other.anchor()->right == anchor()) {
+                        other.anchor()->right = other.anchor();
+                }
+                compare_base::swap(other);
+                alloc_base::swap(other);
+                extract_base::swap(other);
+        }
+
+        node_type *create_node(const value_type &value) {
+                node_type *const node = get_allocator().allocate(1);
+                try {
+                        get_allocator().construct(
+                            node,
+                            node_type(RB_BLACK, NULL, NULL, NULL, value));
+                } catch (...) {
+                        get_allocator().deallocate(node, 1);
+                        throw;
+                }
+                return node;
+        }
+};
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+struct rbtree
+    : public rbtree_base<KeyType, ValueType, KeyExtract, Compare, Allocator> {
+        typedef rbtree_base<KeyType, ValueType, KeyExtract, Compare, Allocator>
+            base;
+        using typename base::allocator_type;
+        using typename base::const_iterator;
+        using typename base::const_reverse_iterator;
+        using typename base::iterator;
+        using typename base::key_compare;
+        using typename base::key_type;
+        using typename base::node_type;
+        using typename base::reverse_iterator;
+        using typename base::value_type;
+        typedef std::size_t size_type;
+
+      protected:
+        using base::_anchor;
+        size_type _size;
+
+      public:
+        rbtree() : base(), _size(0) {}
+        explicit rbtree(const key_compare &comp,
+                        const allocator_type &alloc = allocator_type())
+            : base(comp, alloc), _size(0) {}
+        template <class InputIt>
+        rbtree(InputIt first, InputIt last,
+               const key_compare &comp = key_compare(),
+               const allocator_type &alloc = allocator_type())
+            : base(comp, alloc), _size(0) {
+                insert(first, last);
+        }
+        rbtree(const rbtree &other) : base(other), _size(0) {
+                insert(other.begin(), other.end());
+        }
+
+        rbtree &operator=(const rbtree &other) {
+                if (this != &other) {
+                        rbtree tmp(other);
+                        swap(tmp);
+                }
+                return *this;
+        }
+
+        using base::anchor;
+        using base::begin;
+        using base::end;
+        using base::get_allocator;
+        using base::rbegin;
+        using base::rend;
+        using base::root;
+
+        inline bool empty() const { return size() == 0; }
+        inline size_type size() const { return _size; }
+        inline size_type max_size() const {
+                return std::numeric_limits<size_type>::max()
+                       / sizeof(node_type);
+        }
+
+        void clear() {
+                base::destroy_tree(static_cast<node_type *>(root()));
+                _size = 0;
+                anchor()->parent = NULL;
+                anchor()->right = anchor();
+                anchor()->left = anchor();
         }
 
         ft::pair<iterator, bool> insert(const value_type &value) {
-                node_type *insert_node = root();
-                node_type *parent_node = sentinel();
-
-                while (insert_node != sentinel()) {
-                        parent_node = insert_node;
-                        if (comp(value, parent_node->value)) {
-                                insert_node = static_cast<node_type *>(
-                                    parent_node->left);
-                        } else if (comp(parent_node->value, value)) {
-                                insert_node = static_cast<node_type *>(
-                                    parent_node->right);
-                        } else {
-                                return ft::make_pair(
-                                    iterator(parent_node, sentinel()), false);
-                        }
-                }
-                node_type *node = base::create_node(value);
-
-                node->parent = parent_node;
-                if (parent_node == sentinel())
-                        _root = node;
-                else if (comp(node->value, parent_node->value))
-                        parent_node->left = node;
-                else
-                        parent_node->right = node;
-                node->color = RB_RED;
-
-                insert_fix_iterators(node);
-                insert_fix(node);
-                return ft::make_pair(iterator(node, sentinel()), true);
+                return insert_aux(static_cast<node_type *>(root()), value);
         }
 
-        template <typename InputIt>
-        void insert(InputIt first, InputIt last) {
+        ft::pair<iterator, bool> insert(iterator hint,
+                                        const value_type &value) {
+                if (hint != begin()) {
+                        --hint;
+                }
+                return insert_aux(hint.node(), value);
+        }
+
+        template <class InputIt> void insert(InputIt first, InputIt last) {
                 for (; first != last; ++first) {
                         insert(*first);
                 }
         }
 
-        rbnode_base *transplant(rbnode_base *to, rbnode_base *from) {
-                if (to->parent == sentinel())
-                        _root = static_cast<node_type *>(from);
-                else if (to->parent->left == to)
-                        to->parent->left = from;
-                else
-                        to->parent->right = from;
-		if (from != NULL)
-                	from->parent = to->parent;
-		return to->parent;
+        iterator erase(iterator pos) {
+                _size -= 1;
+                return delete_node(pos._current);
         }
 
-        rbnode_base *minimum(rbnode_base *node) {
-                assert(node != sentinel()
-                       && "cannot take minumum of sentinel");
-                return node_type::minimum(node, sentinel());
-        }
-
-        rbnode_base *minimum() { return minimum(root()); }
-
-        rbnode_base *successor(rbnode_base *node) {
-                return node_type::next(node, sentinel(), right_dir());
-        }
-
-        rbnode_base *predecessor(rbnode_base *node) {
-                return node_type::next(node, sentinel(), left_dir());
-        }
-
-      private:
-        // TODO solve collision with other search with integral types
-        node_type *search(node_type *start, const value_type &key) {
-                node_type *current = start;
-                while (current != sentinel()) {
-                        if (comp(key, current->value)) {
-                                current
-                                    = static_cast<node_type *>(current->left);
-                        } else if (comp(current->value, key)) {
-                                current
-                                    = static_cast<node_type *>(current->right);
-                        } else {       
-                                break;
-                        }
+        void erase(iterator first, iterator last) {
+                while (first != last) {
+                        first = erase(first);
                 }
-                return current;
         }
 
-        const node_type *search(const node_type *start,
-                                const value_type &key) const {
-                const node_type *current = start;
-                while (current != sentinel()) {
+        bool erase(const key_type &key) {
+                iterator pos = find(key);
+                if (pos == end()) {
+                        return false;
+                }
+                erase(pos);
+                return true;
+        }
+
+        void swap(rbtree &other) {
+                base::swap(other);
+                std::swap(_size, other._size);
+        }
+
+        size_type count(const key_type &key) const {
+                if (find(key) == end()) {
+                        return 0;
+                }
+                return 1;
+        }
+
+        const_iterator find(const key_type &key) const {
+                const node_type *current
+                    = static_cast<const node_type *>(root());
+
+                while (current != NULL) {
                         if (comp(key, current->value)) {
                                 current = static_cast<const node_type *>(
                                     current->left);
@@ -651,34 +607,146 @@ struct rbtree
                                 current = static_cast<const node_type *>(
                                     current->right);
                         } else {
-                                break;
+                                return const_iterator(current);
                         }
                 }
-                return current;
+                return end();
         }
 
-      public:
-        node_type *search(const value_type &value) {
-                return search(root(), value);
+        iterator find(const key_type &key) {
+                return iterator(
+                    const_cast<const rbtree *>(this)->find(key)._current);
         }
 
-        const node_type *search(const value_type &value) const {
-                return search(root(), value);
+        ft::pair<const_iterator, const_iterator>
+        equal_range(const key_type &key) const {
+                return ft::make_pair(lower_bound(key), upper_bound(key));
         }
 
-        void delete_node(node_type *const node) {
+        ft::pair<iterator, iterator> equal_range(const key_type &key) {
+                return ft::make_pair(lower_bound(key), upper_bound(key));
+        }
+
+        const_iterator lower_bound(const key_type &key) const {
+                const node_type *current
+                    = static_cast<const node_type *>(root());
+                const node_type *bound_end = end().node();
+
+                while (current != NULL) {
+                        if (!comp(current->value, key)) {
+                                bound_end = current;
+                                current = static_cast<const node_type *>(
+                                    current->left);
+                        } else {
+                                current = static_cast<const node_type *>(
+                                    current->right);
+                        }
+                }
+                return const_iterator(bound_end);
+        }
+
+        iterator lower_bound(const key_type &key) {
+                return iterator(
+                    const_cast<const rbtree *>(this)->lower_bound(key).node());
+        }
+
+        const_iterator upper_bound(const key_type &key) const {
+                const node_type *current
+                    = static_cast<const node_type *>(root());
+                const node_type *bound_end = end().node();
+
+                while (current != NULL) {
+                        if (comp(key, current->value)) {
+                                bound_end = current;
+                                current = static_cast<const node_type *>(
+                                    current->left);
+                        } else {
+                                current = static_cast<const node_type *>(
+                                    current->right);
+                        }
+                }
+                return const_iterator(bound_end);
+        }
+
+        iterator upper_bound(const key_type &key) {
+                return iterator(
+                    const_cast<const rbtree *>(this)->upper_bound(key).node());
+        }
+
+        key_compare key_comp() const { return get_compare(); }
+
+        void assert_correct() const {
+                assert_correct(static_cast<const node_type *>(root()));
+        }
+
+      protected:
+        using base::get_compare;
+        using base::get_key_extract;
+        inline bool comp(const value_type &a, const value_type &b) const {
+                return get_compare()(get_key_extract()(a),
+                                     get_key_extract()(b));
+        }
+
+        rbnode_base *rotate(rbnode_base *const node, const rbside side) {
+#ifdef FT_DEBUG
+                assert(node != NULL && "cannot rotate on a NULL node");
+                assert(node->get_side(!side) != NULL
+                       && "cannot rotate further");
+#endif
+                rbnode_base *const new_root = node->get_side(!side);
+
+                node->set_side(!side, new_root->get_side(side));
+                if (new_root->get_side(side) != NULL) {
+                        new_root->get_side(side)->parent = node;
+                }
+                new_root->parent = node->parent;
+                if (node->parent == anchor()) {
+                        root() = new_root;
+                } else if (node == node->parent->get_side(side)) {
+                        node->parent->set_side(side, new_root);
+                } else {
+                        node->parent->set_side(!side, new_root);
+                }
+                new_root->set_side(side, node);
+                node->parent = new_root;
+                return new_root;
+        }
+
+        rbnode_base *transplant(rbnode_base *const to,
+                                rbnode_base *const from) {
+#ifdef FT_DEBUG
+                assert(to != NULL && "cannot transplant to a NULL node");
+#endif
+                if (to->parent == anchor()) {
+                        root() = static_cast<node_type *>(from);
+                } else if (to->parent->left == to) {
+                        to->parent->left = from;
+                } else {
+                        to->parent->right = from;
+                }
+                if (from != NULL) {
+                        from->parent = to->parent;
+                }
+                return to->parent;
+        }
+
+        iterator delete_node(node_type *const node) {
                 rbcolor old_color = node->color;
-                rbnode_base *moved_node = sentinel();
-		rbnode_base *parent = sentinel();
+                rbnode_base *moved_node = NULL;
+                rbnode_base *parent = NULL;
 
-                if (node->left == sentinel()) {
+                // todo do the cast to node_type* in the iterator class to
+                // reduce code duplication?
+                const iterator next
+                    = iterator(static_cast<node_type *>(node->next(RB_RIGHT)));
+                if (node->left == NULL) {
                         moved_node = node->right;
                         parent = transplant(node, node->right);
-                } else if (node->right == sentinel()) {
+                } else if (node->right == NULL) {
                         moved_node = node->left;
                         parent = transplant(node, node->left);
                 } else {
-                        rbnode_base *min = minimum(node->right);
+                        rbnode_base *min = node->right->minimum();
                         old_color = min->color;
                         moved_node = min->right;
                         if (min != node->right) {
@@ -694,77 +762,155 @@ struct rbtree
                         min->color = node->color;
                 }
 
-                // update iterator positions
-                // TODO move this to a separate function
-                if (node == anchor()->left) {
-                        anchor()->left = predecessor(node);
-                }
-                if (node == anchor()->right) {
-                        anchor()->right = successor(node);
-                }
+                delete_fix_iterators(node);
 
                 base::destroy_node(node);
                 if (old_color == RB_BLACK)
-                        delete_fix(moved_node, parent);
+                        delete_fix_balance(moved_node, parent);
+                return next;
         }
 
-        void delete_key(const value_type &value) {
-                node_type *node = search(value);
-                if (node != sentinel())
-                        delete_node(node);
-        }
-
-        void swap(rbtree &other) {
-                std::swap(_size, other._size);
-                std::swap(_key_compare, other._key_compare);
-                base::swap(other);
-        }
-
-        static void assert_equal(const rbtree &lhs, const rbtree &rhs) {
-                std::pair<const node_type *, const node_type *> *mismatch;
-                if (node_type::mismatch(lhs._root, rhs._root, lhs.sentinel(),
-                                        rhs.sentinel(), &mismatch)) {
-                        std::cerr << "lhs:" << std::endl;
-                        node_type::debug_print(lhs._root, lhs.sentinel(),
-                                               mismatch->first);
-                        std::cerr << "rhs:" << std::endl;
-                        node_type::debug_print(rhs._root, rhs.sentinel(),
-                                               mismatch->second);
-                        assert(0 && "lhs != rhs");
+        void delete_fix_iterators(node_type *const node) {
+                if (node == anchor()->left) {
+                        anchor()->left = node->predecessor();
+                        if (anchor()->left == NULL) {
+                                anchor()->left = anchor();
+                        }
+                }
+                if (node == anchor()->right) {
+                        anchor()->right = node->successor();
+                        if (anchor()->right == NULL) {
+                                anchor()->right = anchor();
+                        }
                 }
         }
 
-        friend bool operator==(const rbtree &lhs, const rbtree &rhs) {
-                // TODO this code can probably be refactored to something
-                // simpler using the sentinel
-                if (lhs._root == lhs.sentinel() || rhs._root == rhs.sentinel())
-                        return lhs._root == lhs.sentinel()
-                               && rhs._root() == rhs.sentinel();
-                return *lhs._root == *rhs._root;
+        void delete_fix_balance(rbnode_base *node, rbnode_base *parent) {
+                while (node != root()
+                       && rbnode_base::get_color(node) == RB_BLACK) {
+                        const rbside side
+                            = node != NULL ? node->side()
+                                           : (parent->left == NULL ? RB_LEFT
+                                                                   : RB_RIGHT);
+                        rbnode_base *sibling = parent->get_side(!side);
+                        if (rbnode_base::get_color(sibling) == RB_RED) {
+                                sibling->color = RB_BLACK;
+                                parent->color = RB_RED;
+                                rotate(parent, side);
+                                sibling = parent->get_side(!side);
+                        }
+                        if (rbnode_base::get_color(sibling->get_side(side))
+                                == RB_BLACK
+                            && rbnode_base::get_color(sibling->get_side(!side))
+                                   == RB_BLACK) {
+                                sibling->color = RB_RED;
+                                node = parent;
+                                parent = parent->parent;
+                        } else {
+                                if (rbnode_base::get_color(
+                                        sibling->get_side(!side))
+                                    == RB_BLACK) {
+                                        sibling->get_side(side)->color
+                                            = RB_BLACK;
+                                        sibling->color = RB_RED;
+                                        rotate(sibling, !side);
+                                        sibling = parent->get_side(!side);
+                                }
+                                sibling->color = parent->color;
+                                parent->color = RB_BLACK;
+                                sibling->get_side(!side)->color = RB_BLACK;
+                                rotate(parent, side);
+                                node = root();
+                        }
+                }
+                if (node != NULL) {
+                        node->color = RB_BLACK;
+                }
         }
 
-        bool is_bst(const node_type *node) const {
-                if (node == sentinel())
-                        return true;
-                const node_type *const left
-                    = static_cast<const node_type *>(node->left);
-                const node_type *const right
-                    = static_cast<const node_type *>(node->right);
-
-                if (left != sentinel() && !comp(left->value, node->value))
-                        return false;
-                if (right != sentinel() && comp(right->value, node->value))
-                        return false;
-                return is_bst(left) && is_bst(right);
+        void insert_fix_iterators() {
+                if (anchor()->left == anchor()) {
+                        anchor()->left = root();
+                }
+                if (anchor()->right == anchor()) {
+                        anchor()->right = root();
+                }
+                if (anchor()->left->right != NULL) {
+                        anchor()->left = anchor()->left->right;
+                }
+                if (anchor()->right->left != NULL) {
+                        anchor()->right = anchor()->right->left;
+                }
         }
 
-        bool is_bst() const { return is_bst(root()); }
+        void insert_fix_balance(rbnode_base *node) {
+                while (rbnode_base::get_color(node->parent) == RB_RED) {
+                        const rbside parent_side = node->parent->side();
+                        rbnode_base *const uncle
+                            = node->parent->parent->get_side(!parent_side);
+                        if (rbnode_base::get_color(uncle) == RB_RED) {
+                                node->parent->color = RB_BLACK;
+                                uncle->color = RB_BLACK;
+                                node->parent->parent->color = RB_RED;
+                                node = node->parent->parent;
+                        } else {
+                                if (node
+                                    == node->parent->get_side(!parent_side)) {
+                                        node = node->parent;
+                                        rotate(node, parent_side);
+                                }
+                                node->parent->color = RB_BLACK;
+                                node->parent->parent->color = RB_RED;
+                                rotate(node->parent->parent, !parent_side);
+                        }
+                }
+                root()->color = RB_BLACK;
+        }
 
-        std::size_t self_check(const node_type *node) const {
-                if (node == sentinel()) {
-                        assert(rbnode_base::get_color(node) == RB_BLACK
-                               && "sentinel() is not black");
-                        return 0;
+        ft::pair<iterator, bool> insert_aux(node_type *const search_start,
+                                            const value_type &value) {
+                node_type *insert_node = search_start;
+                node_type *parent_node = NULL;
+
+                if (insert_node != anchor()) {
+                        while (insert_node != NULL) {
+                                parent_node = insert_node;
+                                if (comp(value, parent_node->value)) {
+                                        insert_node = static_cast<node_type *>(
+                                            parent_node->left);
+                                } else if (comp(parent_node->value, value)) {
+                                        insert_node = static_cast<node_type *>(
+                                            parent_node->right);
+                                } else {
+                                        return ft::make_pair(
+                                            iterator(parent_node), false);
+                                }
+                        }
+                }
+
+                node_type *const node = base::create_node(value);
+
+                node->parent = parent_node;
+                if (parent_node == NULL) {
+                        node->parent = anchor();
+                        anchor()->parent = node;
+                } else if (comp(node->value, parent_node->value)) {
+                        parent_node->left = node;
+                } else {
+                        parent_node->right = node;
+                }
+
+                node->color = RB_RED;
+                insert_fix_iterators();
+                insert_fix_balance(node);
+                _size += 1;
+                return ft::make_pair(iterator(node), true);
+        }
+
+#ifdef FT_DEBUG
+        static std::size_t assert_correct(const node_type *const node) {
+                if (node == NULL) {
+                        return 1;
                 }
 
                 const node_type *const left
@@ -774,150 +920,75 @@ struct rbtree
 
                 if (rbnode_base::get_color(node) == RB_RED
                     && (rbnode_base::get_color(left) == RB_RED
-                        || rbnode_base::get_color(right) == RB_RED))
-                        throw rb_violation("red violation", node);
+                        || rbnode_base::get_color(right) == RB_RED)) {
+                        assert(0 && "red violation");
+                }
 
-                const std::size_t left_height = self_check(left);
-                const std::size_t right_height = self_check(right);
+                const std::size_t left_height = assert_correct(left);
+                const std::size_t right_height = assert_correct(right);
+                assert(left_height == right_height && "black violation");
 
-                if (left_height != right_height)
-                        throw rb_violation("black violation", node);
-
-                if (left != sentinel() && !comp(left->value, node->value))
-                        throw rb_violation("bst violation left side", node);
-                if (right != sentinel() && comp(right->value, node->value))
-                        throw rb_violation("bst violation right side", node);
+                assert((left == NULL || Compare()(left->value, node->value))
+                       && "bst violation left side");
+                assert((right == NULL || !Compare()(right->value, node->value))
+                       && "bst violation right side");
 
                 return left_height
                        + (rbnode_base::get_color(node) == RB_BLACK ? 1 : 0);
         }
-
-        void self_check() const { self_check(root()); }
-
-        void print() const { node_type::debug_print(_root, sentinel()); }
-
-      private:
-        void tree_assert(int condition, const node_type *node,
-                         const std::string &msg = "assertion failed") {
-                if (!condition) {
-                        node_type::debug_print(_root, sentinel(), node);
-                        std::cerr << msg << std::endl;
-                        assert(0);
-                }
-        }
-
-        node_type *rotate(rbnode_base *node, const rbdir &dir) {
-                tree_assert(node->get(dir.opposite()) != sentinel(), static_cast<node_type*>(node),
-                            "cannot rotate further");
-                node_type *new_root
-                    = static_cast<node_type *>(node->get(dir.opposite()));
-
-                node->set(dir.opposite(), new_root->get(dir));
-                if (new_root->get(dir) != sentinel())
-                        new_root->get(dir)->parent = node;
-                new_root->parent = node->parent;
-                if (node->parent == sentinel())
-                        _root = new_root;
-                else if (node == node->parent->get(dir))
-                        node->parent->set(dir, new_root);
-                else
-                        node->parent->set(dir.opposite(), new_root);
-                new_root->set(dir, node);
-                node->parent = new_root;
-                return new_root;
-        }
-
-      public: // TODO delete these two functions
-        node_type *rotate_left(node_type *node) {
-                return rotate(node, left_dir());
-        }
-
-        node_type *rotate_right(node_type *node) {
-                return rotate(node, right_dir());
-        }
-
-      private:
-        void insert_fix(rbnode_base *node) {
-                while (rbnode_base::get_color(node->parent) == RB_RED) {
-                        const rbdir parent_dir = node->parent->get_dir();
-                        rbnode_base *uncle
-                            = node->parent->parent->get(parent_dir.opposite());
-                        if (rbnode_base::get_color(uncle) == RB_RED) {
-                                node->parent->color = RB_BLACK;
-                                uncle->color = RB_BLACK;
-                                node->parent->parent->color = RB_RED;
-                                node = node->parent->parent;
-                        } else {
-                                if (node
-                                    == node->parent->get(
-                                        parent_dir.opposite())) {
-                                        node = node->parent;
-                                        rotate(node, parent_dir);
-                                }
-                                node->parent->color = RB_BLACK;
-                                node->parent->parent->color = RB_RED;
-                                rotate(node->parent->parent,
-                                       parent_dir.opposite());
-                        }
-                }
-                _root->color = RB_BLACK;
-        }
-        void delete_fix(rbnode_base *node, rbnode_base *parent) {
-                while (node != root()
-                       && rbnode_base::get_color(node) == RB_BLACK) {
-                        const rbdir dir
-                            = node != sentinel()
-                                  ? node->get_dir()
-                                  : (parent->left == sentinel()
-                                         ? static_cast<rbdir>(left_dir())
-                                         : static_cast<rbdir>(right_dir()));
-                        rbnode_base *sibling = parent->get(dir.opposite());
-                        if (rbnode_base::get_color(sibling) == RB_RED) {
-                                sibling->color = RB_BLACK;
-                                parent->color = RB_RED;
-                                rotate(parent, dir);
-                                sibling = parent->get(dir.opposite());
-                        }
-                        if (rbnode_base::get_color(sibling->get(dir))
-                                == RB_BLACK
-                            && rbnode_base::get_color(
-                                   sibling->get(dir.opposite()))
-                                   == RB_BLACK) {
-                                sibling->color = RB_RED;
-                                node = parent;
-                                parent = parent->parent;
-                        } else {
-                                if (rbnode_base::get_color(
-                                        sibling->get(dir.opposite()))
-                                    == RB_BLACK) {
-                                        sibling->get(dir)->color = RB_BLACK;
-                                        sibling->color = RB_RED;
-                                        rotate(sibling, dir.opposite());
-                                        sibling = parent->get(dir.opposite());
-                                }
-                                sibling->color = parent->color;
-                                parent->color = RB_BLACK;
-                                sibling->get(dir.opposite())->color = RB_BLACK;
-                                rotate(parent, dir);
-                                node = root();
-                        }
-                }
-                if (node != sentinel()) {
-                        node->color = RB_BLACK;
-                }
-        }
+#else
+        static void assert_correct(const node_type *const) {}
+#endif
 };
 
-template <typename ValueType>
-bool operator==(const rbnode<ValueType> &lhs, const rbnode<ValueType> &rhs) {
-        if (lhs.value != rhs.value)
-                return false;
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator==(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return lhs.size() == rhs.size()
+               && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
 
-        return ((lhs.left == lhs.sentinel() && rhs.left == rhs.sentinel())
-                || (rhs.left != rhs.sentinel() && *lhs.left == *rhs.left))
-               && ((lhs.right == lhs.sentinel() && rhs.right == rhs.sentinel())
-                   || (rhs.right != rhs.entinel()
-                       && *lhs.right == *rhs.right));
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator!=(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return !(lhs == rhs);
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator<(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+                                       rhs.end());
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator>(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return rhs < lhs;
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator<=(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return !(lhs > rhs);
+}
+
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+bool operator>=(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return !(lhs < rhs);
 }
 
 }
