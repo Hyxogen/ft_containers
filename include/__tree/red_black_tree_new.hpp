@@ -582,6 +582,14 @@ struct rbtree
                     const_cast<const rbtree *>(this)->find(key)._current);
         }
 
+	ft::pair<const_iterator, const_iterator> equal_range(const key_type &key) const {
+		return ft::make_pair(lower_bound(key), upper_bound(key));
+	}
+
+	ft::pair<iterator, iterator> equal_range(const key_type &key) {
+		return ft::make_pair(lower_bound(key), upper_bound(key));
+	}
+
 	const_iterator lower_bound(const key_type &key) const {
                 const node_type *current
                     = static_cast<const node_type *>(root());
