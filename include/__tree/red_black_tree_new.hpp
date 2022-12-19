@@ -5,14 +5,14 @@
 #include <cassert>
 #include <cstddef>
 #endif
-//TODO can this include be removed?
+// TODO can this include be removed?
+#include <algorithm.hpp>
 #include <algorithm>
 #include <functional>
 #include <iterator.hpp>
 #include <iterator>
 #include <limits>
 #include <utility.hpp>
-#include <algorithm.hpp>
 
 // TODO add option to disable attributes
 #define FORCE_INLINE __attribute__((always_inline))
@@ -444,27 +444,27 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
 
         void swap(rbtree_base &other) {
                 _anchor.swap(other._anchor);
-		if (root() != NULL) {
-			root()->parent = anchor();
-		}
-		if (other.root() != NULL) {
-			other.root()->parent = other.anchor();
-		}
-		if (anchor()->left == other.anchor()) {
-			anchor()->left = anchor();
-		}
-		if (anchor()->right == other.anchor()) {
-			anchor()->right = anchor();
-		}
-		if (other.anchor()->left == anchor()) {
-			other.anchor()->left = other.anchor();
-		}
-		if (other.anchor()->right == anchor()) {
-			other.anchor()->right = other.anchor();
-		}
+                if (root() != NULL) {
+                        root()->parent = anchor();
+                }
+                if (other.root() != NULL) {
+                        other.root()->parent = other.anchor();
+                }
+                if (anchor()->left == other.anchor()) {
+                        anchor()->left = anchor();
+                }
+                if (anchor()->right == other.anchor()) {
+                        anchor()->right = anchor();
+                }
+                if (other.anchor()->left == anchor()) {
+                        other.anchor()->left = other.anchor();
+                }
+                if (other.anchor()->right == anchor()) {
+                        other.anchor()->right = other.anchor();
+                }
                 compare_base::swap(other);
                 alloc_base::swap(other);
-		extract_base::swap(other);
+                extract_base::swap(other);
         }
 
         node_type *create_node(const value_type &value) {
@@ -487,15 +487,15 @@ struct rbtree
     : public rbtree_base<KeyType, ValueType, KeyExtract, Compare, Allocator> {
         typedef rbtree_base<KeyType, ValueType, KeyExtract, Compare, Allocator>
             base;
+        using typename base::allocator_type;
         using typename base::const_iterator;
         using typename base::const_reverse_iterator;
         using typename base::iterator;
+        using typename base::key_compare;
         using typename base::key_type;
         using typename base::node_type;
         using typename base::reverse_iterator;
         using typename base::value_type;
-	using typename base::key_compare;
-	using typename base::allocator_type;
         typedef std::size_t size_type;
 
       protected:
@@ -518,13 +518,13 @@ struct rbtree
                 insert(other.begin(), other.end());
         }
 
-	rbtree &operator=(const rbtree &other) {
-		if (this != &other) {
-			rbtree tmp(other);
-			swap(tmp);
-		}
-		return *this;
-	}
+        rbtree &operator=(const rbtree &other) {
+                if (this != &other) {
+                        rbtree tmp(other);
+                        swap(tmp);
+                }
+                return *this;
+        }
 
         using base::anchor;
         using base::begin;
@@ -587,17 +587,17 @@ struct rbtree
                 return true;
         }
 
-	void swap(rbtree &other) {
-		base::swap(other);
-		std::swap(_size, other._size);
-	}
-	
-	size_type count(const key_type &key) const {
-		if (find(key) == end()) {
-			return 0;
-		}
-		return 1;
-	}
+        void swap(rbtree &other) {
+                base::swap(other);
+                std::swap(_size, other._size);
+        }
+
+        size_type count(const key_type &key) const {
+                if (find(key) == end()) {
+                        return 0;
+                }
+                return 1;
+        }
 
         const_iterator find(const key_type &key) const {
                 const node_type *current
@@ -622,33 +622,34 @@ struct rbtree
                     const_cast<const rbtree *>(this)->find(key)._current);
         }
 
-	ft::pair<const_iterator, const_iterator> equal_range(const key_type &key) const {
-		return ft::make_pair(lower_bound(key), upper_bound(key));
-	}
+        ft::pair<const_iterator, const_iterator>
+        equal_range(const key_type &key) const {
+                return ft::make_pair(lower_bound(key), upper_bound(key));
+        }
 
-	ft::pair<iterator, iterator> equal_range(const key_type &key) {
-		return ft::make_pair(lower_bound(key), upper_bound(key));
-	}
+        ft::pair<iterator, iterator> equal_range(const key_type &key) {
+                return ft::make_pair(lower_bound(key), upper_bound(key));
+        }
 
-	const_iterator lower_bound(const key_type &key) const {
+        const_iterator lower_bound(const key_type &key) const {
                 const node_type *current
                     = static_cast<const node_type *>(root());
-		const node_type *bound_end = end().node();
+                const node_type *bound_end = end().node();
 
                 while (current != NULL) {
                         if (!comp(current->value, key)) {
-				bound_end = current;
+                                bound_end = current;
                                 current = static_cast<const node_type *>(
                                     current->left);
                         } else {
                                 current = static_cast<const node_type *>(
                                     current->right);
-			}
+                        }
                 }
                 return const_iterator(bound_end);
-	}
+        }
 
-	iterator lower_bound(const key_type &key) {
+        iterator lower_bound(const key_type &key) {
                 return iterator(
                     const_cast<const rbtree *>(this)->lower_bound(key).node());
         }
@@ -659,14 +660,14 @@ struct rbtree
                 const node_type *bound_end = end().node();
 
                 while (current != NULL) {
-			if (comp(key, current->value)) {
+                        if (comp(key, current->value)) {
                                 bound_end = current;
                                 current = static_cast<const node_type *>(
                                     current->left);
-			} else {
+                        } else {
                                 current = static_cast<const node_type *>(
                                     current->right);
-			}
+                        }
                 }
                 return const_iterator(bound_end);
         }
@@ -676,9 +677,7 @@ struct rbtree
                     const_cast<const rbtree *>(this)->upper_bound(key).node());
         }
 
-	key_compare key_comp() const {
-		return get_compare();
-	}
+        key_compare key_comp() const { return get_compare(); }
 
         void assert_correct() const {
                 assert_correct(static_cast<const node_type *>(root()));
@@ -778,15 +777,15 @@ struct rbtree
         void delete_fix_iterators(node_type *const node) {
                 if (node == anchor()->left) {
                         anchor()->left = node->predecessor();
-			if (anchor()->left == NULL) {
-				anchor()->left = anchor();
-			}
+                        if (anchor()->left == NULL) {
+                                anchor()->left = anchor();
+                        }
                 }
                 if (node == anchor()->right) {
                         anchor()->right = node->successor();
-			if (anchor()->right == NULL) {
-				anchor()->right = anchor();
-			}
+                        if (anchor()->right == NULL) {
+                                anchor()->right = anchor();
+                        }
                 }
         }
 
@@ -948,44 +947,52 @@ struct rbtree
 
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
-bool operator==(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
-		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
-	return lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+bool operator==(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return lhs.size() == rhs.size()
+               && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
-bool operator!=(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
-		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
-	return !(lhs == rhs);
+bool operator!=(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return !(lhs == rhs);
 }
 
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
-bool operator<(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
-		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
-	return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+bool operator<(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+                                       rhs.end());
 }
 
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
-bool operator>(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
-		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
-	return rhs < lhs;
+bool operator>(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return rhs < lhs;
 }
 
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
-bool operator<=(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
-		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
-	return !(lhs > rhs);
+bool operator<=(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return !(lhs > rhs);
 }
 
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
-bool operator>=(const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
-		const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
-	return !(lhs < rhs);
+bool operator>=(
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+    const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        return !(lhs < rhs);
 }
 
 }
