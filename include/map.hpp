@@ -11,16 +11,16 @@
 namespace ft {
 
 template <class Key, class T, class Compare = std::less<Key>,
-          class Allocator = std::allocator<ft::pair<const Key, T>>>
+          class Allocator = std::allocator<ft::pair<const Key, T> > >
 class map
     : public detail::rbtree<Key, ft::pair<const Key, T>,
-                            detail::use_first<ft::pair<const Key, T>>, Compare,
+                            detail::use_first<ft::pair<const Key, T> >, Compare,
                             typename Allocator::template rebind<detail::rbnode<
-                                ft::pair<const Key, T>>>::other> {
+                                ft::pair<const Key, T> > >::other> {
     typedef detail::rbtree<Key, ft::pair<const Key, T>,
-                           detail::use_first<ft::pair<const Key, T>>, Compare,
+                           detail::use_first<ft::pair<const Key, T> >, Compare,
                            typename Allocator::template rebind<
-                               detail::rbnode<ft::pair<const Key, T>>>::other>
+                               detail::rbnode<ft::pair<const Key, T> > >::other>
         _base;
 
   public:

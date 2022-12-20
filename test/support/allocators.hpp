@@ -76,7 +76,7 @@ template <typename It, typename T> struct stateful_allocator {
     }
 };
 
-template <typename T, typename Base = std::allocator<T>>
+template <typename T, typename Base = std::allocator<T> >
 struct allocator_wrapper : Base {
     typedef typename Base::value_type value_type;
     typedef typename Base::pointer pointer;
@@ -135,7 +135,7 @@ struct allocator_wrapper : Base {
   private:
     static void call(const std::string &name) { calls[name] += 1; }
 };
-template <typename T, typename Base = std::allocator<T>>
+template <typename T, typename Base = std::allocator<T> >
 struct allocator_tracker : Base {
     typedef typename Base::size_type size_type;
     template <class U> struct rebind { typedef allocator_tracker<U> other; };

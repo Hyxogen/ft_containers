@@ -1,4 +1,5 @@
 ---
 BasedOnStyle: LLVM
 IndentWidth: 4
+Standard: c++03
 ---

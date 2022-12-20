@@ -5,7 +5,7 @@
 
 namespace ft {
 
-template <class T, class Container = ft::vector<T>> class stack {
+template <class T, class Container = ft::vector<T> > class stack {
   public:
     typedef typename Container::value_type value_type;
     typedef typename Container::size_type size_type;

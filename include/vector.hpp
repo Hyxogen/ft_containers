@@ -90,7 +90,7 @@ template <typename Allocator> class vector_base {
     }
 };
 
-template <class T, typename Allocator = std::allocator<T>>
+template <class T, typename Allocator = std::allocator<T> >
 class vector : public vector_base<Allocator> {
     typedef vector_base<Allocator> _base;
 

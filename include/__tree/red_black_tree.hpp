@@ -362,6 +362,7 @@ template <typename KeyType, typename ValueType, typename KeyExtract,
 struct rbtree_base : public rbtree_base_extract<KeyExtract>,
                      public rbtree_base_compare<Compare>,
                      public rbtree_base_alloc<Allocator> {
+  protected:
     typedef rbtree_base_extract<KeyExtract> extract_base;
     typedef rbtree_base_compare<Compare> compare_base;
     typedef rbtree_base_alloc<Allocator> alloc_base;
@@ -376,7 +377,6 @@ struct rbtree_base : public rbtree_base_extract<KeyExtract>,
     typedef ft::reverse_iterator<iterator> reverse_iterator;
     typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
-  protected:
     rbnode_base _anchor;
 
     rbtree_base(const key_compare &comp = key_compare(),

@@ -9,15 +9,15 @@
 namespace ft {
 
 template <class Key, class Compare = std::less<Key>,
-          class Allocator = std::allocator<Key>>
+          class Allocator = std::allocator<Key> >
 class set
     : public detail::rbtree<
           Key, Key, detail::use_self<Key>, Compare,
-          typename Allocator::template rebind<detail::rbnode<Key>>::other> {
+          typename Allocator::template rebind<detail::rbnode<Key> >::other> {
 
     typedef detail::rbtree<
         Key, Key, detail::use_self<Key>, Compare,
-        typename Allocator::template rebind<detail::rbnode<Key>>::other>
+        typename Allocator::template rebind<detail::rbnode<Key> >::other>
         _base;
 
   public:
