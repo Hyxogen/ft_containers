@@ -318,9 +318,7 @@ struct rbtree_iterator {
             : _current(const_cast<node_type *>(current)) {}
 
         rbtree_iterator &operator=(const iterator &other) {
-                if (this != &other) {
-                        _current = other._current;
-                }
+                _current = other._current;
                 return *this;
         }
 
