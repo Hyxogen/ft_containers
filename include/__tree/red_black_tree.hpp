@@ -1007,6 +1007,7 @@ bool operator>=(
 }
 
 namespace std {
+	//TODO check if works with set and map
 template <typename KeyType, typename ValueType, typename KeyExtract,
           typename Compare, typename Allocator>
 void swap(ft::detail::rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
