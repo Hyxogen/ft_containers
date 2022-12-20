@@ -522,7 +522,6 @@ struct rbtree
                 return *this;
         }
 
-        using base::anchor;
         using base::begin;
         using base::end;
         using base::get_allocator;
@@ -680,6 +679,7 @@ struct rbtree
         }
 
       protected:
+        using base::anchor;
         using base::get_compare;
         using base::get_key_extract;
         inline bool comp(const value_type &a, const value_type &b) const {
