@@ -66,6 +66,10 @@ class set
 
         set(const set &other) : _base(other) {}
 
+	allocator_type get_allocator() const {
+		return _base::get_allocator();
+	}
+
         using _base::begin;
         using _base::end;
         using _base::rbegin;
