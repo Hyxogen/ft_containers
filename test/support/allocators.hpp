@@ -19,11 +19,68 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <cstdlib>
 
 namespace test {
 namespace {
 std::map<std::string, std::size_t> calls;
 }
+
+template <typename It, typename T>
+struct stateful_allocator {
+        It t;
+        typedef T value_type;
+        typedef value_type *pointer;
+	typedef const value_type *const_pointer;
+	typedef value_type &reference;
+	typedef const value_type &const_reference;
+	typedef std::size_t size_type;
+	typedef std::ptrdiff_t difference_type;
+
+        template <class U> struct rebind {
+                typedef stateful_allocator<It, U> other;
+        };
+
+	stateful_allocator(const It &t) : t(t) {}
+
+        template <class U>
+        stateful_allocator(const stateful_allocator<It, U> &other)
+            : t(other.t) {
+        }
+
+        pointer address(reference x) const {
+		return std::allocator<value_type>().address(x);
+        }
+
+        const_pointer address(const_reference x) const {
+		return std::allocator<value_type>().address(x);
+        }
+
+        pointer allocate(size_type n, const void *hint = 0) {
+		return std::allocator<value_type>().allocate(n, hint);
+        }
+
+        void deallocate(T *p, std::size_t n) {
+		return std::allocator<value_type>().deallocate(p, n);
+        }
+
+        size_type max_size() const throw() {
+		return std::allocator<value_type>().max_size();
+        }
+
+        void construct(pointer p, const_reference val) {
+		return std::allocator<value_type>().construct(p, val);
+        }
+
+        void destroy(pointer p) {
+		return std::allocator<value_type>().destroy(p);
+        }
+
+        bool operator==(const stateful_allocator &other) const {
+		return t == other.t;
+	}
+};
+
 template <typename T, typename Base = std::allocator<T> >
 struct allocator_wrapper : Base {
         typedef typename Base::value_type value_type;
