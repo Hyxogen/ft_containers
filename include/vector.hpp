@@ -445,10 +445,11 @@ bool operator>=(const ft::vector<T, Alloc> &lhs,
                 const ft::vector<T, Alloc> &rhs) {
         return !(lhs < rhs);
 }
-
+} // namespace ft
+namespace std {
 template <class T, class Alloc>
 void swap(ft::vector<T, Alloc> &lhs, ft::vector<T, Alloc> &rhs) {
         lhs.swap(rhs);
 }
-} // namespace ft
+}
 #endif /* FT_VECTOR_HPP */
