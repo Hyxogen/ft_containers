@@ -6,8 +6,9 @@
 
 namespace ft {
 template <class T> struct remove_cv {
-        typedef typename ft::remove_const<
-            typename ft::remove_volatile<T>::type>::type type;
+    typedef
+        typename ft::remove_const<typename ft::remove_volatile<T>::type>::type
+            type;
 };
 } // namespace ft
 

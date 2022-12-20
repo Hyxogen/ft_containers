@@ -14,29 +14,29 @@
 #endif
 
 #ifdef BENCHMARK_STD
-#include <vector>
 #include <map>
 #include <set>
 #include <stack>
+#include <vector>
 using namespace std;
 #else
-#include <vector.hpp>
 #include <map.hpp>
 #include <set.hpp>
 #include <stack.hpp>
+#include <vector.hpp>
 using namespace ft;
 #endif
 
-#define DO_NOT_OPTIMIZE(statement)                                            \
-        asm volatile("" : : "r,m"(statement) : "memory")
+#define DO_NOT_OPTIMIZE(statement)                                             \
+    asm volatile("" : : "r,m"(statement) : "memory")
 
-#define BENCHMARK_N(statement, n)                                             \
-        std::clock_t start = std::clock();                                    \
-        for (std::size_t idx = 0; idx < n; ++idx) {                           \
-                statement;                                                    \
-        };                                                                    \
-        std::clock_t end = std::clock();                                      \
-        std::printf("%e\n", ((double)(end - start) / BENCHMARK_ITER));
+#define BENCHMARK_N(statement, n)                                              \
+    std::clock_t start = std::clock();                                         \
+    for (std::size_t idx = 0; idx < n; ++idx) {                                \
+        statement;                                                             \
+    };                                                                         \
+    std::clock_t end = std::clock();                                           \
+    std::printf("%e\n", ((double)(end - start) / BENCHMARK_ITER));
 
 #define TIME(statement) BENCHMARK_N(statement, 1)
 
