@@ -552,12 +552,11 @@ struct rbtree
                 return insert_aux(static_cast<node_type *>(root()), value);
         }
 
-        ft::pair<iterator, bool> insert(iterator hint,
-                                        const value_type &value) {
+        iterator insert(iterator hint, const value_type &value) {
                 if (hint != begin()) {
                         --hint;
                 }
-                return insert_aux(hint.node(), value);
+                return insert_aux(hint.node(), value).first;
         }
 
         template <class InputIt> void insert(InputIt first, InputIt last) {

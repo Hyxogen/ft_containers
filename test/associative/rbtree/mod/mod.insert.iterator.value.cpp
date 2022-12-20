@@ -11,7 +11,7 @@ int main() {
 
                 rbtree::iterator it = tree.begin();
                 for (int i = 0; i < 500; ++i) {
-                        it = tree.insert(it, i).first;
+                        it = tree.insert(it, i);
                 }
 
                 int i = 0;
