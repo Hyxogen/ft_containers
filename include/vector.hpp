@@ -122,6 +122,7 @@ class vector : public vector_base<Allocator> {
         typedef typename _base::const_reverse_iterator const_reverse_iterator;
         typedef typename _base::allocator_type allocator_type;
         typedef typename _base::size_type size_type;
+	typedef std::ptrdiff_t difference_type;
 
       private:
         size_type _size;
