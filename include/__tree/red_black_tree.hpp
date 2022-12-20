@@ -13,10 +13,11 @@
 #include <utility.hpp>
 #include <type_traits.hpp>
 
-// TODO add option to disable attributes
+#ifndef FT_NO_ATTR
 #define FORCE_INLINE __attribute__((always_inline))
-
-// TODO add insertion tests
+#else
+#define FORCE_INLINE 
+#endif
 
 namespace ft {
 namespace detail {
