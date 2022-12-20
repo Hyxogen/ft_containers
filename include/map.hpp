@@ -45,6 +45,7 @@ class map
         typedef typename _base::value_type value_type;
         typedef typename _base::size_type size_type;
         typedef std::ptrdiff_t difference_type;
+        typedef typename _base::key_compare key_compare;
         typedef value_type &reference;
         typedef const value_type &const_reference;
         typedef Allocator allocator_type;
