@@ -31,7 +31,7 @@ int main() {
                 vec.push_back(5423);
                 assert(vec.size() == 2);
                 assert(vec.capacity() >= 2);
-                assert(vec[1] = 5423);
+                assert(vec[1] == 5423);
         }
         {
                 test::throwing_class<int> clazz;
