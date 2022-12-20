@@ -975,7 +975,7 @@ template <typename KeyType, typename ValueType, typename KeyExtract,
 bool operator<(
     const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
     const rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
-        return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+        return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
                                        rhs.end());
 }
 
