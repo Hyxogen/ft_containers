@@ -601,10 +601,10 @@ struct rbtree
                     = static_cast<const node_type *>(root());
 
                 while (current != NULL) {
-                        if (comp(key, current->value)) {
+                        if (comp(key, extract_key(current->value))) {
                                 current = static_cast<const node_type *>(
                                     current->left);
-                        } else if (comp(current->value, key)) {
+                        } else if (comp(extract_key(current->value), key)) {
                                 current = static_cast<const node_type *>(
                                     current->right);
                         } else {
@@ -634,7 +634,7 @@ struct rbtree
                 const node_type *bound_end = end().node();
 
                 while (current != NULL) {
-                        if (!comp(current->value, key)) {
+                        if (!comp(extract_key(current->value), key)) {
                                 bound_end = current;
                                 current = static_cast<const node_type *>(
                                     current->left);
@@ -657,7 +657,7 @@ struct rbtree
                 const node_type *bound_end = end().node();
 
                 while (current != NULL) {
-                        if (comp(key, current->value)) {
+                        if (comp(key, extract_key(current->value))) {
                                 bound_end = current;
                                 current = static_cast<const node_type *>(
                                     current->left);
@@ -684,9 +684,17 @@ struct rbtree
         using base::anchor;
         using base::get_compare;
         using base::get_key_extract;
-        inline bool comp(const value_type &a, const value_type &b) const {
-                return get_compare()(get_key_extract()(a),
-                                     get_key_extract()(b));
+        inline bool comp(const key_type &a, const key_type &b) const {
+                return get_compare()(a, b);
+        }
+
+	inline const key_type &extract_key(const value_type &a) const {
+		return get_key_extract()(a);
+	}
+
+	inline key_type &extract_key(value_type &a) {
+                return const_cast<key_type &>(
+                    static_cast<const rbtree *>(this)->extract_key(a));
         }
 
         rbnode_base *rotate(rbnode_base *const node, const rbside side) {
@@ -877,10 +885,13 @@ struct rbtree
                 if (insert_node != anchor()) {
                         while (insert_node != NULL) {
                                 parent_node = insert_node;
-                                if (comp(value, parent_node->value)) {
+                                if (comp(extract_key(value),
+                                         extract_key(parent_node->value))) {
                                         insert_node = static_cast<node_type *>(
                                             parent_node->left);
-                                } else if (comp(parent_node->value, value)) {
+                                } else if (comp(
+                                               extract_key(parent_node->value),
+                                               extract_key(value))) {
                                         insert_node = static_cast<node_type *>(
                                             parent_node->right);
                                 } else {
@@ -896,7 +907,7 @@ struct rbtree
                 if (parent_node == NULL) {
                         node->parent = anchor();
                         anchor()->parent = node;
-                } else if (comp(node->value, parent_node->value)) {
+                } else if (comp(extract_key(node->value), extract_key(parent_node->value))) {
                         parent_node->left = node;
                 } else {
                         parent_node->right = node;
