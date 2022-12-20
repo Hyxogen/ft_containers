@@ -312,6 +312,7 @@ struct rbtree_iterator {
 
         node_type *_current;
 
+	rbtree_iterator() : _current(NULL) {}
         rbtree_iterator(const iterator &other) : _current(other._current) {}
         rbtree_iterator(const node_type *current)
             : _current(const_cast<node_type *>(current)) {}
