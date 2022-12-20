@@ -1006,4 +1006,13 @@ bool operator>=(
 }
 }
 
+namespace std {
+template <typename KeyType, typename ValueType, typename KeyExtract,
+          typename Compare, typename Allocator>
+void swap(ft::detail::rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &lhs,
+          ft::detail::rbtree<KeyType, ValueType, KeyExtract, Compare, Allocator> &rhs) {
+        lhs.swap(rhs);
+}
+}
+
 #endif /* RED_BLACK_TREE_HPP */
