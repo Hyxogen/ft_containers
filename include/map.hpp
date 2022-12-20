@@ -102,7 +102,7 @@ class map
 		if (pos == end()) {
 			throw std::out_of_range("out of range in map::at");
 		}
-		return *pos;
+		return pos->second;
 	}
 
 	T &at(const key_type &x) {
