@@ -2,12 +2,12 @@
 #include <cstdlib>
 
 int main() {
-	set<int> s;
+	map<int, int> m;
 
 	for (int i = 0; i < 10000; ++i) {
 		const int x = rand() % 5000;
-		s.insert(x);
+		m[x] = rand();
 	}
         BENCHMARK_N(for (int i = 0; i < 10000;
-                  ++i) { DO_NOT_OPTIMIZE(s.equal_range(i)); }, 1000);
+                  ++i) { DO_NOT_OPTIMIZE(m.equal_range(i)); }, 1000);
 }
