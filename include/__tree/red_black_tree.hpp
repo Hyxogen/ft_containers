@@ -214,6 +214,7 @@ struct rbtree_base_alloc : public Allocator {
         rbtree_base_alloc(const Allocator &other) : Allocator(other) {}
 
         Allocator &get_allocator() { return *this; }
+        const Allocator &get_allocator() const { return *this; }
 
         pointer allocate(size_type n, const void *hint = 0) {
                 return Allocator::allocate(n, hint);
@@ -244,6 +245,7 @@ template <typename Allocator> struct rbtree_base_alloc<Allocator, false> {
         rbtree_base_alloc(const Allocator &other) : _allocator(other) {}
 
         Allocator &get_allocator() { return _allocator; }
+        const Allocator &get_allocator() const { return _allocator; }
 
         pointer allocate(size_type n, const void *hint = 0) {
                 return _allocator.allocate(n, hint);
