@@ -22,6 +22,7 @@
 #include <functional>
 #include <memory>
 #include <utility.hpp>
+#include <stdexcept>
 
 namespace ft {
 
@@ -94,6 +95,19 @@ class map
         using _base::rbegin;
         using _base::rend;
         using _base::size;
+
+	//TODO add test for this function
+	const T& at(const key_type &x) const {
+		const const_iterator pos = find(x);
+		if (pos == end()) {
+			throw std::out_of_range("out of range in map::at");
+		}
+		return *pos;
+	}
+
+	T &at(const key_type &x) {
+		return const_cast<T&>(static_cast<const map*>(this)->at(x));
+	}
 
         T &operator[](const key_type &x) {
                 return (*((insert(ft::make_pair(x, T()))).first)).second;
