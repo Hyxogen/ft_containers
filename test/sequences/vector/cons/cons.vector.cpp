@@ -1,7 +1,7 @@
-#include <test.hpp>
 #include <allocators.hpp>
 #include <cassert>
 #include <classes.hpp>
+#include <test.hpp>
 
 int main() {
 

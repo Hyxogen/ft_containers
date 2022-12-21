@@ -1,11 +1,10 @@
-#include <test.hpp>
 #include <allocators.hpp>
 #include <assert.hpp>
 #include <cassert>
 #include <classes.hpp>
+#include <test.hpp>
 
 #include <ostream>
-
 
 template <typename T>
 void check_insert(T &t, const typename T::value_type &u, bool unique) {

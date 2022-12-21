@@ -1,9 +1,9 @@
-#include <test.hpp>
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <functional>
-#include <cassert>
 #include <memory>
+#include <test.hpp>
 
 int main() {
     {

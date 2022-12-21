@@ -1,8 +1,8 @@
-#include <test.hpp>
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <iterators.hpp>
-#include <cassert>
+#include <test.hpp>
 
 int main() {
     {

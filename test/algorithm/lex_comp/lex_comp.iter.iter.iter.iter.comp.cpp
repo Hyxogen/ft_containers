@@ -1,8 +1,8 @@
-#include <test.hpp>
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <functional>
+#include <test.hpp>
 #include <vector>
 
 template <typename T, typename U, typename F>

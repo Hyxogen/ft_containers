@@ -1,10 +1,10 @@
-#include <test.hpp>
 #include <cstdlib>
 #include <limits>
 #include <map>
 #include <memory>
 #include <new>
 #include <string>
+#include <test.hpp>
 
 namespace test {
 namespace {
@@ -46,7 +46,7 @@ template <typename It, typename T> struct stateful_allocator {
         return std::allocator<value_type>().deallocate(p, n);
     }
 
-    size_type max_size() const  {
+    size_type max_size() const {
         return std::allocator<value_type>().max_size();
     }
 
@@ -106,7 +106,7 @@ struct allocator_wrapper : Base {
         return Base::deallocate(p, n);
     }
 
-    size_type max_size() const  {
+    size_type max_size() const {
         call("max_size");
         return Base::max_size();
     }
@@ -190,12 +190,12 @@ typename limited_allocator<T>::size_type limited_allocator<T>::_limit =
 
 template <class T1, class T2, class Base>
 bool operator==(const allocator_wrapper<T1, Base> &lhs,
-                const allocator_wrapper<T2, Base> &rhs)  {
+                const allocator_wrapper<T2, Base> &rhs) {
     return static_cast<Base>(lhs) == static_cast<Base>(rhs);
 }
 template <class T1, class T2, class Base>
 bool operator!=(const allocator_wrapper<T1, Base> &lhs,
-                const allocator_wrapper<T2, Base> &rhs)  {
+                const allocator_wrapper<T2, Base> &rhs) {
     return static_cast<Base>(lhs) != static_cast<Base>(rhs);
 }
 } // namespace test

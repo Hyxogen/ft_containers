@@ -1,5 +1,5 @@
-#include <test.hpp>
 #include <functional>
+#include <test.hpp>
 
 #include <memory>
 

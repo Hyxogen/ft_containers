@@ -1,4 +1,3 @@
-#include <test.hpp>
 #include <allocators.hpp>
 #include <cassert>
 #include <classes.hpp>
@@ -7,6 +6,7 @@
 #include <new>
 #include <sstream>
 #include <string>
+#include <test.hpp>
 #include <vector>
 
 int main() {

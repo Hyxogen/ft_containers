@@ -1,7 +1,7 @@
 #ifndef FT_TEST_STD
-#include <test.hpp>
 #include <cassert>
 #include <string>
+#include <test.hpp>
 #include <type_traits.hpp>
 
 int main() {
@@ -54,7 +54,5 @@ int main() {
     assert(!ft::is_integral<std::string>::value);
 }
 #else
-int main() {
-    return 0;
-}
+int main() { return 0; }
 #endif

@@ -1,6 +1,6 @@
-#include <test.hpp>
 #include <assert.hpp>
 #include <stdexcept>
+#include <test.hpp>
 
 int main() {
     {

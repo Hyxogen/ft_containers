@@ -134,7 +134,5 @@ int main() {
     // TODO test exception safety
 }
 #else
-int main() {
-    return 0;
-}
+int main() { return 0; }
 #endif

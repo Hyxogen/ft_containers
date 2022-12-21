@@ -1,8 +1,8 @@
-#include <test.hpp>
 #include <cassert>
 #include <classes.hpp>
 #include <cstddef>
 #include <string>
+#include <test.hpp>
 
 int main() {
     {

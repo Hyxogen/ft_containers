@@ -1,6 +1,6 @@
 #ifndef FT_TEST_STD
-#include <test.hpp>
 #include <cassert>
+#include <test.hpp>
 #include <type_traits.hpp>
 #include <typeinfo>
 
@@ -40,7 +40,5 @@ int main() {
     return 0;
 }
 #else
-int main() {
-    return 0;
-}
+int main() { return 0; }
 #endif

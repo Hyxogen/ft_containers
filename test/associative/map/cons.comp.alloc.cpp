@@ -1,8 +1,7 @@
-#include <test.hpp>
 #include <allocators.hpp>
 #include <cassert>
 #include <compare.hpp>
-
+#include <test.hpp>
 
 int main() {
     {

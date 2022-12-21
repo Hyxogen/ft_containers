@@ -1,6 +1,6 @@
-#include <test.hpp>
 #include <cassert>
 #include <iterator>
+#include <test.hpp>
 #include <typeinfo>
 
 template <typename T> void test() {

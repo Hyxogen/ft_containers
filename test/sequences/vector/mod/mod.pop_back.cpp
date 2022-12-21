@@ -1,7 +1,7 @@
-#include <test.hpp>
 #include <cassert>
 #include <classes.hpp>
 #include <cstddef>
+#include <test.hpp>
 
 int main() {
     {

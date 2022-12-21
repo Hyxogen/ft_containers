@@ -1,7 +1,6 @@
-#include <test.hpp>
 #include <cassert>
 #include <compare.hpp>
-
+#include <test.hpp>
 
 int main() {
     {

@@ -1,7 +1,7 @@
-#include <test.hpp>
 #include <allocators.hpp>
 #include <cassert>
 #include <classes.hpp>
+#include <test.hpp>
 
 int main() {
     {
@@ -52,8 +52,10 @@ int main() {
         assert(vec[6] == 64);
     }
     {
-        ft::vector<test::throwing_class<int> > tmp(5, test::throwing_class<int>(231));
-        ft::vector<test::throwing_class<int> > vec(81, test::throwing_class<int>(54));
+        ft::vector<test::throwing_class<int> > tmp(
+            5, test::throwing_class<int>(231));
+        ft::vector<test::throwing_class<int> > vec(
+            81, test::throwing_class<int>(54));
         test::throwing_class<int>::make_next_throw();
         try {
             vec = tmp;

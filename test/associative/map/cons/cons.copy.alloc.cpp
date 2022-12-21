@@ -1,10 +1,10 @@
-#include <test.hpp>
 #include <algorithm>
 #include <allocators.hpp>
+#include <cassert>
 #include <cstdlib>
 #include <iterators.hpp>
-#include <cassert>
 #include <string>
+#include <test.hpp>
 
 int main() {
     {

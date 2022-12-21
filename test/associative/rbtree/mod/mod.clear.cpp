@@ -39,7 +39,5 @@ int main() {
     }
 }
 #else
-int main() {
-    return 0;
-}
+int main() { return 0; }
 #endif

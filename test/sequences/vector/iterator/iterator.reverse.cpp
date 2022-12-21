@@ -1,5 +1,5 @@
-#include <test.hpp>
 #include <cassert>
+#include <test.hpp>
 
 /* TODO write these tests with proper sequences */
 int main() {
