@@ -1,4 +1,4 @@
-CXX		:= clang++
+CXX		:= c++
 #WARNINGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic -Wuninitialized \
 			-Wmissing-include-dirs -Wshadow -Wundef -Winvalid-pch \
 			-Winit-self -Wswitch-enum -Wswitch-default -Wformat=2 \
@@ -52,7 +52,8 @@ CXX		:= clang++
 			-Wextra-semi
 WARNINGS	:= -Wall -Wextra -Werror
 ANALYZER	:=
-SANITIZERS	:= -fsanitize=address,undefined,integer
+#SANITIZERS	:= -fsanitize=address,undefined,integer
+SANITIZERS	:= -fsanitize=address,undefined
 CXXFLAGS	:= -std=c++98 $(WARNINGS) $(ANALYZER) $(SANITIZERS) -I../include \
 			-Isupport -MMD -MP -DFT_TEST -O0 -g3 -DFT_DEBUG -L.. -lftstl
 
@@ -105,3 +106,12 @@ testdrivers: $(TSTFILES)
 .PHONY: clean
 clean:
 	rm -f $(TSTFILES) $(HEADER_DEPS)
+
+.PHONY: fclean
+fclean:
+	${MAKE} clean
+
+.PHONY: re
+re:
+	${MAKE} fclean
+	${MAKE}

@@ -1,4 +1,4 @@
-CXX		:= g++
+CXX		:= c++
 WARNINGS	:= -Wall -Wextra
 CXXFLAGS	:= -std=c++98 $(WARNINGS) -Ofast -g0 -I. -I../include \
 			-I../test/support -L.. -lftstl
@@ -51,3 +51,12 @@ run: $(BENCHMARKS)
 .PHONY: clean
 clean:
 	rm -f $(HEADER_DEPS) $(FTBENCHMARKS) $(STDBENCHMARKS)
+
+.PHONY: fclean
+fclean:
+	${MAKE} clean
+
+.PHONY: re
+re:
+	${MAKE} fclean
+	${MAKE}
