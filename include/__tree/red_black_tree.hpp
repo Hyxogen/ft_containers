@@ -519,7 +519,7 @@ struct rbtree
     inline bool empty() const { return size() == 0; }
     inline size_type size() const { return _size; }
     inline size_type max_size() const {
-        return std::numeric_limits<size_type>::max() / sizeof(node_type);
+        return get_allocator().max_size();
     }
 
     void clear() {

@@ -193,7 +193,7 @@ class vector : public vector_base<Allocator> {
     }
 
     size_type max_size() const {
-        return std::numeric_limits<size_type>::max() / sizeof(value_type);
+        return _base::get_allocator().max_size();
     }
 
     void assign(size_type count, const_reference value) {
