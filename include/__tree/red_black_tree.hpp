@@ -52,11 +52,10 @@ struct rbnode_base {
     rbnode_base *left;
     rbnode_base *parent;
 
-    // TODO move implementation to cpp file
     rbnode_base(rbcolor color, rbnode_base *right, rbnode_base *left,
-                rbnode_base *parent)
-        : color(color), right(right), left(left), parent(parent) {}
+                rbnode_base *parent);
 
+#ifdef FT_INLINE
     /* TODO check if inlining makes a difference */
     inline rbside side() const {
 #ifdef FT_DEBUG
@@ -109,30 +108,21 @@ struct rbnode_base {
         return const_cast<rbnode_base *>(
             static_cast<const rbnode_base *>(this)->bound(side));
     }
+#else
 
-    // TODO move to cpp file
-    const rbnode_base *next(const rbside side) const {
-        const rbnode_base *node = this;
-        if (node->get_side(side) != NULL) {
-            node = node->get_side(side)->bound(!side);
-        } else {
-            rbnode_base *node_parent = node->parent;
-            // TODO try to remove the NULL check
-            while (node_parent != NULL && node == node_parent->get_side(side)) {
-                node = node_parent;
-                node_parent = node_parent->parent;
-            }
-            if (node->get_side(side) != node_parent) {
-                node = node_parent;
-            }
-        }
-        return node;
-    }
+    rbside side() const;
+    void swap(rbnode_base &other);
+    rbnode_base *get_side(const rbside side);
+    const rbnode_base *get_side(const rbside side) const;
+    void set_side(const rbside side, rbnode_base *node);
+    const rbnode_base *bound(const rbside side) const;
+    rbnode_base *bound(const rbside side);
+#endif
 
-    rbnode_base *next(const rbside side) {
-        return const_cast<rbnode_base *>(
-            static_cast<const rbnode_base *>(this)->next(side));
-    }
+    const rbnode_base *next(const rbside side) const;
+    rbnode_base *next(const rbside side);
+
+#ifdef FT_INLINE
 
     inline rbnode_base *predecessor() { return next(RB_LEFT); }
     inline rbnode_base *successor() { return next(RB_RIGHT); }
@@ -147,6 +137,16 @@ struct rbnode_base {
         }
         return node->color;
     }
+#else
+
+    rbnode_base *predecessor();
+    rbnode_base *successor();
+    const rbnode_base *predecessor() const;
+    const rbnode_base *successor() const;
+    rbnode_base *minimum();
+    rbnode_base *maximum();
+    static rbcolor get_color(const rbnode_base *const node);
+#endif
 };
 
 template <typename T> struct rbnode : public rbnode_base {

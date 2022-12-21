@@ -1,7 +1,7 @@
 CXX		:= g++
 WARNINGS	:= -Wall -Wextra
 CXXFLAGS	:= -std=c++98 $(WARNINGS) -Ofast -g0 -I. -I../include \
-			-I../test/support
+			-I../test/support -L.. -lftstl
 
 CXXFILES	:= $(shell find . -type f -name '*.cpp')
 BENCHMARKS	:= $(CXXFILES:.cpp=.out)
@@ -41,12 +41,12 @@ run: $(BENCHMARKS)
 
 .PRECIOUS: $(STDBENCHMARKS)
 %.out.std: %.cpp Makefile
-	$(.SILENT)$(CXX) $(CXXFLAGS) -DBENCHMARK_STD -o $@ $<
+	$(.SILENT)$(CXX) -DBENCHMARK_STD -o $@ $< $(CXXFLAGS)
 
 .PRECIOUS: $(FTBENCHMARKS)
 -include $(HEADER_DEPS)
 %.out.ft: %.cpp Makefile
-	$(.SILENT)$(CXX) -MMD -MP $(CXXFLAGS) -DBENCHMARK_FT -o $@ $<
+	$(.SILENT)$(CXX) -MMD -MP -DBENCHMARK_FT -o $@ $< $(CXXFLAGS)
 
 .PHONY: clean
 clean:

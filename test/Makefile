@@ -53,13 +53,19 @@ WARNINGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic -Wuninitialized \
 ANALYZER	:=
 SANITIZERS	:= -fsanitize=address,undefined,integer
 CXXFLAGS	:= -std=c++98 $(WARNINGS) $(ANALYZER) $(SANITIZERS) -I../include \
-			-Isupport -MMD -MP -DFT_TEST -O0 -g3 -DFT_DEBUG
+			-Isupport -MMD -MP -DFT_TEST -O0 -g3 -DFT_DEBUG -L.. -lftstl
 
 CXXFILES	:= $(shell find . -type f -name '*.cpp')
 HEADER_DEPS	:= $(CXXFILES:.cpp=.d)
 TSTFILES	:= $(CXXFILES:.cpp=.out)
 
 BIN_DIR		:= bin
+
+SILENT		:= @
+
+ifdef verbose
+	SILENT	:=
+endif
 
 .PHONY:	all
 all: run
@@ -89,7 +95,7 @@ testdrivers: $(TSTFILES)
 
 -include $(HEADER_DEPS)
 %.out: %.cpp Makefile
-	@$(CXX) $(CXXFLAGS) -o $@ $<
+	$(SILENT)$(CXX) -o $@ $< $(CXXFLAGS) 
 
 .PHONY: clean
 clean:
