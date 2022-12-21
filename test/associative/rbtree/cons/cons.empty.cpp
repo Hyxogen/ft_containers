@@ -3,10 +3,10 @@
 #include <memory>
 
 int main() {
-	{
-		using namespace ft::detail;
-                rbtree<int, int, use_self<int>, std::less<int>,
-                       std::allocator<rbnode<int> > >
-                    tree;
-        }
+    {
+        using namespace ft::detail;
+        rbtree<int, int, use_self<int>, std::less<int>,
+               std::allocator<rbnode<int> > >
+            tree;
+    }
 }

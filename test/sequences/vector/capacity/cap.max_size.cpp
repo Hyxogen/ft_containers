@@ -1,5 +1,5 @@
-#include <vector.hpp>
 #include <cassert>
+#include <vector.hpp>
 
 int main() {
     typedef ft::vector<int> M;

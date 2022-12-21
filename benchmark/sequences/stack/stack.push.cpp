@@ -2,8 +2,8 @@
 #include <cstdlib>
 
 int main() {
-	typedef stack<int> C;
-	C c = C();
+    typedef stack<int> C;
+    C c = C();
 
-	BENCHMARK(c.push(rand()); DO_NOT_OPTIMIZE(c.top()););
+    BENCHMARK(c.push(rand()); DO_NOT_OPTIMIZE(c.top()););
 }

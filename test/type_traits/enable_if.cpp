@@ -20,6 +20,6 @@
 static ft::enable_if<true, void>::type test() {}
 
 int main() {
-        test();
-        return 0;
+    test();
+    return 0;
 }

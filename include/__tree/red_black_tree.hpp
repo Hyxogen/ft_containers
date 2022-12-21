@@ -518,9 +518,7 @@ struct rbtree
 
     inline bool empty() const { return size() == 0; }
     inline size_type size() const { return _size; }
-    inline size_type max_size() const {
-        return get_allocator().max_size();
-    }
+    inline size_type max_size() const { return get_allocator().max_size(); }
 
     void clear() {
         base::destroy_tree(static_cast<node_type *>(root()));

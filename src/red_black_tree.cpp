@@ -99,5 +99,5 @@ rbcolor rbnode_base::get_color(const rbnode_base *const node) {
     return node->color;
 }
 #endif
-}
-}
+} // namespace detail
+} // namespace ft

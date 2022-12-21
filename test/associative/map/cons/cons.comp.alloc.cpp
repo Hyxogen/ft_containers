@@ -1,12 +1,11 @@
-#include <map.hpp>
 #include <functional>
+#include <map.hpp>
 #include <memory>
 
 int main() {
-        {
-                ft::map<int, int> mp((std::less<int>()),
-                                     std::allocator<int>());
+    {
+        ft::map<int, int> mp((std::less<int>()), std::allocator<int>());
 
-                mp.insert(ft::map<int, int>::value_type(4, 3));
-        }
+        mp.insert(ft::map<int, int>::value_type(4, 3));
+    }
 }

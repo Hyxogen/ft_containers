@@ -2,11 +2,11 @@
 #include <cstdlib>
 
 int main() {
-	set<int> s;
+    set<int> s;
 
-	for (int i = 0; i < 10000; ++i) {
-		const int x = rand() % 5000;
-		s.insert(x);
-	}
-        TIME(while (!s.empty()) { s.erase(s.begin()); });
+    for (int i = 0; i < 10000; ++i) {
+        const int x = rand() % 5000;
+        s.insert(x);
+    }
+    TIME(while (!s.empty()) { s.erase(s.begin()); });
 }

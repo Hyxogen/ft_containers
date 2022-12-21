@@ -192,9 +192,7 @@ class vector : public vector_base<Allocator> {
         return *this;
     }
 
-    size_type max_size() const {
-        return _base::get_allocator().max_size();
-    }
+    size_type max_size() const { return _base::get_allocator().max_size(); }
 
     void assign(size_type count, const_reference value) {
         clear();

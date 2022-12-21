@@ -2,26 +2,26 @@
 #include <stack.hpp>
 
 int main() {
-        typedef ft::stack<int> C;
+    typedef ft::stack<int> C;
 
-        C c = C();
-        assert(c.empty());
-        assert(c.size() == 0);
+    C c = C();
+    assert(c.empty());
+    assert(c.size() == 0);
 
-        assert(c == C());
+    assert(c == C());
 
-        c.push(5);
-        assert(c.size() == 1);
-        assert(c.top() == 5);
+    c.push(5);
+    assert(c.size() == 1);
+    assert(c.top() == 5);
 
-        C c2 = C();
+    C c2 = C();
 
-        c2 = c;
-        c.pop();
-        assert(c.size() == 0);
+    c2 = c;
+    c.pop();
+    assert(c.size() == 0);
 
-        assert(c2.size() == 1);
-        assert(c2.top() == 5);
+    assert(c2.size() == 1);
+    assert(c2.top() == 5);
 
-        assert(c != c2);
+    assert(c != c2);
 }
