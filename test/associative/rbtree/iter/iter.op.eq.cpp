@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <cassert>
 #include <functional>
@@ -22,3 +23,8 @@ int main() {
         assert(it1 == it2);
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif

@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <cassert>
 #include <functional>
@@ -35,3 +36,8 @@ int main() {
         }
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif

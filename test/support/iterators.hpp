@@ -1,4 +1,3 @@
-// <https://www.gnu.org/licenses/>.
 #ifndef ITERATORS_HPP
 #define ITERATORS_HPP
 

@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <cassert>
 #include <compare.hpp>
@@ -28,3 +29,8 @@ int main() {
         assert(tree.empty());
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif

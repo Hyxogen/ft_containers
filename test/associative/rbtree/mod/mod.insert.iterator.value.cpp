@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <cassert>
 
@@ -22,3 +23,8 @@ int main() {
         assert(i == 500);
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif

@@ -1,6 +1,6 @@
+#include <test.hpp>
 #include <cassert>
 #include <classes.hpp>
-#include <vector.hpp>
 
 int main() {
     {

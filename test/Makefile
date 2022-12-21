@@ -1,5 +1,5 @@
 CXX		:= clang++
-WARNINGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic -Wuninitialized \
+#WARNINGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic -Wuninitialized \
 			-Wmissing-include-dirs -Wshadow -Wundef -Winvalid-pch \
 			-Winit-self -Wswitch-enum -Wswitch-default -Wformat=2 \
 			-Wformat-nonliteral -Wformat-security -Wformat-y2k \
@@ -50,6 +50,7 @@ WARNINGS	:= -Wall -Wextra -Werror -std=c++98 -pedantic -Wuninitialized \
 			-Wunneeded-member-function -Wvla -Wshift-overflow \
 			-Wshift-negative-value -Wnull-dereference -Wunused-macros \
 			-Wextra-semi
+WARNINGS	:= -Wall -Wextra -Werror
 ANALYZER	:=
 SANITIZERS	:= -fsanitize=address,undefined,integer
 CXXFLAGS	:= -std=c++98 $(WARNINGS) $(ANALYZER) $(SANITIZERS) -I../include \
@@ -65,6 +66,10 @@ SILENT		:= @
 
 ifdef verbose
 	SILENT	:=
+endif
+
+ifdef std
+	CXXFLAGS += -DFT_TEST_STD
 endif
 
 .PHONY:	all

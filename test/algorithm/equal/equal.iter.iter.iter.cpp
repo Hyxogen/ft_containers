@@ -1,9 +1,9 @@
-#include <algorithm.hpp>
-#include <algorithm>
+#include <test.hpp>
 #include <cassert>
 #include <cstdlib>
 #include <list>
 #include <vector>
+#include <algorithm>
 
 template <typename T, typename U> bool is_equal(const T &t, const U &u) {
     return ft::equal(t.begin(), t.end(), u.begin());

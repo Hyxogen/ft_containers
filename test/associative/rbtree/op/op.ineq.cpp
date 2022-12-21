@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <cassert>
 #include <memory>
@@ -34,3 +35,8 @@ int main() {
         assert(a >= c);
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif

@@ -1,7 +1,7 @@
+#include <test.hpp>
 #include <allocators.hpp>
 #include <cassert>
 #include <classes.hpp>
-#include <vector.hpp>
 
 int main() {
     {
@@ -14,6 +14,7 @@ int main() {
         assert(vec[3] == 42);
         assert(vec[4] == 42);
     }
+#ifndef FT_TEST_STD
     {
         test::allocator_wrapper<int> alloc;
         std::size_t count = test::calls["copy"];
@@ -27,6 +28,7 @@ int main() {
         assert(vec[4] == 42);
         assert((test::calls["copy"] - count) == 1);
     }
+#endif
     {
         test::throwing_class<int> clazz;
         std::size_t used =

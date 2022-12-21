@@ -1,10 +1,11 @@
+#include <test.hpp>
 #include <allocators.hpp>
 #include <assert.hpp>
 #include <cassert>
 #include <classes.hpp>
-#include <map.hpp>
+
 #include <ostream>
-#include <utility.hpp>
+
 
 template <typename T>
 void check_insert(T &t, const typename T::value_type &u, bool unique) {
@@ -31,6 +32,7 @@ int main() {
         check_insert(map, 4, 0, false);
         check_insert(map, 0, 0, true);
     }
+#ifndef FT_TEST_STD
     {
         typedef test::throwing_class<test::tracking_class> clazz;
         ft::map<int, clazz> map;
@@ -126,4 +128,5 @@ int main() {
         assert(clazz::instances() == count);
         assert(node_allocator::active() == active);
     }
+#endif
 }

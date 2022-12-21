@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <cassert>
 
@@ -46,3 +47,8 @@ int main() {
         assert(tree.upper_bound(53) == tree.end());
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif

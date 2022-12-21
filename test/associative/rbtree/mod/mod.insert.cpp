@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <allocators.hpp>
 #include <assert.hpp>
@@ -132,3 +133,8 @@ int main() {
     }
     // TODO test exception safety
 }
+#else
+int main() {
+    return 0;
+}
+#endif

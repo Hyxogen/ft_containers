@@ -1,5 +1,5 @@
+#include <test.hpp>
 #include <cassert>
-#include <stack.hpp>
 
 int main() {
     typedef ft::stack<int> C;

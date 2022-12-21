@@ -1,7 +1,7 @@
+#include <test.hpp>
 #include <allocators.hpp>
 #include <cassert>
 #include <classes.hpp>
-#include <vector.hpp>
 
 int main() {
     {
@@ -18,6 +18,7 @@ int main() {
         assert(vec[2] == 11);
         assert(vec[3] == 412);
     }
+#ifndef FT_TEST_STD
     {
         ft::vector<int, test::limited_allocator<int> > tmp;
         tmp.push_back(43);
@@ -51,20 +52,21 @@ int main() {
         assert(vec[6] == 64);
     }
     {
-        ft::vector<test::throwing_class<int> > tmp(5, 231);
-        ft::vector<test::throwing_class<int> > vec(81, 54);
+        ft::vector<test::throwing_class<int> > tmp(5, test::throwing_class<int>(231));
+        ft::vector<test::throwing_class<int> > vec(81, test::throwing_class<int>(54));
         test::throwing_class<int>::make_next_throw();
         try {
             vec = tmp;
             assert(false);
         } catch (const test::too_many_instantiations &ex) {
+            test::throwing_class<int>::reset();
             for (std::size_t idx = 0; idx < 81; ++idx) {
-                assert(vec[idx] == 54);
+                assert(vec[idx] == test::throwing_class<int>(54));
             }
         }
-        test::throwing_class<int>::reset();
         vec.push_back(test::throwing_class<int>(42));
         assert(vec[81] == 42);
     }
+#endif
     return 0;
 }

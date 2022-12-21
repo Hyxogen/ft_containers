@@ -1,4 +1,4 @@
-#include <algorithm.hpp>
+#include <test.hpp>
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>

@@ -1,19 +1,4 @@
-// utility allocators used for testing
-
-// Copyright (C) 2022 Daan Meijer
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#include <test.hpp>
 #include <cstdlib>
 #include <limits>
 #include <map>
@@ -53,7 +38,7 @@ template <typename It, typename T> struct stateful_allocator {
         return std::allocator<value_type>().address(x);
     }
 
-    pointer allocate(size_type n, const void *hint = 0) {
+    pointer allocate(size_type n, const void *hint = NULL) {
         return std::allocator<value_type>().allocate(n, hint);
     }
 
@@ -61,7 +46,7 @@ template <typename It, typename T> struct stateful_allocator {
         return std::allocator<value_type>().deallocate(p, n);
     }
 
-    size_type max_size() const throw() {
+    size_type max_size() const  {
         return std::allocator<value_type>().max_size();
     }
 
@@ -85,6 +70,10 @@ struct allocator_wrapper : Base {
     typedef typename Base::const_reference const_reference;
     typedef typename Base::size_type size_type;
     typedef typename Base::difference_type difference_type;
+
+    template <class U> struct rebind {
+        typedef allocator_wrapper<U, Base> other;
+    };
 
     allocator_wrapper() : Base() { call("default"); }
 
@@ -117,7 +106,7 @@ struct allocator_wrapper : Base {
         return Base::deallocate(p, n);
     }
 
-    size_type max_size() const throw() {
+    size_type max_size() const  {
         call("max_size");
         return Base::max_size();
     }
@@ -136,7 +125,7 @@ struct allocator_wrapper : Base {
     static void call(const std::string &name) { calls[name] += 1; }
 };
 template <typename T, typename Base = std::allocator<T> >
-struct allocator_tracker : Base {
+struct allocator_tracker : public Base {
     typedef typename Base::size_type size_type;
     template <class U> struct rebind { typedef allocator_tracker<U> other; };
 
@@ -160,7 +149,7 @@ struct allocator_tracker : Base {
     }
 };
 
-template <typename T> struct limited_allocator : allocator_tracker<T> {
+template <typename T> struct limited_allocator : public allocator_tracker<T> {
     typedef allocator_tracker<T> _base;
     typedef typename _base::size_type size_type;
     template <class U> struct rebind { typedef limited_allocator<U> other; };
@@ -169,6 +158,9 @@ template <typename T> struct limited_allocator : allocator_tracker<T> {
     static size_type _limit;
 
   public:
+    limited_allocator() {}
+    template <class U>
+    limited_allocator(const limited_allocator<U> &other) : _base(other) {}
     static void set_limit(size_type limit) { _limit = limit; }
 
     static void reset_limit() {
@@ -198,12 +190,12 @@ typename limited_allocator<T>::size_type limited_allocator<T>::_limit =
 
 template <class T1, class T2, class Base>
 bool operator==(const allocator_wrapper<T1, Base> &lhs,
-                const allocator_wrapper<T2, Base> &rhs) throw() {
+                const allocator_wrapper<T2, Base> &rhs)  {
     return static_cast<Base>(lhs) == static_cast<Base>(rhs);
 }
 template <class T1, class T2, class Base>
 bool operator!=(const allocator_wrapper<T1, Base> &lhs,
-                const allocator_wrapper<T2, Base> &rhs) throw() {
+                const allocator_wrapper<T2, Base> &rhs)  {
     return static_cast<Base>(lhs) != static_cast<Base>(rhs);
 }
 } // namespace test

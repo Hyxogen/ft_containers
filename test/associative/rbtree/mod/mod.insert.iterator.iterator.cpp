@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <algorithm>
 #include <cassert>
@@ -21,3 +22,8 @@ int main() {
         assert(std::equal(tree.begin(), tree.end(), set.begin()));
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif

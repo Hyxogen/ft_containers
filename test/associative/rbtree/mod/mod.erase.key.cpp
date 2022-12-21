@@ -1,3 +1,4 @@
+#ifndef FT_TEST_STD
 #include <__tree/red_black_tree.hpp>
 #include <algorithm>
 #include <allocators.hpp>
@@ -152,3 +153,8 @@ int main() {
         }
     }
 }
+#else
+int main() {
+    return 0;
+}
+#endif
