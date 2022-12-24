@@ -1,0 +1,119 @@
+ft_containers
+============
+This is a project about recreating a few of the C++98 STL containers and
+learning what each one is meant for
+
+The implementations have to be C++98 standard complaint. Meaning later features
+musn't me implemented, and deprecated functions must be implemented.
+
+mandatory part
+============
+Implement the following containers in their <container>.hpp files
+  x vector (without vector<bool> specializiation
+  x map
+  x stack (it will use the custom vector implementation, but must still be
+      compatible with other containers)
+Also implement:
+  x std::iterator_traits
+  x std::reverse_iterator
+  x std::enable_if (isn't C++98, but is required to discover SFINAE)
+  x std::is_integral
+  x std::equal and/or std::lexicographical_compare
+  x std::pair
+  x std::make_pair
+
+bonus part 
+============
+Implement the set container with a red-black tree
+
+result
+============
+I really liked this project, as I never really stood still by the fact that
+exception safety is a thing, and that (at least in C++98) there are some weird
+hacks you have to do to properly implement the containers. I think I also
+learned how to (better) read and understand template errors and when to use
+which container in my own projects.
+
+My containers are, as far as I know, fully C++98 compliant if you ignore later
+defect reports that were applied to the C++98 standard. Meaning they have the
+exception safety and complexity guarantees as required by C++98.
+
+My containers are also pretty fast compared to the ones installed on my system
+(gcc12.2.0). Here are some results:
+
+The data below was measured using the benchmarks in the benchmark/ directory
+
+vector<T>
++-----------------------------------------------+------------+---------+
+|                   function                    | system(ms) |  my(ms) |
++-----------------------------------------------+------------+---------+
+| swap(vector)                                  |    0.00405 | 0.00146 |
+| vector(InputIt, InputIt)                      |    0.06462 | 0.04502 |
+| assign(size_type, value_type)                 |    0.08932 | 0.08412 |
+| vector(size_type, value_type, allocator_type) |    0.08825 | 0.08548 |
+| vector(vector)                                |    0.03764 | 0.03743 |
+| insert(ForwardIt, ForwardIt)                  |    0.22229 | 0.27777 |
+| push_back(value_type)                         |    0.01198 | 0.01790 |
+| resize(size_type, value_type)                 |    0.09929 | 0.23234 |
++-----------------------------------------------+------------+---------+
+
+set<T>
++-----------------------------------------------+------------+---------+
+|         function                              | system(ms) | my(ms)  |
++-----------------------------------------------+------------+---------+
+| count()                                       |    0.00199 | 0.00178 |
+| find(key_type)                                |    0.00570 | 0.00529 |
+| upper_bound(key_type)                         |    0.00197 | 0.00210 |
+| lower_bound(key_type)                         |    0.00194 | 0.00212 |
+| erase(key_type)                               |    0.00178 | 0.00209 |
+| insert(value_type)                            |    0.03965 | 0.04766 |
+| clear()                                       |    0.06644 | 0.08610 |
+| erase(iterator, iterator)                     |    0.00035 | 0.00055 |
+| equal_range(key_type)                         |    2.24509 | 3.83404 |
+| erase(iterator)                               |    0.00086 | 0.00268 |
++-----------------------------------------------+------------+---------+
+
+map<T, U>
+
++-----------------------------------------------+------------+---------+
+|         function                              | system(ms) | my(ms)  |
++-----------------------------------------------+------------+---------+
+| operator[](key_type)                          |    5.71076 | 5.24225 |
+| find(key_type)                                |    5.50837 | 5.17741 |
+| count(key_type)                               |    5.54869 | 5.21871 |
+| lower_bound(key_type)                         |    2.09687 | 2.11234 |
+| upper_bound(key_type)                         |    2.06051 | 2.07381 |
+| clear()                                       |    0.09021 | 0.09198 |
+| insert(value_type)                            |    0.04111 | 0.06012 |
+| erase(iterator, iterator)                     |    0.00034 | 0.00058 |
+| equal_range(key_type)                         |    2.20543 | 3.92549 |
+| erase(key_type)                               |    0.00163 | 0.00316 |
+| erase(iterator)                               |    0.00129 | 0.00265 |
++-----------------------------------------------+------------+---------+
+
+(These tables were generated using Ozh's tool:
+https://ozh.github.io/ascii-tables/)
+
+improvements
+============
+There are quite some improvements that can still be implemented. For example,
+equal_range for both map and set is currently implemented using lower_bound and
+upper_bound, but this can be (probably) be optimized by starting the search for
+the either lower_bound or upper_bound from eachother. Also currently
+vector<T>::resize is currently implemented quite naively, which can be seen in
+the data above. I also did not profile my code, so that's also something I
+could do to find the bottlenecks and make it even faster. Lastly, I could
+insert guidance on which branches are taken often or not, something that
+EASTL (a STL impementation by EA which I used as reference) used heavily.
+
+
+references
+============
+EASTL (https://github.com/electronicarts/EASTL)
+LLVM libc++ (https://github.com/llvm/llvm-project)
+GNU libc++ (https://github.com/llvm/llvm-project)
+
+special thanks
+============
+Special thanks to mjoosten42 for helping me test my code
+https://github.com/mjoosten42
